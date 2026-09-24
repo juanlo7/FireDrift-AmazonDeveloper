@@ -1,0 +1,55 @@
+name: Bug
+description: Something does not work as expected
+title: "fix: "
+labels: ["type: bug"]
+# projects: ["juanlo7/1"]  # Put the project path here to add issues to the board
+body:
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Open the app
+        2. Press Down on the D-pad
+        3. ...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected result
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual result
+      description: Add screenshots or logs if you have them.
+    validations:
+      required: true
+  - type: dropdown
+    id: target
+    attributes:
+      label: Where does it happen?
+      multiple: true
+      options:
+        - Fire TV device
+        - Fire TV / Vega simulator
+        - Backend / AWS
+    validations:
+      required: true
+  - type: input
+    id: branch
+    attributes:
+      label: Branch or version
+      placeholder: development @ abc1234
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority
+      options:
+        - "high — blocks the demo"
+        - "medium — visible in the demo"
+        - "low — edge case"
+    validations:
+      required: true

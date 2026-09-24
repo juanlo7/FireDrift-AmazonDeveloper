@@ -1,0 +1,73 @@
+name: Friction log
+description: A problem with an Amazon or AWS tool, SDK, doc, or API. Feeds the submission bonus (up to 10%).
+title: "friction: "
+labels: ["friction-log"]
+# projects: ["juanlo7/1"]  # Put the project path here to add issues to the board
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Log the problem when it happens. We copy these entries into the Devpost
+        submission. Fields match the "Friction Log Entries" in the hackathon rules.
+  - type: input
+    id: tool
+    attributes:
+      label: Tool, SDK, or API
+      placeholder: Vega SDK 0.x, Fire TV simulator, Amazon Bedrock, ...
+    validations:
+      required: true
+  - type: textarea
+    id: task
+    attributes:
+      label: Task attempted
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps taken
+      placeholder: |
+        1. ...
+        2. ...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected result
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual result
+      description: Paste the exact error text.
+    validations:
+      required: true
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Severity
+      options:
+        - "Critical — blocked, no workaround"
+        - "High — blocked, workaround exists"
+        - "Medium — slowed us down"
+        - "Low — annoyance"
+    validations:
+      required: true
+  - type: textarea
+    id: workaround
+    attributes:
+      label: Workaround used
+  - type: textarea
+    id: suggestion
+    attributes:
+      label: Actionable suggestion
+      description: What should Amazon change in the tool or the docs?
+    validations:
+      required: true
+  - type: input
+    id: time_lost
+    attributes:
+      label: Time lost
+      placeholder: 45 minutes
