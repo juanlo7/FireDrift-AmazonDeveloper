@@ -8,6 +8,7 @@ Submission deadline: **Fri, Oct 23, 2026, 12:00 pm PT**.
 
 - `docs/hackathon.md` — key rules, judging criteria, submission checklist.
 - `docs/workflow.md` — branches, PR flow, Kanban board, labels.
+- `docs/amazon-samples.md` — Amazon sample repos review and platform recommendation.
 
 ## Hard rules
 
