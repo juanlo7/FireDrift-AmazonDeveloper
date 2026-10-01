@@ -20,29 +20,37 @@ by moving a block, not by leaving work unowned.
 The team works in React and TypeScript. The Python agent and the Blender
 scripts are written with AI help (Claude); the owner reviews, tests and decides.
 
-### Person 1 — Feed, voice and grounding
+### Person 1 — Feed, catalog and voice
+
+The feed from the first key press to the streaming app, the catalog behind it,
+the grounding tools that keep the butler honest, and the butler's ears and
+voice.
 
 | Block | Size | Where |
 |---|---|---|
-| Feed: cover hold, single trailer player, D-pad keys, prefetch (FR-1) | L | `app/` |
+| Vega app scaffold: monorepo, navigation, theme, focus hooks, API client with one mock/real switch | M | `app/` |
+| Spikes: V1 (YouTube IFrame in a WebView) and V3 (deep links, Content Launcher) | S | — |
+| Feed: cover hold, single trailer player, D-pad keys, prefetch, memory check (FR-1) | L | `app/` |
 | Recycled player pool as an open-source package with tests and README | M | `packages/player-pool/` |
-| Services and country screen, settings (FR-4) | M | `app/` |
+| Services and country screen, settings, About screen with attributions (FR-4) | M | `app/` |
 | Watch now sheet and app launch (FR-3) | M | `app/` |
-| About screen with attributions | S | `app/` |
-| TMDB client with cache, providers per country | M | `backend/` |
+| TMDB client with cache, providers per country, `GET /providers`, `GET /titles` | M | `backend/` |
 | Grounding tools as Lambdas: `resolve_titles`, `similar` (nothing is shown unless TMDB resolves it) | S | `backend/` |
 | Voice pipeline: Transcribe streaming in, Polly out with speech marks | L | `agent/voice/` |
 
 ### Person 2 — Taste, AWS and the agent core
 
+The critical path at the start: shared types and the AWS stack come first.
+
 | Block | Size | Where |
 |---|---|---|
+| Shared types, fixtures and the brain ↔ voice interface (first PR, day 1) | S | `packages/domain/` |
 | CDK stack, HTTP API, DynamoDB, one secret, budgets and tags | M | `backend/` |
-| Profiles and signals ingestion | S | `backend/` |
+| Profiles, signals ingestion, `GET /pool`, weights with undo and reset | M | `backend/` |
 | Signal queue with batch flush (FR-2, device side) | S | `app/` |
 | Taste algorithm, weights (learned + adjustment layer), pools (4.1) | L | `backend/` |
 | Weight tools as Lambdas: `get_weights`, `update_weights`, `ranked_picks` | S | `backend/` |
-| AgentCore Runtime and Gateway deploy, config values, kill switch | M | `backend/` |
+| AgentCore Runtime and Gateway deploy, config values, kill switch, spike V4 (model) | M | `backend/` |
 | Strands agent core: tool loop, resolve-then-show, weight changes | M | `agent/brain/` |
 | Butler WebSocket, agent server end | S | `agent/` |
 | Model choice: Haiku 4.5 vs Nova 2 Lite on a short set of demo prompts (quality, latency, cost) | S | `agent/tests/` |
@@ -50,21 +58,24 @@ scripts are written with AI help (Claude); the owner reviews, tests and decides.
 
 ### Person 3 — Butler persona, gestures and character
 
-Everything the user sees and hears of the butler: who it is, how it reacts and
-the 3D character that does it. The agent chooses the character's gestures
-itself, as cues inside its own answer (`docs/contracts.md`, section 6).
+Everything the user sees of the butler: who it is, how it reacts and the 3D
+character that does it. The agent chooses the character's gestures itself, as
+cues inside its own answer (`docs/contracts.md`, section 6). Also CI and the
+README for the judges.
 
 | Block | Size | Where |
 |---|---|---|
+| Spikes: V2 (microphone and push-to-talk button) and V5 (clip player next to the WebView, memory) | S | — |
 | Persona prompt: voice and tone, short answers, chips, when and how much to gesture | S | `agent/brain/` |
 | Caps, short context, silent fallback | S | `agent/brain/` |
-| Gesture cues: closed gesture set, cue markers in the answer, parser that strips them and times each gesture with the Polly speech marks, gesture queue in the app | L | `agent/character/`, `app/` |
-| Speaking sync: drive the `speaking` clip from Polly speech marks | S | `app/` |
-| Character plan, model and rig in Blender (AI-assisted), clip spec check on Vega | M | `assets/blender/` |
+| Gesture cues and speech sync: closed gesture set, cue markers in the answer, parser that strips them, gesture timing and the `speaking` clip driven by Polly speech marks | L | `agent/character/`, `app/` |
+| Character design, model and rig in Blender (`bpy` scripts, AI-assisted) | M | `assets/blender/` |
 | Animate the four seamless loops and the one-shot gestures | L | `assets/blender/` |
-| Render, compress and test the clips on the simulator or device (memory, loops) | S | `assets/butler/` |
+| Render, compress and test the clips on the simulator (memory, loops) | S | `assets/butler/` |
 | Butler screen: clip player and states, card, chips, push-to-talk mic capture, audio playback, undo/reset | L | `app/` |
 | Butler WebSocket, app client end | S | `app/` |
+| CI: typecheck, lint, tests, `audit.js` from devices-agent-skills | S | `.github/` |
+| README setup and run instructions; owner of the submission text | S | `README.md` |
 
 Placeholder clips with the final names exist from day one, so the butler screen
 never waits for the final renders. Only assets we have the right to use; the
@@ -76,8 +87,9 @@ README lists the AI tools and assets used for the character.
 |---|---|---|---|
 | Points | 18 | 18 | 18 |
 | Own spikes (risk) | V1, V3 | V4, AgentCore | V2, V5, Blender |
-| Heaviest period | Oct 4–15 (feed), Oct 19–22 (video) | Oct 1–11 (stack, algorithm, agent) | Oct 4–18 (character, butler screen) |
-| Stacks | App, backend (TS) | Backend (TS), agent (Python) | App (TS), agent I/O (Python), Blender |
+| AI share | Voice (Transcribe, Polly), grounding tools | Agent core, weight tools, AgentCore, model choice | Persona, caps and fallback, agent-driven gestures |
+| Heaviest period | Oct 4–15 (feed, voice) | Oct 1–11 (stack, algorithm, agent), Oct 19–22 (video) | Oct 4–18 (character, gestures, butler screen) |
+| Stacks | App, backend (TS), agent voice (Python) | Backend (TS), agent (Python) | App (TS), agent persona (Python), Blender |
 
 ## Milestones
 
@@ -88,7 +100,7 @@ README lists the AI tools and assets used for the character.
 | Oct 4–11 | Blocks against mocks and fixtures. |
 | Oct 12–15 | Integration: mock to real, one config value at a time. |
 | Oct 16–18 | Polish, memory and responsiveness measurements. **Feature freeze Oct 18.** |
-| Oct 19–22 | Demo video (P1 leads, all capture), README, product feedback, friction log, submission. |
+| Oct 19–22 | Demo video (P2 leads, all capture), README, product feedback, friction log, submission. |
 
 ## How we stay independent
 
@@ -101,12 +113,14 @@ README lists the AI tools and assets used for the character.
    `packages/domain/fixtures/`.
 3. **Folders follow blocks.** Where two people share a folder (`app/`,
    `agent/`, `backend/`), each works in their own subfolders and screens.
-4. **One owner for the voice flow.** P3 owns the socket, audio in and audio
-   out; P2 owns the agent brain. They meet at one interface defined in
-   `packages/domain`: the voice side passes the user text (transcript or chip)
-   to the brain, and the brain streams back answer text, suggestions, chips,
-   weight changes or a fallback (the agent → app events of `contracts.md`,
-   section 3, without audio).
+4. **Voice, brain and character meet at one interface.** P1 owns audio in
+   and out (Transcribe, Polly); P2 owns the agent brain and the server end of
+   the socket; P3 owns the persona, the gesture cues and the app end of the
+   socket. The interface is defined in `packages/domain`: the voice side
+   passes the user text (transcript or chip) to the brain, and the brain
+   streams back answer text with gesture cues, suggestions, chips, weight
+   changes or a fallback (the agent → app events of `contracts.md`, section 3,
+   without audio).
 5. **Integration** happens as soon as a real endpoint or socket is deployed:
    the app switches from mock to real with one config value.
 
