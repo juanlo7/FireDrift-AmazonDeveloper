@@ -9,9 +9,9 @@ FireDrift. When in doubt, the official rules win.
 | Item | Value |
 |---|---|
 | Primary track | **Fire TV** |
-| Platform | Fire OS or Vega OS (to be decided — see `CLAUDE.md`) |
+| Platform | **Vega OS** (see `docs/requirements.md`, D1) |
 | Mini challenges (targets) | AWS Builder, Open Source |
-| Repository | `juanlo7/FireDrift-AmazonDeveloper` (private) |
+| Repository | `juanlo7/FireDrift-AmazonDeveloper` (public at submission, MIT) |
 
 A project can win **one** track prize and **one** mini challenge prize.
 

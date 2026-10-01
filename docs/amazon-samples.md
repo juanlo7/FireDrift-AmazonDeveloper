@@ -1,5 +1,9 @@
 # Amazon Sample Repositories — Review
 
+> Research reference from Sep 24. Product scope and final decisions live in
+> `docs/requirements.md` and win over this file (no web/PWA client, no endless
+> scroll feed).
+
 Review of the official [AmazonAppDev](https://github.com/AmazonAppDev) samples and
 tools, done for issue #1. Use it to choose the platform, the framework, and the
 code we start from.
