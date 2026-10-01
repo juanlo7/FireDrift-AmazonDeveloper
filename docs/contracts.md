@@ -107,7 +107,7 @@ are JSON `{ "t": <event>, ...fields }`. Audio goes in binary frames.
 | `transcript` | `text, final: boolean` | What the user said |
 | `thinking` | — | Character goes to `thinking` |
 | `answer.delta` | `text` | Streamed answer text |
-| `speech` | `audioUrl` or binary frames, `format: "mp3"`, `marks: { timeMs, type, value }[]` | One per sentence; app plays it in order and shows `speaking` |
+| `speech` | `audioUrl` or binary frames, `format: "mp3"`, `marks: { timeMs, type, value }[]`, `gestures: { name: Gesture, timeMs }[]` | One per sentence; app plays it in order and shows `speaking`. Each gesture plays once at its `timeMs` (section 6) |
 | `suggestion` | `title: TitleCard, reason` | Only TMDB-resolved titles |
 | `chips` | `chips: Chip[]` | Next quick replies |
 | `weights.changed` | `change: WeightChange` | Shown with the Undo action |
@@ -126,6 +126,19 @@ The app owns the character state: `listening` on `audio.start`, `thinking` on
 | `assets/butler/listening.mp4` | `listening` | Seamless loop, 2–4 s |
 | `assets/butler/thinking.mp4` | `thinking` | Seamless loop, 2–4 s |
 | `assets/butler/speaking.mp4` | `speaking` | Seamless loop, 2–4 s, mouth moving |
+
+**Gestures** (one-shot, played once over the current state, then back to its loop):
+
+| File | Gesture | Use |
+|---|---|---|
+| `assets/butler/gesture-nod.mp4` | `nod` | Agrees, confirms a pick |
+| `assets/butler/gesture-shrug.mp4` | `shrug` | Not sure, nothing found |
+| `assets/butler/gesture-shiver.mp4` | `shiver` | Scary or dark title |
+| `assets/butler/gesture-excited.mp4` | `excited` | Strong match, big recommendation |
+| `assets/butler/gesture-bow.mp4` | `bow` | Greeting, goodbye |
+
+Gestures are 1–2 s, start and end on the same pose as the loops, and play in the
+same clip player (one clip player only, NFR-2).
 
 All clips: H.264 MP4, 1280×720 or smaller, 30 fps, no audio, same framing and
 background (or alpha if Vega supports it, see `requirements.md` V5), each under
@@ -146,3 +159,23 @@ the session, never from the model.
 
 Limits enforced by the tools, not by the prompt: max changes and max delta per
 `update_weights` call, clamp range, max proposals per call.
+
+## 6. Gesture cues (agent → character)
+
+The model picks gestures inside its own answer, in the same generation. No
+extra tool call and no extra model call.
+
+```ts
+type Gesture = "nod" | "shrug" | "shiver" | "excited" | "bow";
+```
+
+- **Marker:** `{{gesture}}` placed right before the word it goes with, for
+  example `Then try this one. {{shiver}} It is creepy, but not gory.`
+- **Parser (agent server):** strips every `{{...}}` from the text before
+  `answer.delta` and Polly, so markers are never shown or spoken. A marker with
+  a name outside `Gesture` is dropped. Max one gesture per sentence and two per
+  answer; extra markers are dropped.
+- **Timing:** each kept marker takes the `timeMs` of the Polly word mark that
+  follows it and is sent in that sentence's `speech.gestures`.
+- **Without the model** (`fallback`, chips only): no gestures, or a fixed one
+  (`shrug` when a cap is reached).

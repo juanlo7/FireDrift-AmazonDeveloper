@@ -43,7 +43,7 @@ real TV constraint (low RAM) solved on purpose.
 | D11 | Butler voice | **Amazon Transcribe streaming** (speech → text) → agent → **Amazon Polly** neural voice (text → speech, with speech marks to sync the animation). |
 | D12 | Listening | **Push to talk** (hold a remote button). No always-on microphone. |
 | D13 | No microphone | Butler works with **quick-reply chips** (D-pad) and still **speaks** and animates. |
-| D14 | Butler animation | Made in **Blender** with help from AI tools, shipped as **short pre-rendered video clips** per butler state (`contracts.md`, section 4). |
+| D14 | Butler animation | Made in **Blender** with help from AI tools, shipped as **short pre-rendered video clips**: one loop per butler state plus one-shot **gestures** the agent picks with cue markers in its answer (`contracts.md`, sections 4 and 6). |
 | D15 | Agent runtime | **Strands agent on Amazon Bedrock AgentCore Runtime**, WebSocket streaming. Tools are our Lambdas exposed through **AgentCore Gateway**. |
 | D16 | Model | **Claude Haiku 4.5 on Bedrock**, if it is available in our region and our credits cover it. Otherwise **Amazon Nova 2 Lite**. The model ID is a config value. |
 | D17 | Languages (code) | App, Lambdas, CDK and shared types in **TypeScript**. Agent in **Python** (Strands Python SDK). |
@@ -188,6 +188,9 @@ series one at a time and talks with the user: "something like Dark",
 - The answer is **spoken** (Polly) and shown as short text. The character plays
   the clip of its current state: *idle*, *listening*, *thinking*, *speaking*.
   The *speaking* clip follows the Polly speech marks.
+- **Gestures:** the agent picks short gestures (`nod`, `shrug`, `shiver`,
+  `excited`, `bow`) with cue markers in its own answer, in the same model call.
+  Each gesture plays at the word it marks. Markers are never spoken or shown.
 - The current suggestion is a card (poster, title, year, short reason) with its
   trailer in the **same single trailer player** (FR-1), and a Watch now action.
 
@@ -244,6 +247,11 @@ Acceptance:
   and the algorithm, and the feed is unaffected.
 - Given a butler suggestion plays its trailer, then there is still one trailer
   player instance.
+- Given the agent proposes a scary title, then the character can play a
+  gesture (for example `shiver`) at the marked word, and the marker is not
+  spoken or shown.
+- Given the model writes an unknown gesture marker, then it is dropped and the
+  answer plays normally.
 
 ## 5. Non-functional requirements
 
@@ -340,7 +348,8 @@ Transcribe ~$0.004, Polly ~$0.005, AgentCore runtime negligible). That is about
 
 **Risks**
 - **Butler is large for the time left.** Cut order if late: conversation polish
-  → free voice input (keep chips + spoken answers) → animation states reduced to
+  → gestures (keep the four state loops) → free voice input (keep chips +
+  spoken answers) → animation states reduced to
   *idle* and *speaking*. The feed and FR-1 to FR-4 are never cut.
 - **Wrong or non-existent titles from the model.** Resolve-then-show; track the
   drop rate in tests.

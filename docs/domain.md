@@ -123,6 +123,11 @@ Moves: `idle → listening → thinking → speaking → idle`. A chip goes
 `idle → thinking`. Any error goes to `fallback`, and the next working turn
 returns to `idle`.
 
+### Gesture
+A one-shot clip (`nod`, `shrug`, `shiver`, `excited`, `bow`) that the agent
+picks with a cue marker in its answer. It plays once over the current state and
+does not change the state.
+
 ### Config
 Values in DynamoDB that change behavior without a redeploy: active algorithm
 version, quotas, signal strengths, cooldowns, butler caps, kill switch, model
