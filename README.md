@@ -22,3 +22,7 @@ uv run pytest
 |---|---|
 | `packages/domain` | Shared contract schemas, types and fixtures (`packages/domain/README.md`) |
 | `agent` | Butler agent in Python (`agent/README.md`) |
+
+## License
+
+MIT, see `LICENSE`.
