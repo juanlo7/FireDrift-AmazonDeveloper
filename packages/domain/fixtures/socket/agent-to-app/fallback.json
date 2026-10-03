@@ -1,0 +1,19 @@
+{
+  "t": "fallback",
+  "reason": "cap",
+  "message": "I need a short break. Here are some picks for you.",
+  "chips": [
+    {
+      "id": "more_like_this",
+      "label": "More like this"
+    },
+    {
+      "id": "shorter",
+      "label": "Shorter"
+    },
+    {
+      "id": "different_genre",
+      "label": "Different genre"
+    }
+  ]
+}

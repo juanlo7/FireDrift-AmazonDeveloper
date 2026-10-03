@@ -1,0 +1,43 @@
+{
+  "likes": [
+    {
+      "feature": "genre:9648",
+      "label": "Mystery",
+      "weight": 0.82
+    },
+    {
+      "feature": "keyword:4379",
+      "label": "time travel",
+      "weight": 0.64
+    },
+    {
+      "feature": "type:series",
+      "label": "Series",
+      "weight": 0.31
+    }
+  ],
+  "dislikes": [
+    {
+      "feature": "genre:27",
+      "label": "Horror",
+      "weight": -0.55
+    },
+    {
+      "feature": "runtime:long",
+      "label": "Long runtime",
+      "weight": -0.2
+    }
+  ],
+  "lastChange": {
+    "changeId": "chg_01HZY3K8Q4",
+    "changes": [
+      {
+        "feature": "genre:27",
+        "delta": -0.3
+      }
+    ],
+    "reason": "You said you are tired of horror.",
+    "at": "2026-10-03T18:42:10Z",
+    "undone": false
+  }
+}

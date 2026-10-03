@@ -1,0 +1,25 @@
+{
+  "t": "chips",
+  "chips": [
+    {
+      "id": "more_like_this",
+      "label": "More like this"
+    },
+    {
+      "id": "shorter",
+      "label": "Shorter"
+    },
+    {
+      "id": "different_genre",
+      "label": "Different genre"
+    },
+    {
+      "id": "tell_me_more",
+      "label": "Tell me more"
+    },
+    {
+      "id": "watch_now",
+      "label": "Watch now"
+    }
+  ]
+}

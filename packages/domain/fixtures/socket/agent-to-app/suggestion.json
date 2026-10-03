@@ -1,0 +1,30 @@
+{
+  "t": "suggestion",
+  "title": {
+    "tmdbId": 90669,
+    "type": "series",
+    "name": "1899",
+    "year": 2022,
+    "overview": "Immigrants on a steamer from London to New York get caught in a mysterious riddle after finding a second vessel adrift on the open sea.",
+    "rating": 7.4,
+    "genres": [
+      "Drama",
+      "Mystery",
+      "Sci-Fi & Fantasy"
+    ],
+    "runtimeMinutes": 60,
+    "posterUrl": "https://image.tmdb.org/t/p/w500/8KGvYHQNOamON6ufQGjyhkiVn1V.jpg",
+    "backdropUrl": "https://image.tmdb.org/t/p/w1280/7RbTwrSXXEdkMvEvUP4L4VvhdWA.jpg",
+    "trailerKey": "ulOOON_KYKo",
+    "providers": [
+      {
+        "providerId": 8,
+        "name": "Netflix",
+        "logoUrl": "https://image.tmdb.org/t/p/w92/pbpMk2JmcoNnQwx5JGpXngfoWtp.jpg",
+        "offer": "subscription"
+      }
+    ],
+    "onMyServices": true
+  },
+  "reason": "From the creators of Dark, with the same slow-burn mystery in shorter seasons."
+}

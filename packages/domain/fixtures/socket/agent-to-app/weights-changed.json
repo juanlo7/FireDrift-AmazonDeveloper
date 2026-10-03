@@ -1,0 +1,15 @@
+{
+  "t": "weights.changed",
+  "change": {
+    "changeId": "chg_01HZY3K8Q4",
+    "changes": [
+      {
+        "feature": "genre:27",
+        "delta": -0.3
+      }
+    ],
+    "reason": "You said you are tired of horror.",
+    "at": "2026-10-03T18:42:10Z",
+    "undone": false
+  }
+}
