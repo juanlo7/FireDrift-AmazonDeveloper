@@ -4,7 +4,8 @@
   "description": "Movie and series discovery for Fire TV (Vega OS)",
   "license": "MIT",
   "workspaces": [
-    "packages/*"
+    "packages/*",
+    "app"
   ],
   "scripts": {
     "typecheck": "yarn workspaces foreach -A --exclude firedrift run typecheck",
