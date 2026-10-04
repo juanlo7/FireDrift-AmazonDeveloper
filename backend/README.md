@@ -8,11 +8,10 @@ yarn workspace @firedrift/backend typecheck
 yarn workspace @firedrift/backend test
 ```
 
-## Local API (before the AWS stack exists)
+## Local API
 
-Runs the real catalog handlers against TMDB on your machine. Profiles live in
-memory; P2's routes (pool, signals, weights) answer with the fixtures in
-`packages/domain/fixtures/rest/` until their Lambdas exist.
+Runs every real handler on your machine against TMDB. Profiles, signals,
+weights and pools live in memory and are lost when it stops.
 
 1. Get a free TMDB key (themoviedb.org → Settings → API) and save the API Read
    Access Token in `backend/.env.local` (git ignores it):
@@ -52,6 +51,29 @@ memory; P2's routes (pool, signals, weights) answer with the fixtures in
 Every TMDB response is cached twice: in memory per Lambda instance, and in
 DynamoDB with a TTL (details 24 h, search and lists 24 h, discover 6 h,
 provider lists 7 days). Errors are never cached.
+
+## Profile and taste (P2)
+
+| Route | Handler |
+|---|---|
+| `PUT /profiles/{profileId}` | `src/handlers/putProfile.ts` |
+| `POST /profiles/{profileId}/signals` | `src/handlers/postSignals.ts` |
+| `GET /profiles/{profileId}/pool?size=20` | `src/handlers/getPool.ts` |
+| `GET /profiles/{profileId}/weights` | `src/handlers/getWeights.ts` |
+| `POST /profiles/{profileId}/weights/undo` | `src/handlers/undoWeights.ts` |
+| `POST /profiles/{profileId}/weights/reset` | `src/handlers/resetWeights.ts` |
+
+- `profileId` must be a UUID. A profile that was never saved counts as country
+  `ES` with all services, so the feed works before `PUT /profiles`.
+- Signals are idempotent by `signalId`: a resent batch comes back as `duplicates`.
+- The pool is a **cold start** (`algorithmVersion: "cold-start-1"`) until the
+  taste algorithm (#46): popular titles from TMDB `discover` for the country and
+  services, movies and series alternating, varied genres, without titles the
+  profile already reacted to. `size` goes from 1 to 40.
+- Weights: effective = clamp(learned + adjustment) in [-1, 1], top 5 likes and
+  dislikes. Undo reverts the newest change not undone; reset empties the
+  adjustment layer and marks pending changes undone. Labels are the feature
+  keys until #46 names them.
 
 ## AWS stack (CDK)
 
@@ -97,6 +119,7 @@ Each owner keeps their routes in their own construct in `backend/infra/lib/`,
 created from `FireDriftStack`:
 
 - `catalog-construct.ts` (P1): `GET /providers`, `GET /titles/{type}/{tmdbId}`.
+- `taste-construct.ts` (P2): profile, signals, pool and weights routes.
 
 A construct gets a `BackendContext` (`table`, `tmdbSecret`, `addRoute`). Create
 each Lambda with `new BackendFunction(this, id, { handler: "<file in
@@ -116,9 +139,9 @@ One table for everything. Profile items share the partition `PROFILE#<profileId>
 | Learned weights | `PROFILE#<profileId>` | `WEIGHTS#LEARNED` | `weights` (feature → number), `updatedAt` | — | taste (#46) |
 | Butler adjustment | `PROFILE#<profileId>` | `WEIGHTS#ADJUST` | `weights`, `updatedAt` (decays on read) | — | `update_weights` (#47) |
 | Weight change | `PROFILE#<profileId>` | `CHANGE#<at>#<changeId>` | the `WeightChange` fields; last 20 kept | — | `update_weights` (#47) |
-| Pool | `PROFILE#<profileId>` | `POOL#<poolId>` | `algorithmVersion`, `titles` | 7 days | pool (#44, #46) |
+| Pool | `PROFILE#<profileId>` | `POOL#<poolId>` | `algorithmVersion`, `titles` (`type` and `tmdbId` only), `createdAt` | 7 days | pool (#44, #46) |
 | Seen title | `PROFILE#<profileId>` | `SEEN#<type>#<tmdbId>` | `lastSeenAt` (recency cooldown) | 30 days | pool (#46) |
 | Config | `CONFIG` | `ACTIVE` | `algorithmVersion`, quotas, signal strengths, butler caps, kill switch, model ID | — | by hand; code has defaults (#46) |
 
-The rows after the device profile are the plan for #44, #46 and #47; those PRs
-may refine them and update this table.
+Seen title and config are the plan for #46; until then the pool takes seen
+titles from the signals. The learned layer is written by #46 and changes by #47.
