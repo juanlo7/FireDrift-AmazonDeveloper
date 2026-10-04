@@ -358,6 +358,11 @@ Results (details in `docs/spikes.md`):
   `pkg://<component-id>`; `canOpenURL` throws when no app handles the URL.
   Service links (Netflix, Prime Video) need a Vega device to check; until then
   FR-3 uses the fallback (service name and logo).
+- **V6 (Oct 4): accepted risk.** The free TMDB API is for non-commercial use,
+  which fits a hackathon entry with no fees or ads. Section 1.C of the TMDB API
+  Terms of Use also forbids using TMDB content "in connection with" an AI-based
+  application, which can cover the butler. The team accepts this risk for the
+  hackathon; a store release would need a written agreement with TMDB.
 
 **Risks**
 - **Butler is large for the time left.** Cut order if late: conversation polish
