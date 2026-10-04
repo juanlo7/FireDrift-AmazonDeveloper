@@ -1,19 +1,26 @@
 import { Linking } from 'react-native';
 import type { TitleCard } from '@firedrift/domain';
+import { config } from '../config';
 
 /**
- * Links to try per TMDB provider ID, in order. Spike V3 (docs/spikes.md):
- * Vega opens an installed app with `pkg://<component-id>` or a URL the app
- * registers. The Vega component IDs of the streaming apps and the URLs they
- * accept are NOT verified yet (no streaming apps on the VVD); check them with
- * `vega device installed-apps` on a Vega device and update this table.
+ * Vega component IDs of the streaming apps, by TMDB provider ID. On the VVD an
+ * app opens another app only with `pkg://<component-id>`, on its home screen
+ * (custom schemes and https links fail from `Linking.openURL`, see
+ * docs/feedback.md). The real IDs need a Vega device with the apps installed:
+ * `vega device installed-apps`. Unknown so far.
  */
-const CANDIDATES: Record<number, (title: TitleCard) => string[]> = {
+const COMPONENT_IDS: Record<number, string> = {};
+
+/**
+ * Web links per TMDB provider ID. They did not open apps on the VVD; they stay
+ * as a second try in case a device handles them.
+ */
+const WEB_LINKS: Record<number, (title: TitleCard) => string[]> = {
   // Netflix (and "Netflix Standard with Ads")
-  8: t => [`https://www.netflix.com/search?q=${encodeURIComponent(t.name)}`, 'https://www.netflix.com'],
+  8: t => [`https://www.netflix.com/search?q=${encodeURIComponent(t.name)}`],
   1796: t => [`https://www.netflix.com/search?q=${encodeURIComponent(t.name)}`],
   // Amazon Prime Video (and "with Ads")
-  119: t => [`https://app.primevideo.com/search?phrase=${encodeURIComponent(t.name)}`, 'https://www.primevideo.com'],
+  119: t => [`https://app.primevideo.com/search?phrase=${encodeURIComponent(t.name)}`],
   2100: t => [`https://app.primevideo.com/search?phrase=${encodeURIComponent(t.name)}`],
   // Disney Plus
   337: t => [`https://www.disneyplus.com/search?q=${encodeURIComponent(t.name)}`],
@@ -24,27 +31,39 @@ const CANDIDATES: Record<number, (title: TitleCard) => string[]> = {
   350: t => [`https://tv.apple.com/search?term=${encodeURIComponent(t.name)}`],
 };
 
+/** The app's home first (works on Vega), then the web links. */
+export const serviceLinks = (
+  providerId: number,
+  title: TitleCard,
+  componentIds: Record<number, string> = { ...COMPONENT_IDS, ...config.serviceAppOverrides },
+): string[] => {
+  const componentId = componentIds[providerId];
+  return [
+    ...(componentId ? [`pkg://${componentId}`] : []),
+    ...(WEB_LINKS[providerId]?.(title) ?? []),
+  ];
+};
+
 export type LaunchResult = { opened: true; url: string } | { opened: false; tried: string[] };
 
 /**
- * Tries each candidate link for the service. On Vega `canOpenURL` throws when
- * no app handles a URL, so both calls are guarded.
+ * Tries each link with `openURL` and stops at the first that opens.
+ * `canOpenURL` is not used: on Vega it throws even when an installed app
+ * handles the URL.
  */
 export const launchService = async (
   providerId: number,
   title: TitleCard,
-  linking: Pick<typeof Linking, 'canOpenURL' | 'openURL'> = Linking,
+  linking: Pick<typeof Linking, 'openURL'> = Linking,
+  links: string[] = serviceLinks(providerId, title),
 ): Promise<LaunchResult> => {
-  const tried = CANDIDATES[providerId]?.(title) ?? [];
-  for (const url of tried) {
+  for (const url of links) {
     try {
-      if (await linking.canOpenURL(url)) {
-        await linking.openURL(url);
-        return { opened: true, url };
-      }
+      await linking.openURL(url);
+      return { opened: true, url };
     } catch {
-      // No app for this URL; try the next one.
+      // No app for this link; try the next one.
     }
   }
-  return { opened: false, tried };
+  return { opened: false, tried: links };
 };

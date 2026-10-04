@@ -2,7 +2,7 @@ import React from 'react';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react-native';
 import type { ProviderOffer, TitleCard } from '@firedrift/domain';
 import { createMemorySignalQueue } from '../src/signals';
-import { launchService, offerLabel, toServiceOptions, WatchNowSheet } from '../src/watchNow';
+import { launchService, offerLabel, serviceLinks, toServiceOptions, WatchNowSheet } from '../src/watchNow';
 
 const title: TitleCard = require('@firedrift/domain/fixtures/rest/title.response.json');
 
@@ -32,29 +32,39 @@ describe('toServiceOptions', () => {
   });
 });
 
+describe('serviceLinks', () => {
+  it('tries the app home with pkg:// first when the component ID is known', () => {
+    expect(serviceLinks(8, title, { 8: 'com.example.streaming.main' })).toEqual([
+      'pkg://com.example.streaming.main',
+      'https://www.netflix.com/search?q=Dark',
+    ]);
+  });
+
+  it('only has web links when the component ID is unknown', () => {
+    expect(serviceLinks(8, title, {})).toEqual(['https://www.netflix.com/search?q=Dark']);
+    expect(serviceLinks(424242, title, {})).toEqual([]);
+  });
+});
+
 describe('launchService', () => {
-  it('opens the first candidate the system accepts', async () => {
-    const linking = {
-      canOpenURL: jest.fn().mockRejectedValueOnce(new Error('Can not open URL')).mockResolvedValue(true),
-      openURL: jest.fn().mockResolvedValue(undefined),
-    };
-    const result = await launchService(8, title, linking);
-    expect(result).toEqual({ opened: true, url: 'https://www.netflix.com' });
+  const links = ['pkg://com.example.streaming.main', 'https://www.netflix.com/search?q=Dark'];
+
+  it('stops at the first link that opens', async () => {
+    const linking = { openURL: jest.fn().mockResolvedValue(undefined) };
+    expect(await launchService(8, title, linking, links)).toEqual({ opened: true, url: links[0] });
+    expect(linking.openURL).toHaveBeenCalledTimes(1);
   });
 
-  it('reports not opened when every candidate throws, as on the VVD', async () => {
+  it('falls back to the next link when one fails', async () => {
     const linking = {
-      canOpenURL: jest.fn().mockRejectedValue(new Error('Can not open URL')),
-      openURL: jest.fn(),
+      openURL: jest.fn().mockRejectedValueOnce(new Error('Failed opening URL')).mockResolvedValue(undefined),
     };
-    const result = await launchService(8, title, linking);
-    expect(result.opened).toBe(false);
-    expect(linking.openURL).not.toHaveBeenCalled();
+    expect(await launchService(8, title, linking, links)).toEqual({ opened: true, url: links[1] });
   });
 
-  it('reports not opened for a provider without known links', async () => {
-    const linking = { canOpenURL: jest.fn(), openURL: jest.fn() };
-    expect(await launchService(424242, title, linking)).toEqual({ opened: false, tried: [] });
+  it('reports not opened when every link fails, as on the VVD without the app', async () => {
+    const linking = { openURL: jest.fn().mockRejectedValue(new Error('Failed opening URL')) };
+    expect(await launchService(8, title, linking, links)).toEqual({ opened: false, tried: links });
   });
 });
 
