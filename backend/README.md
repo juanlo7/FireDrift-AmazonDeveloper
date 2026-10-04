@@ -53,21 +53,72 @@ Every TMDB response is cached twice: in memory per Lambda instance, and in
 DynamoDB with a TTL (details 24 h, search and lists 24 h, discover 6 h,
 provider lists 7 days). Errors are never cached.
 
-## What the CDK stack (#43) has to provide
+## AWS stack (CDK)
 
-| Item | Value |
+`backend/infra/` deploys one stack, `FireDrift-dev`, in `us-east-1`. The whole
+team shares it; test branches with the local API above before you merge.
+
+| Resource | Notes |
 |---|---|
-| `TABLE_NAME` env | The single table: partition key `pk` (string), sort key `sk` (string), TTL attribute `ttl` |
-| `TMDB_SECRET_ID` env | Secrets Manager secret ID or ARN. Value: the TMDB API Read Access Token (plain string) or a v3 API key |
-| IAM | `dynamodb:GetItem`, `dynamodb:PutItem` on the table; `secretsmanager:GetSecretValue` on the secret |
-| Runtime | Node.js 22, ARM, 256 MB, 10 s timeout. Bundle the handlers with esbuild (`NodejsFunction`) |
+| DynamoDB table | On demand. Partition key `pk`, sort key `sk`, TTL attribute `ttl` (string keys) |
+| Secrets Manager secret | `firedrift/dev/tmdb`: the TMDB API Read Access Token or a v3 API key, put by hand |
+| HTTP API | Stage `$default`, throttled to 20 requests/s (burst 40) unless a route sets its own limit |
+| Lambdas | `BackendFunction`: Node.js 22, ARM, 256 MB, 10 s, logs kept 7 days, bundled with esbuild |
 
-Items this code reads and writes in the table:
+Every resource gets the tags `project=firedrift` and `env=dev`. The AWS Budgets
+alerts ($30, $75, $110 actual, $130 forecast) were created by hand with the
+account and are not part of the stack.
 
-| Item | `pk` | `sk` | Attributes |
-|---|---|---|---|
-| TMDB cache | `TMDB#<path?query>` | `CACHE` | `body` (JSON string), `ttl` |
-| Device profile (read only, written by #45) | `PROFILE#<profileId>` | `PROFILE` | `services` (number list), `showEverything` |
+### Deploy
 
-The profile keys are a proposal; change `src/profile/profileStore.ts` if #45
-stores profiles differently.
+Needs an IAM user of the `firedrift` AWS account; ask P2 for one.
+
+```sh
+aws login --profile firedrift
+cd backend/infra
+yarn cdk diff --profile firedrift
+yarn cdk deploy --profile firedrift
+```
+
+The outputs print `ApiUrl`, `TableName` and `TmdbSecretName`. After the first
+deploy, put the TMDB token in the secret (the value is read from the terminal
+and never shown):
+
+```sh
+read -rs TOKEN && aws secretsmanager put-secret-value --profile firedrift \
+  --secret-id firedrift/dev/tmdb --secret-string "$TOKEN"; unset TOKEN
+```
+
+A `prod` stack for judging is the same code: `yarn cdk deploy -c env=prod`.
+
+### Add your routes
+
+Each owner keeps their routes in their own construct in `backend/infra/lib/`,
+created from `FireDriftStack`:
+
+- `catalog-construct.ts` (P1): `GET /providers`, `GET /titles/{type}/{tmdbId}`.
+
+A construct gets a `BackendContext` (`table`, `tmdbSecret`, `addRoute`). Create
+each Lambda with `new BackendFunction(this, id, { handler: "<file in
+src/handlers>" })`, give it only the IAM actions it uses, and call
+`ctx.addRoute({ method, path, handler, throttle? })`. Run
+`yarn workspace @firedrift/infra test` to check the cost rules.
+
+### Table design
+
+One table for everything. Profile items share the partition `PROFILE#<profileId>`.
+
+| Item | `pk` | `sk` | Attributes | TTL | Writer |
+|---|---|---|---|---|---|
+| TMDB cache | `TMDB#<path?query>` | `CACHE` | `body` (JSON string) | 6 h – 7 days | catalog (#39) |
+| Device profile | `PROFILE#<profileId>` | `PROFILE` | `country`, `services` (number list), `showEverything`, `updatedAt` | — | `PUT /profiles` (#44) |
+| Signal | `PROFILE#<profileId>` | `SIGNAL#<signalId>` | the `Signal` fields; put only if new (idempotent) | 30 days | `POST /signals` (#44) |
+| Learned weights | `PROFILE#<profileId>` | `WEIGHTS#LEARNED` | `weights` (feature → number), `updatedAt` | — | taste (#46) |
+| Butler adjustment | `PROFILE#<profileId>` | `WEIGHTS#ADJUST` | `weights`, `updatedAt` (decays on read) | — | `update_weights` (#47) |
+| Weight change | `PROFILE#<profileId>` | `CHANGE#<at>#<changeId>` | the `WeightChange` fields; last 20 kept | — | `update_weights` (#47) |
+| Pool | `PROFILE#<profileId>` | `POOL#<poolId>` | `algorithmVersion`, `titles` | 7 days | pool (#44, #46) |
+| Seen title | `PROFILE#<profileId>` | `SEEN#<type>#<tmdbId>` | `lastSeenAt` (recency cooldown) | 30 days | pool (#46) |
+| Config | `CONFIG` | `ACTIVE` | `algorithmVersion`, quotas, signal strengths, butler caps, kill switch, model ID | — | by hand; code has defaults (#46) |
+
+The rows after the device profile are the plan for #44, #46 and #47; those PRs
+may refine them and update this table.

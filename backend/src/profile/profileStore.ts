@@ -7,14 +7,14 @@ export interface ProfileServices {
   showEverything: boolean;
 }
 
-/** Read side of the device profile. Profiles are written by `PUT /profiles/{profileId}` (#45). */
+/** Read side of the device profile. Profiles are written by `PUT /profiles/{profileId}` (#44). */
 export interface ProfileStore {
   getServices(profileId: string): Promise<ProfileServices | null>;
 }
 
 /**
  * Profile item in the single table: `pk = "PROFILE#<profileId>"`, `sk = "PROFILE"`,
- * with `services` (number list) and `showEverything`. Keep in line with #45.
+ * with `services` (number list) and `showEverything`. Keep in line with #44.
  */
 export const createDynamoDbProfileStore = (
   doc: DynamoDBDocumentClient,

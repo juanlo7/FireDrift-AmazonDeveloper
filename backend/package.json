@@ -6,7 +6,7 @@
   "license": "MIT",
   "scripts": {
     "typecheck": "tsc --noEmit",
-    "test": "vitest run",
+    "test": "vitest run --dir test",
     "dev": "tsx --env-file=.env.local src/local/server.ts"
   },
   "dependencies": {
