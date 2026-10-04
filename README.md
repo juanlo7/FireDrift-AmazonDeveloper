@@ -22,6 +22,7 @@ uv run pytest
 |---|---|
 | `app` | Vega app in React Native for Vega (`app/README.md`) |
 | `backend` | Lambdas in TypeScript: TMDB catalog, REST routes (`backend/README.md`) |
+| `tools/fake-streaming-app` | Test Vega app that Watch now can open on the VVD (`tools/fake-streaming-app/README.md`) |
 | `packages/domain` | Shared contract schemas, types and fixtures (`packages/domain/README.md`) |
 | `agent` | Butler agent in Python (`agent/README.md`) |
 

@@ -11,10 +11,16 @@ export interface AppConfig {
   apiBaseUrl: string;
   /** Abort a REST call after this many milliseconds. */
   apiTimeoutMs: number;
+  /**
+   * Extra Vega component IDs for Watch now, by TMDB provider ID. For tests
+   * with `tools/fake-streaming-app` only, e.g. `{ 8: 'com.firedrift.fakestreaming.main' }`.
+   */
+  serviceAppOverrides: Record<number, string>;
 }
 
 export const config: AppConfig = {
   apiMode: 'mock',
   apiBaseUrl: '',
   apiTimeoutMs: 8000,
+  serviceAppOverrides: {},
 };
