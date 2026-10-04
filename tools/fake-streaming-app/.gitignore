@@ -9,6 +9,6 @@ dist
 build
 node_modules
 CMakeUserPresets.json
-npm-debug.logpackage-lock.json
+npm-debug.log
 buildinfo.json
 generated
