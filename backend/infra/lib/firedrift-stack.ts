@@ -7,6 +7,7 @@ import { Secret } from "aws-cdk-lib/aws-secretsmanager";
 import { Construct } from "constructs";
 import { BackendFunction } from "./backend-function";
 import { CatalogConstruct } from "./catalog-construct";
+import { TasteConstruct } from "./taste-construct";
 
 export interface Throttle {
   rateLimit: number;
@@ -75,6 +76,7 @@ export class FireDriftStack extends Stack implements BackendContext {
     });
 
     new CatalogConstruct(this, "Catalog", this);
+    new TasteConstruct(this, "Taste", this);
 
     new CfnOutput(this, "ApiUrl", { value: this.api.apiEndpoint });
     new CfnOutput(this, "TableName", { value: this.table.tableName });
