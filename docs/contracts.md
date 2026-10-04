@@ -39,14 +39,16 @@ interface TitleCard {
   onMyServices: boolean;
 }
 
-type SignalKind = "like" | "skip" | "watch_now" | "trailer_progress";
+type SignalKind = "like" | "skip" | "watch_now" | "dwell";
+type DwellSurface = "cover" | "trailer";  // new surfaces add a value
 
 interface Signal {
   signalId: string;             // UUID, idempotency key
   tmdbId: number;
   type: TitleType;
   kind: SignalKind;
-  ratio?: number;               // only for trailer_progress, 0–1
+  surface?: DwellSurface;       // only for dwell
+  ratio?: number;               // only for dwell: time on the surface / its cap, 0–1
   source: "feed" | "butler";
   at: string;
 }

@@ -12,7 +12,8 @@
       "signalId": "7c2a3d4e-5f6a-4b7c-9d8e-0f1a2b3c4d5e",
       "tmdbId": 329865,
       "type": "movie",
-      "kind": "trailer_progress",
+      "kind": "dwell",
+      "surface": "cover",
       "ratio": 0.92,
       "source": "feed",
       "at": "2026-10-03T18:40:45Z"

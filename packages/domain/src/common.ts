@@ -42,8 +42,12 @@ export const TitleCard = z.object({
 });
 export type TitleCard = z.infer<typeof TitleCard>;
 
-export const SignalKind = z.enum(["like", "skip", "watch_now", "trailer_progress"]);
+export const SignalKind = z.enum(["like", "skip", "watch_now", "dwell"]);
 export type SignalKind = z.infer<typeof SignalKind>;
+
+/** Where a `dwell` happened. New surfaces add a value here and a strength in the taste config. */
+export const DwellSurface = z.enum(["cover", "trailer"]);
+export type DwellSurface = z.infer<typeof DwellSurface>;
 
 export const SignalSource = z.enum(["feed", "butler"]);
 export type SignalSource = z.infer<typeof SignalSource>;
@@ -55,13 +59,19 @@ export const Signal = z
     tmdbId: z.number().int().positive(),
     type: TitleType,
     kind: SignalKind,
-    /** Watched share of the trailer, 0–1. Only for `trailer_progress`. */
+    /** Only for `dwell`. */
+    surface: DwellSurface.optional(),
+    /** Only for `dwell`: time on the surface divided by that surface's cap, 0–1. */
     ratio: z.number().min(0).max(1).optional(),
     source: SignalSource,
     at: Timestamp,
   })
-  .refine((signal) => (signal.kind === "trailer_progress") === (signal.ratio !== undefined), {
-    message: "ratio is required for trailer_progress and not allowed otherwise",
+  .refine((signal) => (signal.kind === "dwell") === (signal.surface !== undefined), {
+    message: "surface is required for dwell and not allowed otherwise",
+    path: ["surface"],
+  })
+  .refine((signal) => (signal.kind === "dwell") === (signal.ratio !== undefined), {
+    message: "ratio is required for dwell and not allowed otherwise",
     path: ["ratio"],
   });
 export type Signal = z.infer<typeof Signal>;

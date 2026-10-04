@@ -98,7 +98,7 @@ describe("contract limits", () => {
     expect(domain.TitleCard.safeParse({ ...(dark as object), type: "film" }).success).toBe(false);
   });
 
-  it("requires ratio only for trailer_progress", () => {
+  it("requires surface and ratio only for dwell", () => {
     const signal = {
       signalId: "6b1f2c3d-4e5f-4a6b-8c7d-9e0f1a2b3c4d",
       tmdbId: 70523,
@@ -106,8 +106,13 @@ describe("contract limits", () => {
       source: "feed",
       at: "2026-10-03T18:40:01Z",
     };
-    expect(domain.Signal.safeParse({ ...signal, kind: "trailer_progress" }).success).toBe(false);
-    expect(domain.Signal.safeParse({ ...signal, kind: "like", ratio: 0.5 }).success).toBe(false);
+    const parse = (extra: object) => domain.Signal.safeParse({ ...signal, ...extra }).success;
+    expect(parse({ kind: "dwell", surface: "cover", ratio: 0.5 })).toBe(true);
+    expect(parse({ kind: "dwell", ratio: 0.5 })).toBe(false);
+    expect(parse({ kind: "dwell", surface: "cover" })).toBe(false);
+    expect(parse({ kind: "dwell", surface: "poster", ratio: 0.5 })).toBe(false);
+    expect(parse({ kind: "like", ratio: 0.5 })).toBe(false);
+    expect(parse({ kind: "like", surface: "cover" })).toBe(false);
   });
 
   it("caps a signal batch at 50", () => {

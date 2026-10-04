@@ -59,10 +59,10 @@ Something the user did that teaches the taste. Append-only.
 | `like` | feed, butler | Positive |
 | `skip` | feed, butler | Negative |
 | `watch_now` | feed, butler | Strong positive (the user chose to watch it) |
-| `trailer_progress` | feed, butler | Implicit: `ratio` watched (0–1). High = weak positive, very low = weak negative |
+| `dwell` | feed, butler | Implicit: time spent on a `surface` (`cover` today, `trailer` if a player comes back), as `ratio` of that surface's cap (0–1). High = weak positive, very low = weak negative. Caps and strengths per surface live in the taste config |
 
 Fields: `signalId` (UUID, makes batches idempotent), `profileId`, `tmdbId`,
-`type`, `kind`, `ratio?`, `source`, `at`. Sent in **batches** (5 items / 30 s /
+`type`, `kind`, `surface?`, `ratio?`, `source`, `at`. Sent in **batches** (5 items / 30 s /
 app to background). What the user says to the butler is not a signal: it
 becomes a weight change (below).
 
