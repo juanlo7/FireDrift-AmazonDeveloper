@@ -6,7 +6,7 @@ describe('App', () => {
   it('opens on the feed and loads the pool from fixtures', async () => {
     render(<App />);
     expect(screen.getByTestId('screen-feed')).toBeTruthy();
-    await waitFor(() => expect(screen.getByTestId('feed-status')).toHaveTextContent(/titles/));
+    await waitFor(() => expect(screen.getByTestId('feed-title')).toHaveTextContent('Dark'));
   });
 
   it.each([
