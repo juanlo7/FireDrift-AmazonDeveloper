@@ -1,27 +1,27 @@
 /**
  * Local API for development before the CDK stack (#43) exists.
  *
- * - Catalog routes run the real Lambda handlers against TMDB, with an
- *   in-memory cache instead of DynamoDB.
- * - Profiles live in memory.
- * - Routes owned by P2 (pool, signals, weights) answer with the fixtures in
- *   `packages/domain/fixtures/rest/` until their Lambdas exist.
+ * Every route runs its real Lambda handler. TMDB is real, with an in-memory
+ * cache; profiles, signals, weights and pools live in memory instead of DynamoDB.
  *
  * Run: `yarn workspace @firedrift/backend dev` (reads `backend/.env.local`).
  */
-import { readFileSync } from "node:fs";
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
-import { createRequire } from "node:module";
-import { dirname, join } from "node:path";
 import type { APIGatewayProxyEventV2 } from "aws-lambda";
-import { ProfilePutBody, SignalsBody } from "@firedrift/domain";
 import { createMemoryCache } from "../catalog/cache";
 import { createCatalogService } from "../catalog/catalogService";
 import { createTmdbClient, parseTmdbSecret } from "../catalog/tmdbClient";
 import { createGetProvidersHandler } from "../handlers/getProviders";
 import { createGetTitleHandler } from "../handlers/getTitle";
-import type { ProfileServices, ProfileStore } from "../profile/profileStore";
+import { createGetPoolHandler } from "../handlers/getPool";
+import { createPostSignalsHandler } from "../handlers/postSignals";
+import { createPutProfileHandler } from "../handlers/putProfile";
+import { createWeightsHandler } from "../handlers/weights";
+import { createMemoryPoolStore } from "../pool/poolStore";
+import { createMemoryProfileStore } from "../profile/profileStore";
 import { error, json, type HttpResult } from "../shared/http";
+import { createMemorySignalStore } from "../signals/signalStore";
+import { createMemoryWeightStore } from "../weights/weightStore";
 
 const secret = process.env.TMDB_TOKEN ?? process.env.TMDB_API_KEY;
 if (!secret) {
@@ -36,33 +36,42 @@ const tmdb = createTmdbClient({
 });
 const catalog = createCatalogService(tmdb);
 
-const profilesById = new Map<string, ProfileServices>();
-const profiles: ProfileStore = { getServices: async (id) => profilesById.get(id) ?? null };
+const runtime = {
+  tmdb,
+  catalog,
+  profiles: createMemoryProfileStore(),
+  signals: createMemorySignalStore(),
+  weights: createMemoryWeightStore(),
+  pools: createMemoryPoolStore(),
+};
+const deps = () => runtime;
 
-const deps = () => ({ catalog, profiles });
 const getTitle = createGetTitleHandler(deps);
 const getProviders = createGetProvidersHandler(deps);
+const putProfile = createPutProfileHandler(deps);
+const postSignals = createPostSignalsHandler(deps);
+const getPool = createGetPoolHandler(deps);
+const getWeights = createWeightsHandler("summary", deps);
+const undoWeights = createWeightsHandler("undo", deps);
+const resetWeights = createWeightsHandler("reset", deps);
 
-const fixturesDir = join(
-  dirname(createRequire(import.meta.url).resolve("@firedrift/domain/package.json")),
-  "fixtures",
-  "rest",
-);
-const fixture = (name: string): unknown =>
-  JSON.parse(readFileSync(join(fixturesDir, `${name}.json`), "utf8"));
-
-const readBody = async (req: IncomingMessage): Promise<unknown> => {
+const readBody = async (req: IncomingMessage): Promise<string> => {
   const chunks: Buffer[] = [];
   for await (const chunk of req) chunks.push(chunk as Buffer);
-  const text = Buffer.concat(chunks).toString("utf8");
-  return text ? JSON.parse(text) : undefined;
+  return Buffer.concat(chunks).toString("utf8");
 };
 
 const toEvent = (
   pathParameters: Record<string, string>,
   query: URLSearchParams,
+  body?: string,
 ): APIGatewayProxyEventV2 =>
-  ({ pathParameters, queryStringParameters: Object.fromEntries(query) }) as APIGatewayProxyEventV2;
+  ({
+    pathParameters,
+    queryStringParameters: Object.fromEntries(query),
+    body,
+    isBase64Encoded: false,
+  }) as APIGatewayProxyEventV2;
 
 const route = async (req: IncomingMessage, url: URL): Promise<HttpResult> => {
   const method = req.method ?? "GET";
@@ -78,29 +87,16 @@ const route = async (req: IncomingMessage, url: URL): Promise<HttpResult> => {
   }
 
   if ((match = path.match(/^\/profiles\/([^/]+)(\/.*)?$/))) {
-    const profileId = decodeURIComponent(match[1]!);
+    const params = { profileId: decodeURIComponent(match[1]!) };
     const rest = match[2] ?? "";
+    const event = async () => toEvent(params, url.searchParams, await readBody(req));
 
-    if (method === "PUT" && rest === "") {
-      const body = ProfilePutBody.safeParse(await readBody(req));
-      if (!body.success) return error(400, "invalid_profile", body.error.message);
-      profilesById.set(profileId, {
-        services: body.data.services,
-        showEverything: body.data.showEverything,
-      });
-      return { statusCode: 204 };
-    }
-    // P2 routes: fixtures until the taste Lambdas exist.
-    if (method === "GET" && rest === "/pool") return json(200, fixture("pool.response"));
-    if (method === "POST" && rest === "/signals") {
-      const body = SignalsBody.safeParse(await readBody(req));
-      if (!body.success) return error(400, "invalid_signals", body.error.message);
-      return json(200, { accepted: body.data.signals.length, duplicates: 0 });
-    }
-    if (method === "GET" && rest === "/weights") return json(200, fixture("weights.response"));
-    if (method === "POST" && (rest === "/weights/undo" || rest === "/weights/reset")) {
-      return json(200, fixture("weights.response"));
-    }
+    if (method === "PUT" && rest === "") return putProfile(await event());
+    if (method === "POST" && rest === "/signals") return postSignals(await event());
+    if (method === "GET" && rest === "/pool") return getPool(await event());
+    if (method === "GET" && rest === "/weights") return getWeights(await event());
+    if (method === "POST" && rest === "/weights/undo") return undoWeights(await event());
+    if (method === "POST" && rest === "/weights/reset") return resetWeights(await event());
   }
 
   return error(404, "not_found", `${method} ${path} is not a route.`);
