@@ -1,0 +1,5 @@
+{
+  "//": "The declared app name must follow this pattern to be KRL-compatible",
+  "name": "com.firedrift.fakestreaming.main",
+  "displayName": "Fake streaming app"
+}

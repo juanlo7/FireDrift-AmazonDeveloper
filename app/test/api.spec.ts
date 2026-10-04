@@ -40,12 +40,12 @@ describe('mock client', () => {
 
 describe('createApiClient', () => {
   it('uses fixtures in mock mode', async () => {
-    const client = createApiClient({ apiMode: 'mock', apiBaseUrl: '', apiTimeoutMs: 100 });
+    const client = createApiClient({ apiMode: 'mock', apiBaseUrl: '', apiTimeoutMs: 100, serviceAppOverrides: {} });
     await expect(client.health()).resolves.toEqual({ ok: true });
   });
 
   it('fails clearly in real mode without a base URL', async () => {
-    const client = createApiClient({ apiMode: 'real', apiBaseUrl: '', apiTimeoutMs: 100 });
+    const client = createApiClient({ apiMode: 'real', apiBaseUrl: '', apiTimeoutMs: 100, serviceAppOverrides: {} });
     await expect(client.health()).rejects.toMatchObject({ code: 'not_configured' });
   });
 });
