@@ -21,6 +21,7 @@ uv run pytest
 | Folder | Contents |
 |---|---|
 | `app` | Vega app in React Native for Vega (`app/README.md`) |
+| `backend` | Lambdas in TypeScript: TMDB catalog, REST routes (`backend/README.md`) |
 | `packages/domain` | Shared contract schemas, types and fixtures (`packages/domain/README.md`) |
 | `agent` | Butler agent in Python (`agent/README.md`) |
 

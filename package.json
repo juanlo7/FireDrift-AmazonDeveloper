@@ -5,7 +5,8 @@
   "license": "MIT",
   "workspaces": [
     "packages/*",
-    "app"
+    "app",
+    "backend"
   ],
   "scripts": {
     "typecheck": "yarn workspaces foreach -A --exclude firedrift run typecheck",
