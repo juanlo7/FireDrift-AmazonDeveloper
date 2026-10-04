@@ -1,0 +1,26 @@
+{
+  "tmdbId": 1405,
+  "type": "series",
+  "name": "Dexter",
+  "year": 2006,
+  "overview": "Dexter Morgan, a blood spatter pattern analyst for the Miami Metro Police, also leads a secret life as a serial killer.",
+  "rating": 8.2,
+  "genres": [
+    "Crime",
+    "Drama",
+    "Mystery"
+  ],
+  "runtimeMinutes": null,
+  "posterUrl": null,
+  "backdropUrl": null,
+  "trailerKey": null,
+  "providers": [
+    {
+      "providerId": 2,
+      "name": "Apple TV",
+      "logoUrl": "https://image.tmdb.org/t/p/w92/9ghgSC0MA082EL6HLCW3GalykFD.jpg",
+      "offer": "buy"
+    }
+  ],
+  "onMyServices": false
+}

@@ -1,0 +1,48 @@
+{
+  "t": "speech",
+  "audioUrl": "https://example.com/speech/turn-3-sentence-2.mp3",
+  "format": "mp3",
+  "marks": [
+    {
+      "timeMs": 0,
+      "type": "sentence",
+      "value": "It is creepy, but not gory."
+    },
+    {
+      "timeMs": 0,
+      "type": "word",
+      "value": "It"
+    },
+    {
+      "timeMs": 140,
+      "type": "word",
+      "value": "is"
+    },
+    {
+      "timeMs": 260,
+      "type": "word",
+      "value": "creepy"
+    },
+    {
+      "timeMs": 720,
+      "type": "word",
+      "value": "but"
+    },
+    {
+      "timeMs": 880,
+      "type": "word",
+      "value": "not"
+    },
+    {
+      "timeMs": 1050,
+      "type": "word",
+      "value": "gory"
+    }
+  ],
+  "gestures": [
+    {
+      "name": "shiver",
+      "timeMs": 0
+    }
+  ]
+}

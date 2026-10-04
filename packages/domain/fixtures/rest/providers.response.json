@@ -1,0 +1,24 @@
+{
+  "providers": [
+    {
+      "providerId": 8,
+      "name": "Netflix",
+      "logoUrl": "https://image.tmdb.org/t/p/w92/pbpMk2JmcoNnQwx5JGpXngfoWtp.jpg"
+    },
+    {
+      "providerId": 119,
+      "name": "Amazon Prime Video",
+      "logoUrl": "https://image.tmdb.org/t/p/w92/pvske1MyAoymrs5bguRfVqYiM9a.jpg"
+    },
+    {
+      "providerId": 337,
+      "name": "Disney Plus",
+      "logoUrl": "https://image.tmdb.org/t/p/w92/97yvRBw1GzX7fXprcF80er19ot.jpg"
+    },
+    {
+      "providerId": 2,
+      "name": "Apple TV",
+      "logoUrl": "https://image.tmdb.org/t/p/w92/9ghgSC0MA082EL6HLCW3GalykFD.jpg"
+    }
+  ]
+}

@@ -1,0 +1,27 @@
+{
+  "tmdbId": 70523,
+  "type": "series",
+  "name": "Dark",
+  "year": 2017,
+  "overview": "A missing child sets four families on a frantic hunt for answers as they unearth a mind-bending mystery that spans three generations.",
+  "rating": 8.4,
+  "genres": [
+    "Crime",
+    "Drama",
+    "Mystery",
+    "Sci-Fi & Fantasy"
+  ],
+  "runtimeMinutes": 55,
+  "posterUrl": "https://image.tmdb.org/t/p/w500/apbrbWs8M9lyOpJYU5WXrpFbk1Z.jpg",
+  "backdropUrl": "https://image.tmdb.org/t/p/w1280/4gD6nViEU3hZgpXTZbG0cS2Ud8Y.jpg",
+  "trailerKey": "rrwycJ08PSA",
+  "providers": [
+    {
+      "providerId": 8,
+      "name": "Netflix",
+      "logoUrl": "https://image.tmdb.org/t/p/w92/pbpMk2JmcoNnQwx5JGpXngfoWtp.jpg",
+      "offer": "subscription"
+    }
+  ],
+  "onMyServices": true
+}

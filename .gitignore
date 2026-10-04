@@ -1,1 +1,11 @@
 repos/
+
+# Node and Yarn
+node_modules/
+.yarn/*
+!.yarn/releases
+
+# Python
+.venv/
+__pycache__/
+.pytest_cache/

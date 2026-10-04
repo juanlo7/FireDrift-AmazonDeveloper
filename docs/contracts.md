@@ -1,9 +1,11 @@
 # FireDrift — Contracts
 
 The interfaces between the blocks of work (`docs/plan.md`). Names follow
-`docs/domain.md`. The TypeScript source of truth is `packages/domain`; fixtures
-for every message live in `packages/domain/fixtures/`. A change here needs a PR
-approved by the other two members.
+`docs/domain.md`. The source of truth is the zod schemas in
+`packages/domain/src` (TypeScript types come from them); the agent mirrors them
+with pydantic in `agent/domain/models.py`. Fixtures for every message live in
+`packages/domain/fixtures/`, and tests on both sides validate them. A change
+here needs a PR approved by the other two members.
 
 Conventions: JSON, `camelCase`, timestamps in ISO 8601 UTC, `type` is
 `movie | series`, `country` is ISO 3166-1 alpha-2.
@@ -179,3 +181,44 @@ type Gesture = "nod" | "shrug" | "shiver" | "excited" | "bow";
   follows it and is sent in that sentence's `speech.gestures`.
 - **Without the model** (`fallback`, chips only): no gestures, or a fixed one
   (`shrug` when a cap is reached).
+
+## 7. Agent pipeline (voice ↔ brain ↔ character)
+
+Inside the agent server, three owners meet at these types
+(`packages/domain/src/pipeline.ts`, mirrored in `agent/domain/models.py`).
+
+```
+app ──audio──► voice (P1): Transcribe ──transcript──► server (P2) ──BrainInput──► brain (P2)
+                                                                                    │
+app ◄──events── server (P2) ◄── speech ── voice (P1): Polly ◄── CuedSentence ── parser (P3)
+                    ▲                                                               │
+                    └────────── suggestion, chips, weights.changed, fallback ◄──────┘
+```
+
+```ts
+type BrainInput =
+  | { kind: "text"; text: string }      // final transcript
+  | { kind: "chip"; chipId: string };
+
+// What the brain streams for one turn: the agent → app events of section 3
+// without transcript and speech. answer.delta still holds the {{gesture}} markers.
+type BrainEvent =
+  | { t: "answer.delta"; text: string }
+  | SuggestionEvent | ChipsEvent | WeightsChangedEvent | AnswerDoneEvent | FallbackEvent;
+
+// One sentence after the gesture parser: clean text to show and speak, and
+// at most one cue. charOffset is the index in `text` the gesture goes with.
+interface CuedSentence {
+  text: string;
+  cues: { gesture: Gesture; charOffset: number }[];
+}
+```
+
+- The server sends `thinking` when it passes a `BrainInput` to the brain.
+- The parser (P3) splits the raw answer into sentences, sends each clean
+  sentence as `answer.delta` to the app, and passes it as a `CuedSentence` to
+  the voice side.
+- The voice side (P1) synthesizes each `CuedSentence`, maps every cue to the
+  first Polly word mark at or after `charOffset`, and sends one `speech` event
+  with `marks` and `gestures`.
+- Any failure in a step degrades as in FR-5: the server sends `fallback`.
