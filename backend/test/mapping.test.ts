@@ -43,6 +43,7 @@ describe("toTitleCard", () => {
 
     expect(TitleCard.parse(card)).toEqual(card);
     expect(card).toMatchObject({ name: "Inception", year: 2010, runtimeMinutes: 148 });
+    expect(card.providers.find((p) => p.providerId === 1899)?.name).toBe("Max");
     expect(card.providers.map((p) => [p.providerId, p.offer])).toEqual([
       [PRIME, "subscription"],
       [1899, "subscription"],

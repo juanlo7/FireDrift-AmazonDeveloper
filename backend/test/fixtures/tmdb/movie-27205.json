@@ -22,7 +22,7 @@
     "results": {
       "ES": {
         "flatrate": [
-          { "provider_id": 1899, "provider_name": "Max", "logo_path": "/6Q3ZYUNA9Hsgj6iWnVsw2gR5V6z.jpg", "display_priority": 9 },
+          { "provider_id": 1899, "provider_name": "Max ", "logo_path": "/6Q3ZYUNA9Hsgj6iWnVsw2gR5V6z.jpg", "display_priority": 9 },
           { "provider_id": 119, "provider_name": "Amazon Prime Video", "logo_path": "/pvske1MyAoymrs5bguRfVqYiM9a.jpg", "display_priority": 2 }
         ],
         "rent": [

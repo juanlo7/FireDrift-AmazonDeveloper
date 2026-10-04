@@ -63,7 +63,9 @@ export const toProviderOffers = (country: TmdbCountryProviders): ProviderOffer[]
       .sort((a, b) => (a.display_priority ?? 999) - (b.display_priority ?? 999))
       .flatMap((p) => {
         const logoUrl = imageUrl(p.logo_path, "w92");
-        return logoUrl ? [{ providerId: p.provider_id, name: p.provider_name, logoUrl, offer }] : [];
+        return logoUrl
+          ? [{ providerId: p.provider_id, name: p.provider_name.trim(), logoUrl, offer }]
+          : [];
       });
   });
 
@@ -137,7 +139,7 @@ export const mergeProviderLists = (
     const known = byId.get(item.provider_id);
     if (!known || priority < known.priority) {
       byId.set(item.provider_id, {
-        provider: { providerId: item.provider_id, name: item.provider_name, logoUrl },
+        provider: { providerId: item.provider_id, name: item.provider_name.trim(), logoUrl },
         priority,
       });
     }

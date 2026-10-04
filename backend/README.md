@@ -8,6 +8,28 @@ yarn workspace @firedrift/backend typecheck
 yarn workspace @firedrift/backend test
 ```
 
+## Local API (before the AWS stack exists)
+
+Runs the real catalog handlers against TMDB on your machine. Profiles live in
+memory; P2's routes (pool, signals, weights) answer with the fixtures in
+`packages/domain/fixtures/rest/` until their Lambdas exist.
+
+1. Get a free TMDB key (themoviedb.org → Settings → API) and save the API Read
+   Access Token in `backend/.env.local` (git ignores it):
+   ```sh
+   echo 'TMDB_TOKEN=eyJ...' > backend/.env.local
+   ```
+2. Start the API on `http://localhost:8787`:
+   ```sh
+   yarn workspace @firedrift/backend dev
+   ```
+3. To use it from the app on the VVD, forward the port to the device and switch
+   `app/src/config.ts` to `apiMode: 'real'`, `apiBaseUrl: 'http://localhost:8787'`
+   (do not commit that change):
+   ```sh
+   vega device start-port-forwarding -p 8787 --forward false
+   ```
+
 ## Catalog (TMDB)
 
 | Route | Handler |
