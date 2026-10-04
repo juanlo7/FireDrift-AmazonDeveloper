@@ -1,0 +1,8 @@
+{
+  "results": [
+    { "provider_id": 119, "provider_name": "Amazon Prime Video", "logo_path": "/pvske1MyAoymrs5bguRfVqYiM9a.jpg", "display_priorities": { "ES": 2, "US": 3 }, "display_priority": 3 },
+    { "provider_id": 8, "provider_name": "Netflix", "logo_path": "/pbpMk2JmcoNnQwx5JGpXngfoWtp.jpg", "display_priorities": { "ES": 1, "US": 1 }, "display_priority": 1 },
+    { "provider_id": 2, "provider_name": "Apple TV", "logo_path": "/9ghgSC0MA082EL6HLCW3GalykFD.jpg", "display_priorities": { "ES": 4 }, "display_priority": 4 },
+    { "provider_id": 4242, "provider_name": "No Logo", "logo_path": null, "display_priorities": { "ES": 5 } }
+  ]
+}
