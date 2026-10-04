@@ -36,7 +36,7 @@ real TV constraint (low RAM) solved on purpose.
 | D4 | Language | **English only** (UI, butler voice, docs, submission). |
 | D5 | Country | Taken from the device region, **editable** in settings. |
 | D6 | Services filter | **Only my services** by default, with a "show everything" option. |
-| D7 | Taste signals | Like, Skip, Watch now, trailer watch time, and what the user tells the butler. |
+| D7 | Taste signals | Like, Skip, Watch now, dwell time (on the cover with plan B), and what the user tells the butler. |
 | D8 | Trailer player | **Plan B adopted (spike V1, Oct 4):** cover + synopsis with an animated backdrop, no trailer player. The Vega WebView does not run on the VVD on Ubuntu or Intel Mac (`docs/spikes.md`). The demo is recorded on an Apple Silicon Mac. Original plan: one reused WebView with the official YouTube IFrame API. |
 | D9 | Feed ranking | Our own algorithm in Lambda (Driftune-style). **No LLM in the feed.** |
 | D10 | Butler | In the MVP. Full voice conversation with sound and an animated character. |
@@ -119,8 +119,10 @@ Acceptance:
 - Given I liked 5 action titles and skipped 5 romances, when the next pool
   loads, then most titles are closer to the liked genres and keywords.
 - Given I like a title, then no request is sent until a batch rule is met.
-- Given I watch a trailer to the end, then that title counts as a weak positive
-  signal; given I leave it in the first seconds, as a weak negative.
+- Given I stay on a cover for its whole cap (default 15 s), then that title
+  counts as a weak positive signal; given I leave it in under 2 s, as a weak
+  negative. Each `dwell` signal says its surface (`cover`), so a trailer
+  surface can be added later with its own cap and strength.
 - Given the backend is down, then the feed works from the last pool and the
   queue is retried later.
 
@@ -128,8 +130,9 @@ Acceptance:
 
 - The profile keeps **weights per feature**: genre, keyword, person (cast and
   director), decade, type (movie or series), runtime band.
-- Signal strength (defaults, one config object): Watch now > Like > full
-  trailer watch > early trailer exit > Skip (negative).
+- Signal strength (defaults, one config object): Watch now > Like > long
+  dwell > short dwell > Skip (negative). Dwell caps and strengths are set per
+  surface.
 - A pool is built by **quotas**, not by one sort: favourites (similar to liked
   titles), genre picks, and **discovery** titles outside the known taste.
 - Candidates come from TMDB `discover`, `recommendations` and `similar`,
@@ -348,13 +351,18 @@ Transcribe ~$0.004, Polly ~$0.005, AgentCore runtime negligible). That is about
 
 Results (details in `docs/spikes.md`):
 - **V1 (Oct 4): no** on our VVD (Ubuntu): no WebView module. D8 plan B is
-  adopted. FR-1 text and the `trailer_progress` signal still describe the
-  trailer player; the owners of FR-1, FR-2 and the butler suggestion agree on
-  what replaces them in a follow-up PR.
+  adopted. The `trailer_progress` signal is replaced by `dwell` with a
+  `surface` (FR-2). FR-1 text and the butler suggestion still describe the
+  trailer player; their owners update them in a follow-up PR.
 - **V3 (Oct 4): partly yes.** An app opens another app with
   `pkg://<component-id>`; `canOpenURL` throws when no app handles the URL.
   Service links (Netflix, Prime Video) need a Vega device to check; until then
   FR-3 uses the fallback (service name and logo).
+- **V6 (Oct 4): accepted risk.** The free TMDB API is for non-commercial use,
+  which fits a hackathon entry with no fees or ads. Section 1.C of the TMDB API
+  Terms of Use also forbids using TMDB content "in connection with" an AI-based
+  application, which can cover the butler. The team accepts this risk for the
+  hackathon; a store release would need a written agreement with TMDB.
 
 **Risks**
 - **Butler is large for the time left.** Cut order if late: conversation polish
