@@ -56,9 +56,18 @@ Tested with `Linking.canOpenURL` and `Linking.openURL` from the app on the VVD:
 - The VVD has no streaming apps, so the real component IDs of the Netflix,
   Prime Video, etc. Vega apps, and whether they open a title, are still
   unknown. They need a Vega device (`vega device installed-apps` lists them).
-- **For FR-3 (Watch now):** try the service link; if it throws, show the
-  service name and logo with "Open it in <service>". This is the V3 plan B in
-  `requirements.md`.
+- **Follow-up with a test app (#38, `tools/fake-streaming-app`).** A test
+  app registered `https://www.netflix.com`, `https://www.netflix.com/search`
+  and `netflix://search`. `vlcm launch-app <uri>` in the device shell opened
+  it with all three (query parameters included). From FireDrift,
+  `Linking.openURL` opened it **only** with `pkg://<component-id>`; the
+  custom scheme and the https links failed, and `canOpenURL` threw even
+  though the app was installed.
+- **For FR-3 (Watch now):** open the service app on its home screen with
+  `pkg://<component-id>`, then try the web links; if nothing opens, show the
+  service name and logo with "Open it in <service>". Opening on the title is
+  not possible from an app on the VVD. The real component IDs of the
+  streaming apps still need a Vega device.
 
 ### Tools that help on the VVD
 
@@ -68,3 +77,4 @@ Tested with `Linking.canOpenURL` and `Linking.openURL` from the app on the VVD:
 | Read app logs | `vega device run-cmd -c 'loggingctl log -v com.firedrift.app'` (JS `console.*` did not show up here) |
 | Apps on the device | `vega device installed-apps`, `vega device running-apps` |
 | Screenshot | None that works: `screenshooter` fails and breaks `run-cmd` until the VVD restarts |
+| Send a URI as the system does | `vega device run-cmd -c "vlcm launch-app '<uri>'"` |
