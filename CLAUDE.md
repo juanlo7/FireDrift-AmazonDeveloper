@@ -71,7 +71,9 @@ Team: three members with equal shares of work (`docs/plan.md`).
 - **Branches:** `main` = production (demo-ready). `development` = integration.
   Start every work branch from `development` as `<type>/<issue>-<slug>`.
   Open PRs against `development`. Never commit directly to `main` or `development`.
-- **Commits:** Conventional Commits, English only.
+- **Commits:** Conventional Commits, English only. Never add AI attribution:
+  no `Co-Authored-By` trailer for Claude or any AI, and no "Generated with"
+  line in commits or PR descriptions (external and internal policy).
 - **Judging fit:** every feature must run on Vega OS, work with the D-pad, and
   show up in a demo video of less than 3 minutes. Prefer creative over obvious
   (see `docs/hackathon.md`).
