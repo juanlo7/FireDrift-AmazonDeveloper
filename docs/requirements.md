@@ -37,7 +37,7 @@ real TV constraint (low RAM) solved on purpose.
 | D5 | Country | Taken from the device region, **editable** in settings. |
 | D6 | Services filter | **Only my services** by default, with a "show everything" option. |
 | D7 | Taste signals | Like, Skip, Watch now, trailer watch time, and what the user tells the butler. |
-| D8 | Trailer player | One reused WebView with the official YouTube IFrame API. **Plan B** if it does not work on Vega: cover + synopsis with an animated backdrop. |
+| D8 | Trailer player | **Plan B adopted (spike V1, Oct 4):** cover + synopsis with an animated backdrop, no trailer player. The Vega WebView does not run on the VVD on Ubuntu or Intel Mac (`docs/spikes.md`). The demo is recorded on an Apple Silicon Mac. Original plan: one reused WebView with the official YouTube IFrame API. |
 | D9 | Feed ranking | Our own algorithm in Lambda (Driftune-style). **No LLM in the feed.** |
 | D10 | Butler | In the MVP. Full voice conversation with sound and an animated character. |
 | D11 | Butler voice | **Amazon Transcribe streaming** (speech → text) → agent → **Amazon Polly** neural voice (text → speech, with speech marks to sync the animation). |
@@ -345,6 +345,16 @@ Transcribe ~$0.004, Polly ~$0.005, AgentCore runtime negligible). That is about
 | V4 | Is Claude Haiku 4.5 available in our region and covered by our credits? | D16: Nova 2 Lite |
 | V5 | Can Vega play local video clips for the butler next to the trailer WebView within memory? | Sprite sheets of the Blender renders |
 | V6 | TMDB terms for the hackathon and a later store release. | Adjust attributions or data use |
+
+Results (details in `docs/spikes.md`):
+- **V1 (Oct 4): no** on our VVD (Ubuntu): no WebView module. D8 plan B is
+  adopted. FR-1 text and the `trailer_progress` signal still describe the
+  trailer player; the owners of FR-1, FR-2 and the butler suggestion agree on
+  what replaces them in a follow-up PR.
+- **V3 (Oct 4): partly yes.** An app opens another app with
+  `pkg://<component-id>`; `canOpenURL` throws when no app handles the URL.
+  Service links (Netflix, Prime Video) need a Vega device to check; until then
+  FR-3 uses the fallback (service name and logo).
 
 **Risks**
 - **Butler is large for the time left.** Cut order if late: conversation polish
