@@ -3,8 +3,16 @@ import { GetSecretValueCommand, SecretsManagerClient } from "@aws-sdk/client-sec
 import { DynamoDBDocumentClient } from "@aws-sdk/lib-dynamodb";
 import { createDynamoDbCache, createLayeredCache, createMemoryCache } from "../catalog/cache";
 import { createCatalogService, type CatalogService } from "../catalog/catalogService";
-import { createTmdbClient, parseTmdbSecret, type TmdbCredentials } from "../catalog/tmdbClient";
-import { createDynamoDbProfileStore, type ProfileStore } from "../profile/profileStore";
+import {
+  createTmdbClient,
+  parseTmdbSecret,
+  type TmdbClient,
+  type TmdbCredentials,
+} from "../catalog/tmdbClient";
+import { createDynamoDbPoolStore, type PoolStore } from "../pool/poolStore";
+import { createDynamoDbProfileStore, type ProfileRepository } from "../profile/profileStore";
+import { createDynamoDbSignalStore, type SignalStore } from "../signals/signalStore";
+import { createDynamoDbWeightStore, type WeightStore } from "../weights/weightStore";
 
 /**
  * Lambda environment, set by the CDK stack (#43):
@@ -18,11 +26,22 @@ const requireEnv = (name: string): string => {
 };
 
 export interface CatalogRuntime {
+  tmdb: TmdbClient;
   catalog: CatalogService;
-  profiles: ProfileStore;
+  profiles: ProfileRepository;
+}
+
+export interface ProfileRuntime extends CatalogRuntime {
+  signals: SignalStore;
+  weights: WeightStore;
+  pools: PoolStore;
 }
 
 let runtime: CatalogRuntime | undefined;
+let profileRuntime: ProfileRuntime | undefined;
+let doc: DynamoDBDocumentClient | undefined;
+
+const getDocumentClient = () => (doc ??= DynamoDBDocumentClient.from(new DynamoDBClient({})));
 let credentials: Promise<TmdbCredentials> | undefined;
 
 /** Built once per Lambda instance and reused on warm invocations. */
@@ -31,7 +50,7 @@ export const getCatalogRuntime = (): CatalogRuntime => {
 
   const tableName = requireEnv("TABLE_NAME");
   const secretId = requireEnv("TMDB_SECRET_ID");
-  const doc = DynamoDBDocumentClient.from(new DynamoDBClient({}));
+  const doc = getDocumentClient();
   const secrets = new SecretsManagerClient({});
 
   const loadCredentials = () => {
@@ -54,8 +73,23 @@ export const getCatalogRuntime = (): CatalogRuntime => {
   });
 
   runtime = {
+    tmdb,
     catalog: createCatalogService(tmdb),
     profiles: createDynamoDbProfileStore(doc, tableName),
   };
   return runtime;
+};
+
+/** Catalog runtime plus the profile, signal, weight and pool stores (#44). */
+export const getProfileRuntime = (): ProfileRuntime => {
+  if (profileRuntime) return profileRuntime;
+  const tableName = requireEnv("TABLE_NAME");
+  const doc = getDocumentClient();
+  profileRuntime = {
+    ...getCatalogRuntime(),
+    signals: createDynamoDbSignalStore(doc, tableName),
+    weights: createDynamoDbWeightStore(doc, tableName),
+    pools: createDynamoDbPoolStore(doc, tableName),
+  };
+  return profileRuntime;
 };

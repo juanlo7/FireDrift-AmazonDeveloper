@@ -67,19 +67,48 @@ describe("cost rules (requirements section 7)", () => {
 });
 
 describe("routes", () => {
-  it.each(["GET /health", "GET /providers", "GET /titles/{type}/{tmdbId}"])("exposes %s", (routeKey) => {
+  it.each([
+    "GET /health",
+    "GET /providers",
+    "GET /titles/{type}/{tmdbId}",
+    "PUT /profiles/{profileId}",
+    "POST /profiles/{profileId}/signals",
+    "GET /profiles/{profileId}/pool",
+    "GET /profiles/{profileId}/weights",
+    "POST /profiles/{profileId}/weights/undo",
+    "POST /profiles/{profileId}/weights/reset",
+  ])("exposes %s", (routeKey) => {
     template.hasResourceProperties("AWS::ApiGatewayV2::Route", { RouteKey: routeKey });
   });
 
-  it("gives the catalog only GetItem, PutItem and GetSecretValue", () => {
-    const policies = Object.values(template.findResources("AWS::IAM::Policy"));
-    const actions = policies.flatMap(({ Properties }) =>
-      Properties.PolicyDocument.Statement.flatMap((statement: { Action: string | string[] }) =>
+  const actionsOf = (policyPrefix: string) => {
+    const policies = template.findResources("AWS::IAM::Policy");
+    const [, policy] = Object.entries(policies).find(([logicalId]) => logicalId.startsWith(policyPrefix)) ?? [];
+    expect(policy, policyPrefix).toBeDefined();
+    return new Set(
+      policy!.Properties.PolicyDocument.Statement.flatMap((statement: { Action: string | string[] }) =>
         [statement.Action].flat(),
       ),
     );
-    expect(new Set(actions)).toEqual(
-      new Set(["dynamodb:GetItem", "dynamodb:PutItem", "secretsmanager:GetSecretValue"]),
+  };
+
+  it.each([
+    ["CatalogGetProviders", ["dynamodb:GetItem", "dynamodb:PutItem", "secretsmanager:GetSecretValue"]],
+    ["CatalogGetTitle", ["dynamodb:GetItem", "dynamodb:PutItem", "secretsmanager:GetSecretValue"]],
+    ["TastePutProfile", ["dynamodb:PutItem"]],
+    ["TastePostSignals", ["dynamodb:PutItem"]],
+    ["TasteGetPool", ["dynamodb:GetItem", "dynamodb:PutItem", "dynamodb:Query", "secretsmanager:GetSecretValue"]],
+    ["TasteGetWeights", ["dynamodb:BatchGetItem", "dynamodb:Query"]],
+  ])("gives %s only the actions it uses", (prefix, actions) => {
+    expect(actionsOf(prefix)).toEqual(new Set(actions));
+  });
+
+  it("never grants wildcard actions", () => {
+    const statements = Object.values(template.findResources("AWS::IAM::Policy")).flatMap(
+      ({ Properties }) => Properties.PolicyDocument.Statement as { Action: string | string[] }[],
     );
+    for (const { Action } of statements) {
+      for (const action of [Action].flat()) expect(action).not.toContain("*");
+    }
   });
 });
