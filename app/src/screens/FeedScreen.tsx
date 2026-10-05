@@ -56,6 +56,14 @@ export const FeedScreen = ({ navigation }: RootScreenProps<'Feed'>) => {
     : '';
   const feed = useFeed(feedDeps, active, reloadKey);
 
+  // The title shown before the current one, so its case can slide out and its light fade under.
+  const shown = useRef<{ current: TitleCard | null; previous: TitleCard | null }>({ current: null, previous: null });
+  if (feed.title && shown.current.current && titleKey(shown.current.current) !== titleKey(feed.title)) {
+    shown.current = { current: feed.title, previous: shown.current.current };
+  } else if (feed.title) {
+    shown.current = { ...shown.current, current: feed.title };
+  }
+
   const run: Record<FeedCommand, () => void> = {
     next: feed.next,
     previous: feed.previous,
@@ -89,8 +97,10 @@ export const FeedScreen = ({ navigation }: RootScreenProps<'Feed'>) => {
           <CoverView
             key={titleKey(feed.title)}
             title={feed.title}
+            previous={shown.current.previous}
             isLiked={feed.isLiked}
             position={feed.position}
+            dimmed={menuOpen || watchNow !== null}
           />
           <Pressable
             key={`cover-focus-${focusEpoch}`}
@@ -101,7 +111,7 @@ export const FeedScreen = ({ navigation }: RootScreenProps<'Feed'>) => {
             style={StyleSheet.absoluteFill}
             testID="feed-cover-press"
           />
-          <View style={styles.hints} testID="feed-hints">
+          <View style={[styles.hints, (menuOpen || watchNow !== null) && styles.hidden]} testID="feed-hints">
             {KEY_HINTS.map(([key, label]) => (
               <Text key={label} style={styles.hint}>
                 <Text style={styles.hintKey}>{key}</Text>  {label}
@@ -166,6 +176,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: spacing.xl,
   },
+  hidden: { opacity: 0 },
   hint: { fontFamily: fonts.body, fontSize: 13, color: colors.textMuted },
   hintKey: { ...typography.label, color: colors.text },
   message: { flex: 1, justifyContent: 'center', maxWidth: 560, gap: spacing.lg },

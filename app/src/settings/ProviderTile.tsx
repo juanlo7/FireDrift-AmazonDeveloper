@@ -4,6 +4,13 @@ import type { Provider } from '@firedrift/domain';
 import { useFocusState } from '../focus';
 import { colors, focus, fonts, radius } from '../theme';
 
+/** Names as people say them, so tiles of one brand ("Paramount Plus Premium") stay apart. */
+export const shortServiceName = (name: string) =>
+  name
+    .replace(/^Amazon Prime Video$/, 'Prime Video')
+    .replace(/\bPlus\b/, '+')
+    .replace(/ \+/, '+');
+
 export interface ProviderTileProps {
   provider: Provider;
   selected: boolean;
@@ -27,8 +34,8 @@ export const ProviderTile = ({ provider, selected, onToggle, hasTVPreferredFocus
       testID={`provider-${provider.providerId}`}
     >
       <Image source={{ uri: provider.logoUrl }} style={styles.logo} />
-      <Text style={[styles.name, isFocused && styles.nameFocused]} numberOfLines={1}>
-        {provider.name}
+      <Text style={[styles.name, isFocused && styles.nameFocused]} numberOfLines={2}>
+        {shortServiceName(provider.name)}
       </Text>
       {selected ? (
         <View style={styles.check} testID={`provider-${provider.providerId}-selected`}>
@@ -43,6 +50,7 @@ export const ProviderTile = ({ provider, selected, onToggle, hasTVPreferredFocus
 const styles = StyleSheet.create({
   tile: {
     width: 104,
+    minHeight: 92,
     alignItems: 'center',
     gap: 6,
     paddingVertical: 10,

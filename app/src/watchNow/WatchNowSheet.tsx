@@ -155,7 +155,8 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
     borderLeftWidth: 1,
     borderLeftColor: 'rgba(255, 217, 160, 0.18)',
-    paddingHorizontal: spacing.xl,
+    paddingLeft: spacing.xl,
+    paddingRight: safeArea.horizontal + spacing.sm,
     paddingVertical: safeArea.vertical,
     gap: spacing.md,
   },
@@ -173,9 +174,10 @@ const styles = StyleSheet.create({
     borderRadius: radius.pill,
     backgroundColor: colors.surfaceRaised,
   },
+  // A small lift: the panel's rows stay inside the title-safe edge.
   serviceFocused: {
     backgroundColor: colors.primary,
-    transform: [{ scale: focus.scale }],
+    transform: [{ scale: 1.02 }],
     ...focus.shadow,
   },
   logo: { width: 36, height: 36, borderRadius: 18 },
