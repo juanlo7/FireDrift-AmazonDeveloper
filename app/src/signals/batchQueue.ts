@@ -1,5 +1,4 @@
 import type { Signal } from '@firedrift/domain';
-import { MAX_SIGNALS_PER_BATCH } from '@firedrift/domain';
 import { ApiRequestError, type ApiClient } from '../api/client';
 import type { KeyValueStore } from '../storage';
 import { createSignal, type SignalInput, type SignalQueue } from './queue';
@@ -8,6 +7,8 @@ const PENDING_KEY = 'firedrift.pendingSignals';
 
 /** FR-2 batch rules. */
 export const BATCH_SIZE = 5;
+// MAX_SIGNALS_PER_BATCH of packages/domain; importing it would pull zod into the app bundle.
+export const MAX_SIGNALS_PER_REQUEST = 50;
 export const FLUSH_INTERVAL_MS = 30_000;
 export const MAX_RETRY_DELAY_MS = 5 * 60_000;
 /** Oldest signals are dropped past this, so a long offline stretch cannot grow without limit. */
@@ -81,7 +82,7 @@ export const createBatchQueue = ({
   const send = async (): Promise<void> => {
     const profileId = await getProfileId();
     while (pending.length > 0) {
-      const batch = pending.slice(0, MAX_SIGNALS_PER_BATCH);
+      const batch = pending.slice(0, MAX_SIGNALS_PER_REQUEST);
       try {
         await api.postSignals(profileId, { signals: batch });
       } catch (cause) {
