@@ -4,6 +4,7 @@ Each step is one model reply: text chunks and/or tool calls, streamed in the
 Bedrock ConverseStream event format, so the real Strands loop runs our real tools.
 """
 
+import asyncio
 import json
 from collections.abc import AsyncIterator
 from dataclasses import dataclass, field
@@ -17,6 +18,8 @@ class Step:
     text: list[str] = field(default_factory=list)
     tools: list[tuple[str, dict[str, Any]]] = field(default_factory=list)
     error: Exception | None = None
+    # Seconds to wait before replying, to test interruptions.
+    delay: float = 0
 
 
 class ScriptedModel(Model):
@@ -37,6 +40,8 @@ class ScriptedModel(Model):
     async def stream(self, messages: Any, tool_specs: Any = None, system_prompt: str | None = None, **kwargs: Any):
         self.requests.append({"messages": json.loads(json.dumps(messages, default=str)), "system": system_prompt})
         step = self.steps.pop(0) if self.steps else Step(text=["(no more script)"])
+        if step.delay:
+            await asyncio.sleep(step.delay)
         if step.error:
             raise step.error
         yield {"messageStart": {"role": "assistant"}}
