@@ -7,7 +7,7 @@ import { buildColdStartPool, COLD_START_VERSION, discoverParams, seenKey } from 
 import type { PoolRecord } from "../pool/poolStore";
 import type { Profile } from "../profile/profileStore";
 import { mapSettled } from "../shared/async";
-import type { WeightMap } from "../weights/summary";
+import { decayAdjustment, type WeightMap } from "../weights/summary";
 import { effectiveFromLayers } from "../weights/weightsService";
 import type { WeightLayers } from "../weights/weightStore";
 import type { TasteConfig } from "./config";
@@ -230,6 +230,7 @@ export const buildTastePool = async (deps: TastePoolDeps, input: TastePoolInput)
 
   // 2. Effective weights; with no positive taste yet, a new profile gets the cold start.
   const weights = effectiveFromLayers({ ...layers, learned: learned.weights }, now, config.adjustmentHalfLifeDays);
+  const adjustment = decayAdjustment(layers.adjustment, layers.adjustmentUpdatedAt, now, config.adjustmentHalfLifeDays);
   const seen = new Set([
     ...signals.map((s) => titleKey(s.type, s.tmdbId)),
     ...recentPools.flatMap((pool) => pool.titles.map((t) => titleKey(t.type, t.tmdbId))),
@@ -267,7 +268,7 @@ export const buildTastePool = async (deps: TastePoolDeps, input: TastePoolInput)
       seed: r.seed,
       popularity: r.item.popularity,
       features,
-      score: scoreTitle(features, weights, config, r.item.popularity),
+      score: scoreTitle(features, weights, config, r.item.popularity, adjustment),
     });
   }
 
@@ -284,7 +285,7 @@ export const buildTastePool = async (deps: TastePoolDeps, input: TastePoolInput)
     if (result.status !== "fulfilled") return;
     const c = shortlist[i]!;
     c.features = titleFeatures(c.type, result.value);
-    c.score = scoreTitle(c.features, weights, config, c.popularity);
+    c.score = scoreTitle(c.features, weights, config, c.popularity, adjustment);
   });
 
   // 5. Quotas first, then leftover slots from any bucket. Extra picks cover titles not on my services.

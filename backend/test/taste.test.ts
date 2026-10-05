@@ -201,3 +201,17 @@ describe("versions", () => {
     expect(merged.maxSeeds).toBe(DEFAULT_TASTE_CONFIG.maxSeeds);
   });
 });
+
+describe("muteFactor", () => {
+  it("shrinks a positive score by the most negative butler adjustment among the title's features", async () => {
+    const { muteFactor } = await import("../src/taste/score");
+    const features = [
+      { key: "genre:27", kind: "genre" as const, label: "Horror" },
+      { key: "keyword:1", kind: "keyword" as const, label: "k" },
+    ];
+    expect(muteFactor(features, { "genre:27": -0.5, "keyword:1": -0.2 })).toBe(0.5);
+    expect(muteFactor(features, { "genre:27": -1 })).toBe(0);
+    expect(muteFactor(features, { "genre:27": 0.4 })).toBe(1);
+    expect(scoreTitle(features, { "genre:27": 1 }, config, 0, { "genre:27": -0.5 })).toBeCloseTo(0.5);
+  });
+});
