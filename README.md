@@ -42,11 +42,24 @@ Then, from the repository root:
 
 ```sh
 yarn install
-vega virtual-device start      # add --no-gl-accel if the GPU fails
+vega virtual-device start
 cd app
 yarn build:debug
 yarn vvd                       # installs and launches build/x86_64-debug/app_x86_64.vpkg
 ```
+
+If the virtual device never answers ("Deadline reached (60s) but virtual
+device unresponsive") or shows a black window, the emulator crashed while
+loading Vulkan (seen with NVIDIA drivers on Ubuntu). Turn Vulkan off for the
+emulator and start it again:
+
+```sh
+mkdir -p ~/.android
+printf 'Vulkan = off\nGLDirectMem = on\n' > ~/.android/advancedFeatures.ini
+vega virtual-device stop && vega virtual-device start
+```
+
+Keys in the virtual device window: arrows (D-pad), Enter (OK), Esc (Back), F1 (Home).
 
 The app starts in mock mode: it reads the fixtures in `packages/domain/fixtures/`
 and needs no backend. See `app/README.md` to switch to the real API.

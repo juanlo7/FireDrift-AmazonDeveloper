@@ -26,6 +26,9 @@ Run them from `app/`.
 | `src/focus/` | `TVFocusProvider` / `useTVFocus`, `FocusGuideView`, `useFocusState`, `useRemoteKeys` (adapted from `vega-tv-interfaces-sample`) |
 | `src/components/` | `FocusableButton` (focus ring and scale) and `Screen` (TV safe area) |
 | `src/theme/` | Colors, spacing, safe area, type scale and focus tokens |
+| `src/signals/` | Batched signal queue (FR-2) and the cover dwell tracker |
+| `src/profile/` | Anonymous device profile ID |
+| `src/storage.ts` | AsyncStorage wrapper (`KeyValueStore`) |
 
 ## Mock or real API
 
@@ -42,6 +45,33 @@ export const config: AppConfig = {
 In `mock` mode every call returns the fixtures in `packages/domain/fixtures/rest/`.
 Import the client with `import { api } from '../api'`; screens never call
 `fetch` directly.
+
+## Signals and device profile
+
+- **Device profile** (`src/profile/`): `deviceProfile.getProfileId()` makes a
+  UUID on first run and keeps it on the device (AsyncStorage). It is the
+  `profileId` of every API call and, for the butler, the Cognito username (#61).
+  `deviceProfile.ensureProfile(api, { country, services, showEverything })`
+  saves the settings (#37); it never throws, and the backend uses defaults
+  (ES, all services) until it succeeds.
+- **Signal queue** (`src/signals/`): screens call `signalQueue.enqueue({ tmdbId,
+  type, kind, source, ... })`. Signals are kept on the device and sent in
+  batches (FR-2): when 5 are waiting, 30 s after the last send, or when the app
+  goes to the background; up to 50 per request. If the backend is down they
+  stay and are retried with backoff (up to 5 min), also after a restart. A batch
+  the backend rejects (4xx) is dropped. At most 500 are kept.
+- **Cover dwell** (`trackCoverDwell`): the feed calls `enter(title)` when a cover
+  shows and `leave()` when it goes; the tracker queues a `dwell` signal with
+  `surface: "cover"` and `ratio = min(1, ms / 15000)`. Stays under 300 ms (the
+  D-pad passing by) are ignored.
+
+  ```ts
+  const dwell = trackCoverDwell(signalQueue);
+  useEffect(() => {
+    if (title) dwell.enter(title);
+    return () => dwell.leave();
+  }, [title]);
+  ```
 
 ## Focus and the remote
 
