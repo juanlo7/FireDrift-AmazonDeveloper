@@ -277,9 +277,10 @@ describe('FeedScreen with the remote', () => {
     press('select');
     await waitFor(() => expect(screen.getByTestId('watch-now-title')).toHaveTextContent('Watch Dark'));
 
-    // While the sheet is open, the feed ignores the D-pad.
+    // While the sheet is open, the feed ignores the D-pad and its text column steps out.
     press('down');
-    expect(screen.getByTestId('feed-title')).toHaveTextContent('Dark');
+    expect(screen.queryByTestId('feed-title')).toBeNull();
+    expect(screen.getByTestId('watch-now-title')).toHaveTextContent('Watch Dark');
   });
 
   it('skips with Left', async () => {
