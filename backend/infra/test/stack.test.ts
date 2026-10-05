@@ -159,10 +159,16 @@ describe("butler on AgentCore (#48)", () => {
     });
   });
 
-  it("puts the three weight tools behind an IAM-authorized Gateway", () => {
+  it("puts the five agent tools behind an IAM-authorized Gateway", () => {
     template.hasResourceProperties("AWS::BedrockAgentCore::Gateway", { AuthorizerType: "AWS_IAM", ProtocolType: "MCP" });
     const targets = Object.values(template.findResources("AWS::BedrockAgentCore::GatewayTarget"));
-    expect(targets.map(({ Properties }) => Properties.Name).sort()).toEqual(["get-weights", "ranked-picks", "update-weights"]);
+    expect(targets.map(({ Properties }) => Properties.Name).sort()).toEqual([
+      "get-weights",
+      "ranked-picks",
+      "resolve-titles",
+      "similar",
+      "update-weights",
+    ]);
   });
 
   it("limits Bedrock to the two butler models", () => {

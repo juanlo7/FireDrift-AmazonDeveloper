@@ -1,7 +1,7 @@
 """Talk to the brain from the terminal, against AWS.
 
-Bedrock and the weight tool Lambdas are real; `resolve_titles` and `similar`
-answer from fixtures until #40 ships. Credentials from `aws login` need
+Bedrock and the tool Lambdas are real; `resolve_titles` and `similar` answer
+from fixtures if the stack does not have them yet. Credentials from `aws login` need
 `botocore[crt]` in Python, so export them to the environment instead:
 
     eval "$(aws configure export-credentials --profile firedrift --format env)"
@@ -28,6 +28,8 @@ OUTPUTS = {
     "get_weights": "GetWeightsToolArn",
     "update_weights": "UpdateWeightsToolArn",
     "ranked_picks": "RankedPicksToolArn",
+    "resolve_titles": "ResolveTitlesToolArn",
+    "similar": "SimilarToolArn",
 }
 
 
@@ -35,7 +37,8 @@ def tool_functions(session: boto3.Session) -> dict[str, str]:
     """Lambda ARNs from the stack outputs."""
     stack = session.client("cloudformation").describe_stacks(StackName=STACK)["Stacks"][0]
     outputs = {o["OutputKey"]: o["OutputValue"] for o in stack.get("Outputs", [])}
-    return {tool: next(v for k, v in outputs.items() if suffix in k) for tool, suffix in OUTPUTS.items()}
+    found = {tool: next((v for k, v in outputs.items() if suffix in k), None) for tool, suffix in OUTPUTS.items()}
+    return {tool: arn for tool, arn in found.items() if arn}
 
 
 async def main() -> None:
@@ -47,8 +50,10 @@ async def main() -> None:
 
     config = BrainConfig()
     aws = boto3.Session(profile_name=args.aws_profile, region_name=config.region)
-    weights = LambdaToolClient(tool_functions(aws), aws.client("lambda"))
-    client = CompositeToolClient(weights=weights, grounding=FixtureToolClient())
+    functions = tool_functions(aws)
+    lambdas = LambdaToolClient(functions, aws.client("lambda"))
+    grounding = lambdas if {"resolve_titles", "similar"} <= functions.keys() else FixtureToolClient()
+    client = CompositeToolClient(weights=lambdas, grounding=grounding)
 
     import strands.models.bedrock as bedrock
 

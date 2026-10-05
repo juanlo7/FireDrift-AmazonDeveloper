@@ -83,7 +83,10 @@ class McpToolClient:
         return TitlesOutput.model_validate(self._call("ranked_picks", {"profileId": profile_id, "count": count}))
 
     def resolve_titles(self, profile_id: str, proposals: list[Proposal]) -> ResolveTitlesOutput:
-        payload = {"profileId": profile_id, "proposals": _dump(proposals)}
+        # The Gateway schema types `year` as an integer, so an unknown year is left out
+        # instead of sent as null; the Lambda reads a missing year as null.
+        dumped = [p.model_dump(by_alias=True, mode="json", exclude_none=True) for p in proposals]
+        payload = {"profileId": profile_id, "proposals": dumped}
         return ResolveTitlesOutput.model_validate(self._call("resolve_titles", payload))
 
     def similar(self, profile_id: str, type: TitleType, tmdb_id: int, count: int) -> TitlesOutput:

@@ -108,17 +108,21 @@ Requirements 4.1. Pure functions over the TMDB client and the stores.
   redeploy, for example `{"taste": {"quotas": {"discovery": 0.3}}}` or
   `{"taste": {"algorithmVersion": "cold-start-1"}}` to roll back.
 
-## Agent tools (P2)
+## Agent tools
 
 Lambdas without an HTTP route; AgentCore Gateway (#48) calls them with the
 tool input as the event and gets the output back. The stack outputs their ARNs
-(`…GetWeightsToolArn`, `…UpdateWeightsToolArn`, `…RankedPicksToolArn`).
+(`…GetWeightsToolArn`, `…UpdateWeightsToolArn`, `…RankedPicksToolArn`,
+`…ResolveTitlesToolArn`, `…SimilarToolArn`). Weight tools and `ranked_picks`:
+P2. Grounding tools (`resolve_titles`, `similar`): P1.
 
 | Tool | Handler | Output |
 |---|---|---|
 | `get_weights` | `src/handlers/tools/getWeights.ts` | `WeightsSummary` |
 | `update_weights` | `src/handlers/tools/updateWeights.ts` | `{ change, clamped }` |
 | `ranked_picks` | `src/handlers/tools/rankedPicks.ts` | `{ titles }` |
+| `resolve_titles` | `src/handlers/tools/resolveTitles.ts` | `{ resolved, dropped }` |
+| `similar` | `src/handlers/tools/similar.ts` | `{ titles }` |
 
 - Input and output follow `docs/contracts.md` section 5, validated with the
   schemas of `@firedrift/domain`. `src/shared/tool.ts` (`createToolHandler`)
@@ -131,6 +135,28 @@ tool input as the event and gets the output back. The stack outputs their ARNs
 - `ranked_picks` runs the pool algorithm for up to 10 titles with its own
   quotas (60 % favourites, 40 % genres, no discovery: the butler wants the best
   matches), leaves out what the feed already showed and saves nothing.
+- `resolve_titles` (grounding rule): each proposal is searched on TMDB by
+  title, type and year (again without the year if the model got it wrong).
+  Only a **confident match** counts: the same title once case, accents,
+  punctuation and a leading article are ignored, and a year within ±1
+  (`src/grounding/match.ts`). Anything else is dropped as `no_match`; a title
+  off the profile's services is dropped as `not_on_my_services` (unless "show
+  everything" is on). The cards come from TMDB, never from the model. `year`
+  may be left out (the Gateway schema cannot say "integer or null").
+- `similar`: TMDB recommendations for the title, then TMDB "similar" if they
+  are not enough; titles on the profile's services only, up to 10, looking up
+  at most 24 title cards per call.
+- **Drop rate:** every `resolve_titles` call logs one JSON line with
+  `metric: "grounding_drop_rate"`. In CloudWatch Logs Insights, on the
+  `ResolveTitlesTool` log group:
+
+  ```
+  filter metric = "grounding_drop_rate"
+  | stats sum(proposals) as proposals, sum(droppedNoMatch) as noMatch,
+          sum(droppedNotOnMyServices) as offServices,
+          (sum(droppedNoMatch) + sum(droppedNotOnMyServices)) / sum(proposals) as dropRate
+    by bin(1d)
+  ```
 
 Try one after a deploy (the function name is in the stack outputs):
 
