@@ -60,6 +60,39 @@ export interface TmdbTvDetails extends TmdbDetailsBase {
 
 export type TmdbDetails = TmdbMovieDetails | TmdbTvDetails;
 
+export interface TmdbNamed {
+  id: number;
+  name: string;
+}
+
+/** Raw `/{type}/{id}?append_to_response=keywords,credits` fields that `features` reads. */
+export interface TmdbFeaturesResponse {
+  genres?: TmdbNamed[];
+  release_date?: string;
+  first_air_date?: string;
+  runtime?: number | null;
+  episode_run_time?: number[];
+  created_by?: TmdbNamed[];
+  /** Movies: `keywords.keywords`; series: `keywords.results`. */
+  keywords?: { keywords?: TmdbNamed[]; results?: TmdbNamed[] };
+  credits?: {
+    cast?: (TmdbNamed & { order?: number })[];
+    crew?: (TmdbNamed & { job?: string })[];
+  };
+}
+
+/** What the taste algorithm needs from a title: small enough to cache for weeks. */
+export interface TmdbTitleFeatures {
+  genres: TmdbNamed[];
+  keywords: TmdbNamed[];
+  /** Main cast first, then directors (series: creators). */
+  people: TmdbNamed[];
+  /** First release or air year, or null. */
+  year: number | null;
+  /** Movie runtime or episode runtime, in minutes, or null. */
+  runtimeMinutes: number | null;
+}
+
 /** One item of search, discover, recommendations and similar results. */
 export interface TmdbListItem {
   id: number;

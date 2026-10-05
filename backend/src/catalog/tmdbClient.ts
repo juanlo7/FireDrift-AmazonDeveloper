@@ -2,10 +2,12 @@ import type { Cache } from "./cache";
 import type {
   TmdbCountryProviders,
   TmdbDetails,
+  TmdbFeaturesResponse,
   TmdbListItem,
   TmdbMediaType,
   TmdbPage,
   TmdbProviderListItem,
+  TmdbTitleFeatures,
   TmdbVideo,
 } from "./tmdbTypes";
 
@@ -18,7 +20,33 @@ export const CACHE_TTL_SECONDS = {
   list: 24 * 3600,
   discover: 6 * 3600,
   providerList: 7 * 24 * 3600,
+  // TMDB terms allow caching up to 6 months; features rarely change.
+  features: 30 * 24 * 3600,
 } as const;
+
+const MAX_KEYWORDS = 10;
+const MAX_CAST = 5;
+
+/** Keeps only what the taste algorithm reads, so the cached item stays small. */
+export const toTitleFeatures = (raw: TmdbFeaturesResponse): TmdbTitleFeatures => {
+  const named = ({ id, name }: { id: number; name: string }) => ({ id, name });
+  const date = raw.release_date || raw.first_air_date;
+  const year = date ? Number(date.slice(0, 4)) : Number.NaN;
+  const runtime = raw.runtime ?? raw.episode_run_time?.[0] ?? null;
+  const cast = [...(raw.credits?.cast ?? [])]
+    .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+    .slice(0, MAX_CAST);
+  const directors = raw.created_by?.length
+    ? raw.created_by
+    : (raw.credits?.crew ?? []).filter((member) => member.job === "Director");
+  return {
+    genres: (raw.genres ?? []).map(named),
+    keywords: (raw.keywords?.keywords ?? raw.keywords?.results ?? []).slice(0, MAX_KEYWORDS).map(named),
+    people: [...cast, ...directors].map(named),
+    year: Number.isInteger(year) ? year : null,
+    runtimeMinutes: runtime && runtime > 0 ? runtime : null,
+  };
+};
 
 /** A TMDB API Read Access Token (Bearer) or a v3 API key. */
 export type TmdbCredentials = { kind: "bearer"; token: string } | { kind: "apiKey"; key: string };
@@ -55,6 +83,8 @@ export interface TmdbClient {
   discover(type: TmdbMediaType, params: DiscoverParams): Promise<TmdbPage<TmdbListItem>>;
   recommendations(type: TmdbMediaType, id: number, page?: number): Promise<TmdbPage<TmdbListItem>>;
   similar(type: TmdbMediaType, id: number, page?: number): Promise<TmdbPage<TmdbListItem>>;
+  /** Genres, keywords, main people, year and runtime for the taste algorithm (#46). */
+  features(type: TmdbMediaType, id: number): Promise<TmdbTitleFeatures>;
 }
 
 export interface TmdbClientOptions {
@@ -73,15 +103,23 @@ export const createTmdbClient = ({
   language = "en-US",
   timeoutMs = 5000,
 }: TmdbClientOptions): TmdbClient => {
-  /** GET `path` with `params`; the cache key never holds the credentials. */
-  const get = async <T>(path: string, params: DiscoverParams, ttlSeconds: number): Promise<T> => {
+  /**
+   * GET `path` with `params`; the cache key never holds the credentials.
+   * With `trim`, only the trimmed value is cached, under its own key.
+   */
+  const get = async <T>(
+    path: string,
+    params: DiscoverParams,
+    ttlSeconds: number,
+    trim?: { keyPrefix: string; apply: (raw: unknown) => T },
+  ): Promise<T> => {
     const query = new URLSearchParams();
     for (const [name, value] of Object.entries({ language, ...params }).sort(([a], [b]) =>
       a.localeCompare(b),
     )) {
       if (value !== undefined) query.set(name, String(value));
     }
-    const cacheKey = `${path}?${query.toString()}`;
+    const cacheKey = `${trim?.keyPrefix ?? ""}${path}?${query.toString()}`;
 
     const cached = await cache.get(cacheKey);
     if (cached !== undefined) return JSON.parse(cached) as T;
@@ -99,6 +137,11 @@ export const createTmdbClient = ({
       throw new TmdbError(response.status, `TMDB ${path} returned ${response.status}`);
     }
     const body = await response.text();
+    if (trim) {
+      const value = trim.apply(JSON.parse(body));
+      await cache.set(cacheKey, JSON.stringify(value), ttlSeconds);
+      return value;
+    }
     await cache.set(cacheKey, body, ttlSeconds);
     return JSON.parse(body) as T;
   };
@@ -135,5 +178,10 @@ export const createTmdbClient = ({
       get(`/${type}/${id}/recommendations`, { page }, CACHE_TTL_SECONDS.list),
     similar: (type, id, page = 1) =>
       get(`/${type}/${id}/similar`, { page }, CACHE_TTL_SECONDS.list),
+    features: (type, id) =>
+      get(`/${type}/${id}`, { append_to_response: "keywords,credits" }, CACHE_TTL_SECONDS.features, {
+        keyPrefix: "features:",
+        apply: (raw) => toTitleFeatures(raw as TmdbFeaturesResponse),
+      }),
   };
 };
