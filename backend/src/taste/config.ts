@@ -36,6 +36,16 @@ export interface TasteConfig {
   candidatesPerSlot: number;
   /** Butler adjustments lose half their weight every this many days. */
   adjustmentHalfLifeDays: number;
+  /** Limits of `update_weights`, enforced by the tool (FR-5). */
+  butler: {
+    maxChanges: number;
+    maxDelta: number;
+    /** Adjustment values stay in [-adjustmentRange, adjustmentRange]. */
+    adjustmentRange: number;
+    maxRankedPicks: number;
+    /** `ranked_picks` gives the best matches: no discovery share. */
+    rankedPicksQuotas: { favourites: number; genres: number; discovery: number };
+  };
 }
 
 export const DEFAULT_TASTE_CONFIG: TasteConfig = {
@@ -60,6 +70,13 @@ export const DEFAULT_TASTE_CONFIG: TasteConfig = {
   genreRepeatPenalty: 0.8,
   candidatesPerSlot: 2,
   adjustmentHalfLifeDays: 7,
+  butler: {
+    maxChanges: 3,
+    maxDelta: 0.5,
+    adjustmentRange: 1,
+    maxRankedPicks: 10,
+    rankedPicksQuotas: { favourites: 0.6, genres: 0.4, discovery: 0 },
+  },
 };
 
 type DeepPartial<T> = { [K in keyof T]?: T[K] extends object ? DeepPartial<T[K]> : T[K] };

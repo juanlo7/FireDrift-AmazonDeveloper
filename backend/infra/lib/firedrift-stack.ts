@@ -8,6 +8,7 @@ import { Construct } from "constructs";
 import { BackendFunction } from "./backend-function";
 import { CatalogConstruct } from "./catalog-construct";
 import { TasteConstruct } from "./taste-construct";
+import { ToolsConstruct } from "./tools-construct";
 
 export interface Throttle {
   rateLimit: number;
@@ -77,6 +78,7 @@ export class FireDriftStack extends Stack implements BackendContext {
 
     new CatalogConstruct(this, "Catalog", this);
     new TasteConstruct(this, "Taste", this);
+    new ToolsConstruct(this, "Tools", this);
 
     new CfnOutput(this, "ApiUrl", { value: this.api.apiEndpoint });
     new CfnOutput(this, "TableName", { value: this.table.tableName });

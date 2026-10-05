@@ -6,7 +6,7 @@ import type { ConfigStore } from "../taste/configStore";
 import type { WeightStore } from "../weights/weightStore";
 import { createWeightsService, type WeightsService } from "../weights/weightsService";
 
-type WeightsAction = keyof WeightsService;
+type WeightsAction = keyof Pick<WeightsService, "summary" | "undo" | "reset">;
 
 /** `GET /weights`, `POST /weights/undo` and `POST /weights/reset` → `WeightsSummary`. */
 export const createWeightsHandler =

@@ -151,7 +151,9 @@ background (or alpha if Vega supports it, see `requirements.md` V5), each under
 ## 5. Agent tools (backend → agent)
 
 Lambdas exposed as MCP tools through AgentCore Gateway. `profileId` comes from
-the session, never from the model.
+the session, never from the model: the tool schemas the model sees leave it out,
+and the agent adds it to every call. A tool never throws; on bad input or a
+failure it returns `{ "error": { "code", "message" } }`.
 
 | Tool | Input | Output |
 |---|---|---|
@@ -161,8 +163,15 @@ the session, never from the model.
 | `similar` | `profileId, type, tmdbId, count` | `{ titles: TitleCard[] }` |
 | `ranked_picks` | `profileId, count` | `{ titles: TitleCard[] }` |
 
-Limits enforced by the tools, not by the prompt: max changes and max delta per
-`update_weights` call, clamp range, max proposals per call.
+Limits enforced by the tools, not by the prompt (values in the taste config):
+
+- `update_weights`: repeated features are summed; at most **3** features per
+  call (the rest are not applied); each delta is capped at **±0.5**; the
+  adjustment layer stays within **[-1, 1]**. Every feature cut by a limit is
+  listed in `clamped`. A call left with nothing to change returns the error
+  `invalid_change`.
+- `ranked_picks`: `count` up to 10.
+- `resolve_titles`: at most 5 proposals per call.
 
 ## 6. Gesture cues (agent → character)
 

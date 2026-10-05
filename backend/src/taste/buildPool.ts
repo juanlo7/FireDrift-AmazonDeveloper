@@ -7,7 +7,7 @@ import { buildColdStartPool, COLD_START_VERSION, discoverParams, seenKey } from 
 import type { PoolRecord } from "../pool/poolStore";
 import type { Profile } from "../profile/profileStore";
 import { mapSettled } from "../shared/async";
-import type { WeightMap } from "../weights/summary";
+import { decayAdjustment, type WeightMap } from "../weights/summary";
 import { effectiveFromLayers } from "../weights/weightsService";
 import type { WeightLayers } from "../weights/weightStore";
 import type { TasteConfig } from "./config";
@@ -21,8 +21,10 @@ export const TASTE_VERSION = "taste-1";
 const TMDB_CONCURRENCY = 8;
 /** Genres weighing this much or less are kept out of discovery too. */
 const DISLIKED_GENRE = -0.3;
-/** Cards fetched per pool slot: recommendations are not filtered by service, so some drop out. */
-const CARDS_PER_SLOT = 1.5;
+/** Pages of recommendations per seed and of genre discover per type. */
+const CANDIDATE_PAGES = 2;
+/** Fewest candidates scored per bucket that has slots, so small pools still have choice. */
+const MIN_SHORTLIST = 8;
 
 export type Bucket = "favourites" | "genres" | "discovery";
 const BUCKETS: Bucket[] = ["favourites", "genres", "discovery"];
@@ -99,27 +101,36 @@ const fetchCandidates = async (
   profile: Profile,
   seeds: { type: TitleType; tmdbId: number }[],
   genres: { liked: number[]; disliked: number[] },
-  discoveryPage: number,
+  /** How many pools the profile already had: later pools dig deeper into TMDB lists. */
+  depth: number,
 ) => {
   type Raw = { type: TitleType; item: TmdbListItem; bucket: Bucket; seed?: string };
   const requests: (() => Promise<Raw[]>)[] = [];
+  const pages = Array.from({ length: CANDIDATE_PAGES }, (_, i) => i + 1);
 
   for (const seed of seeds) {
-    requests.push(async () =>
-      (await tmdb.recommendations(toTmdbType(seed.type), seed.tmdbId)).results.map((item) => ({
-        type: seed.type,
-        item,
-        bucket: "favourites" as const,
-        seed: titleKey(seed.type, seed.tmdbId),
-      })),
-    );
+    for (const page of pages) {
+      requests.push(async () =>
+        (await tmdb.recommendations(toTmdbType(seed.type), seed.tmdbId, page)).results.map((item) => ({
+          type: seed.type,
+          item,
+          bucket: "favourites" as const,
+          seed: titleKey(seed.type, seed.tmdbId),
+        })),
+      );
+    }
   }
   for (const type of ["movie", "series"] as const) {
     const liked = discoverIds(type, genres.liked);
-    if (liked.length > 0) {
+    const disliked = discoverIds(type, genres.disliked);
+    for (const page of liked.length > 0 ? pages : []) {
       requests.push(async () =>
         (
-          await tmdb.discover(toTmdbType(type), { ...discoverParams(profile, 1), with_genres: liked.join("|") })
+          await tmdb.discover(toTmdbType(type), {
+            ...discoverParams(profile, page + depth),
+            with_genres: liked.join("|"),
+            ...(disliked.length > 0 ? { without_genres: disliked.join(",") } : {}),
+          })
         ).results.map((item) => ({ type, item, bucket: "genres" as const })),
       );
     }
@@ -127,7 +138,7 @@ const fetchCandidates = async (
     requests.push(async () =>
       (
         await tmdb.discover(toTmdbType(type), {
-          ...discoverParams(profile, discoveryPage),
+          ...discoverParams(profile, 1 + (depth % 3)),
           ...(known.length > 0 ? { without_genres: known.join(",") } : {}),
         })
       ).results.map((item) => ({ type, item, bucket: "discovery" as const })),
@@ -142,12 +153,14 @@ const fetchCandidates = async (
  * Picks `slots` candidates of a bucket by score. Each repeat of a main genre
  * already in the pool multiplies the score by `genreRepeatPenalty`. Favourites
  * go round the seeds: one title per seed per round, so a pool spans many seeds.
+ * Unless `allowAgainstTaste`, a title scoring 0 or less is never picked.
  */
 const pick = (
   candidates: Candidate[],
   slots: number,
   picked: Candidate[],
   config: TasteConfig,
+  allowAgainstTaste = false,
 ): Candidate[] => {
   const chosen: Candidate[] = [];
   const pool = [...candidates];
@@ -165,8 +178,13 @@ const pick = (
   while (chosen.length < slots && pool.length > 0) {
     let best = -1;
     let bestScore = -Infinity;
+    let blockedBySeed = false;
     for (const [index, c] of pool.entries()) {
-      if (c.seed && (seedCount.get(c.seed) ?? 0) >= perSeed) continue;
+      if (!allowAgainstTaste && c.score <= 0) continue;
+      if (c.seed && (seedCount.get(c.seed) ?? 0) >= perSeed) {
+        blockedBySeed = true;
+        continue;
+      }
       const genre = mainGenre(c.features);
       const adjusted =
         c.score >= 0
@@ -178,6 +196,7 @@ const pick = (
       }
     }
     if (best === -1) {
+      if (!blockedBySeed) break;
       perSeed++;
       continue;
     }
@@ -230,6 +249,7 @@ export const buildTastePool = async (deps: TastePoolDeps, input: TastePoolInput)
 
   // 2. Effective weights; with no positive taste yet, a new profile gets the cold start.
   const weights = effectiveFromLayers({ ...layers, learned: learned.weights }, now, config.adjustmentHalfLifeDays);
+  const adjustment = decayAdjustment(layers.adjustment, layers.adjustmentUpdatedAt, now, config.adjustmentHalfLifeDays);
   const seen = new Set([
     ...signals.map((s) => titleKey(s.type, s.tmdbId)),
     ...recentPools.flatMap((pool) => pool.titles.map((t) => titleKey(t.type, t.tmdbId))),
@@ -253,7 +273,7 @@ export const buildTastePool = async (deps: TastePoolDeps, input: TastePoolInput)
     profile,
     seeds,
     genreTaste(weights, config.topGenres),
-    1 + (recentPools.length % 3),
+    Math.min(recentPools.length, config.cooldownPools),
   );
   const unique = new Map<string, Candidate>();
   for (const r of raw) {
@@ -267,59 +287,62 @@ export const buildTastePool = async (deps: TastePoolDeps, input: TastePoolInput)
       seed: r.seed,
       popularity: r.item.popularity,
       features,
-      score: scoreTitle(features, weights, config, r.item.popularity),
+      score: scoreTitle(features, weights, config, r.item.popularity, adjustment),
     });
   }
 
   // 4. Keep the best few per slot from the list data, then score them with full features.
   const slots = quotaSlots(size, config.quotas);
   const shortlist = BUCKETS.flatMap((bucket) => {
+    if (slots[bucket] === 0) return [];
     const ranked = [...unique.values()].filter((c) => c.bucket === bucket).sort((a, b) => b.score - a.score);
-    return bucket === "favourites"
-      ? roundRobinBySeed(ranked).slice(0, Math.max(1, slots[bucket]) * config.candidatesPerSlot)
-      : ranked.slice(0, Math.max(1, slots[bucket]) * config.candidatesPerSlot);
+    const keep = Math.max(MIN_SHORTLIST, slots[bucket] * config.candidatesPerSlot);
+    return (bucket === "favourites" ? roundRobinBySeed(ranked) : ranked).slice(0, keep);
   });
   const detailed = await mapSettled(shortlist, TMDB_CONCURRENCY, (c) => deps.tmdb.features(toTmdbType(c.type), c.tmdbId));
   detailed.forEach((result, i) => {
     if (result.status !== "fulfilled") return;
     const c = shortlist[i]!;
     c.features = titleFeatures(c.type, result.value);
-    c.score = scoreTitle(c.features, weights, config, c.popularity);
+    c.score = scoreTitle(c.features, weights, config, c.popularity, adjustment);
   });
 
-  // 5. Quotas first, then leftover slots from any bucket. Extra picks cover titles not on my services.
-  const target = Math.ceil(size * CARDS_PER_SLOT);
+  // 5. Quotas first, then every other candidate by score, as backups for titles not on my services.
   const byBucket: Candidate[][] = [];
   const picked: Candidate[] = [];
   for (const bucket of BUCKETS) {
     const chosen = pick(
       shortlist.filter((c) => c.bucket === bucket),
-      Math.ceil(slots[bucket] * CARDS_PER_SLOT),
+      slots[bucket],
       picked,
       config,
+      bucket === "discovery",
     );
     byBucket.push(chosen);
     picked.push(...chosen);
   }
   const pickedKeys = new Set(picked.map((c) => titleKey(c.type, c.tmdbId)));
-  const extra = pick(
+  const backups = pick(
     shortlist.filter((c) => !pickedKeys.has(titleKey(c.type, c.tmdbId))),
-    Math.max(0, target - picked.length),
+    shortlist.length,
     picked,
     config,
   );
-  const ordered = [...interleave(byBucket), ...extra];
+  const ordered = [...interleave(byBucket), ...backups];
 
-  // 6. Cards, filtered by my services; the cold start fills what is missing.
+  // 6. Cards in that order, in batches, until the pool is full of titles on my services.
   const services = profile.showEverything ? [] : profile.services;
-  const cards = (
-    await mapSettled(ordered, TMDB_CONCURRENCY, (c) =>
+  const cards: TitleCard[] = [];
+  for (let start = 0; start < ordered.length && cards.length < size; start += TMDB_CONCURRENCY) {
+    const batch = ordered.slice(start, start + TMDB_CONCURRENCY);
+    const results = await mapSettled(batch, TMDB_CONCURRENCY, (c) =>
       deps.catalog.getTitleCard(c.type, c.tmdbId, profile.country, services),
-    )
-  )
-    .flatMap((r) => (r.status === "fulfilled" ? [r.value] : []))
-    .filter((card) => services.length === 0 || card.onMyServices)
-    .slice(0, size);
+    );
+    for (const r of results) {
+      if (r.status === "fulfilled" && (services.length === 0 || r.value.onMyServices)) cards.push(r.value);
+    }
+  }
+  cards.splice(size);
 
   if (cards.length < size) {
     const taken = new Set([...seen, ...cards.map((c) => titleKey(c.type, c.tmdbId))]);

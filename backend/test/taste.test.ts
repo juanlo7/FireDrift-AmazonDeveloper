@@ -160,9 +160,9 @@ describe("buildTastePool", () => {
   it("asks TMDB for recommendations of the liked titles and discovery outside known genres", async () => {
     const world = createTasteWorld();
     await buildTastePool(world, input(actionLikesRomanceSkips()));
-    const seeds = world.recommendations.mock.calls.map(([, id]) => id).sort((a, b) => a - b);
+    const seeds = [...new Set(world.recommendations.mock.calls.map(([, id]) => id))].sort((a, b) => a - b);
     expect(seeds).toEqual([5, 10, 15, 20, 25]);
-    const discovery = world.discover.mock.calls.find(([type, params]) => type === "movie" && params.without_genres);
+    const discovery = world.discover.mock.calls.find(([type, params]) => type === "movie" && params.without_genres && !params.with_genres);
     expect(String(discovery?.[1].without_genres).split(",")).toEqual(expect.arrayContaining(["28", "10749"]));
   });
 
@@ -199,5 +199,19 @@ describe("versions", () => {
     const merged = mergeConfig(DEFAULT_TASTE_CONFIG, { quotas: { discovery: 0.4 }, maxSeeds: "many" });
     expect(merged.quotas).toEqual({ favourites: 0.5, genres: 0.3, discovery: 0.4 });
     expect(merged.maxSeeds).toBe(DEFAULT_TASTE_CONFIG.maxSeeds);
+  });
+});
+
+describe("muteFactor", () => {
+  it("shrinks a positive score by the most negative butler adjustment among the title's features", async () => {
+    const { muteFactor } = await import("../src/taste/score");
+    const features = [
+      { key: "genre:27", kind: "genre" as const, label: "Horror" },
+      { key: "keyword:1", kind: "keyword" as const, label: "k" },
+    ];
+    expect(muteFactor(features, { "genre:27": -0.5, "keyword:1": -0.2 })).toBe(0.5);
+    expect(muteFactor(features, { "genre:27": -1 })).toBe(0);
+    expect(muteFactor(features, { "genre:27": 0.4 })).toBe(1);
+    expect(scoreTitle(features, { "genre:27": 1 }, config, 0, { "genre:27": -0.5 })).toBeCloseTo(0.5);
   });
 });
