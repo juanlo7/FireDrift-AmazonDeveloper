@@ -86,6 +86,9 @@ class BrainSession:
         session.turns += 1
         session.turn = TurnState(on_screen=session.current)
         prompt = user_input.text if isinstance(user_input, TextInput) else chip_prompt(user_input.chip_id, session)
+        if session.notes:
+            prompt = "Context: " + " ".join(session.notes) + "\n" + prompt
+            session.notes.clear()
         if isinstance(user_input, ChipInput) and session.current:
             # The TMDB card of the title on screen backs what the answer says about it.
             session.turn.tool_results.append(session.current)

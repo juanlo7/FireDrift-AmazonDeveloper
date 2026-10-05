@@ -69,6 +69,41 @@ uv run python -m brain.demo --profile <uuid> "Something like Dark, but shorter" 
 Tests use `tests/scripted_model.py`, a Strands model that plays a script, so
 the real agent loop runs the real tools without Bedrock.
 
+## Server (`server/`, #50)
+
+The Bedrock AgentCore Runtime app (`bedrock-agentcore`): the butler WebSocket at
+`/ws` and the health check at `/ping`, on port 8080, as the Runtime expects.
+One `ButlerConnection` per socket (contracts section 3):
+
+- The first frame must be `session.start`; `profileId`, country and services
+  come from it. Anything else gets a `fallback` and the socket closes.
+- `chip.select` and the final transcript of push to talk start a brain turn;
+  every turn starts with `thinking`. A new input during a turn cancels it.
+- `suggestion.feedback` becomes context for the next input.
+- Answer text goes to the app sentence by sentence, without gesture markers;
+  `suggestion`, `chips`, `weights.changed`, `answer.done` and `fallback` pass
+  through. Any failure is a `fallback` with chips. Idle sessions close after
+  10 minutes (`FIREDRIFT_IDLE_TIMEOUT_S`).
+
+**Interfaces for P1 and P3** (`server/pipeline.py`, contracts section 7):
+`GestureParser` (#56, placeholder `SentenceSplitter`), `VoiceOut` and `VoiceIn`
+(#41, placeholders: no `speech` yet, and push to talk answers with a chips
+fallback). Swap them in `server/app.py`.
+
+**Run it locally** against AWS (Nova 2 Lite while Claude is blocked, #76):
+
+```sh
+eval "$(aws configure export-credentials --profile firedrift --format env)"
+export AWS_REGION=us-east-1 FIREDRIFT_MODEL_ID=us.amazon.nova-2-lite-v1:0
+export FIREDRIFT_GET_WEIGHTS_FN=… FIREDRIFT_UPDATE_WEIGHTS_FN=… FIREDRIFT_RANKED_PICKS_FN=…  # stack outputs
+uv run python -m server.app                              # ws://localhost:8080/ws
+uv run python -m server.fake_client ws://localhost:8080/ws
+```
+
+`server/fake_client.py` replays the app → agent fixtures and validates every
+agent event against the contract; the app client (#61) can follow the same order.
+From the VVD, forward the port: `vega device start-port-forwarding -p 8080 --forward false`.
+
 The zod schemas in `packages/domain` are the source of truth. When a contract
 changes, update `domain/models.py` in the same PR; `tests/test_fixtures.py`
 fails if the mirror and the fixtures drift apart.

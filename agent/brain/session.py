@@ -38,5 +38,7 @@ class Session:
     # The title on screen, for chips like "More like this" and "Tell me more".
     current: TitleCard | None = None
     turns: int = 0
+    # Things the app told us between turns (suggestion.feedback), for the next input.
+    notes: list[str] = field(default_factory=list)
     turn: TurnState = field(default_factory=TurnState)
     last_chips: list[Chip] = field(default_factory=list)
