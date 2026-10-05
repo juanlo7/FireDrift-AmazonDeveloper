@@ -65,6 +65,13 @@ describe('settings store', () => {
     expect(await reloaded.load()).toEqual({ country: 'US', services: [8, 119], showEverything: false, setupDone: true });
   });
 
+  it('load gives the saved settings, not the first read', async () => {
+    const { settings } = setup();
+    await settings.load();
+    await settings.save({ country: 'GB', services: [8], showEverything: false, setupDone: true });
+    expect(await settings.load()).toMatchObject({ country: 'GB', services: [8] });
+  });
+
   it('saves on the device even when the backend is down', async () => {
     const { settings, store } = setup({}, [], false);
     await settings.save({ country: 'GB', services: [8], showEverything: true, setupDone: true });
@@ -118,7 +125,7 @@ describe('ServicesForm', () => {
     fireEvent.press(screen.getByTestId('settings-country'));
     fireEvent.press(screen.getByTestId('country-US'));
     await waitFor(() => expect(getProviders).toHaveBeenLastCalledWith('US'));
-    expect(screen.getByTestId('settings-country')).toHaveTextContent(/United States/);
+    expect(screen.getByTestId('settings-country')).toHaveTextContent(/Country: US/);
 
     fireEvent.press(screen.getByTestId('settings-save'));
     expect(onSave).toHaveBeenCalledWith(expect.objectContaining({ country: 'US' }));

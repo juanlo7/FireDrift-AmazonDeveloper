@@ -27,7 +27,7 @@ export const ProviderTile = ({ provider, selected, onToggle, hasTVPreferredFocus
       testID={`provider-${provider.providerId}`}
     >
       <Image source={{ uri: provider.logoUrl }} style={styles.logo} />
-      <Text style={styles.name} numberOfLines={2}>
+      <Text style={styles.name} numberOfLines={1}>
         {provider.name}
       </Text>
       {selected ? (
@@ -43,8 +43,8 @@ const styles = StyleSheet.create({
   tile: {
     width: 104,
     alignItems: 'center',
-    gap: spacing.xs,
-    padding: spacing.xs,
+    gap: 4,
+    padding: 6,
     borderRadius: radius.md,
     borderWidth: focus.ringWidth,
     borderColor: 'transparent',
@@ -52,7 +52,7 @@ const styles = StyleSheet.create({
   },
   selected: { backgroundColor: colors.surfaceRaised, borderColor: colors.primary },
   focused: { borderColor: focus.ringColor, transform: [{ scale: focus.scale }] },
-  logo: { width: 52, height: 52, borderRadius: radius.sm, backgroundColor: colors.surfaceRaised },
+  logo: { width: 44, height: 44, borderRadius: radius.sm, backgroundColor: colors.surfaceRaised },
   name: { fontSize: 12, fontWeight: '600', color: colors.text, textAlign: 'center' },
   check: {
     position: 'absolute',

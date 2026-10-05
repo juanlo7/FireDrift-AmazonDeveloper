@@ -88,14 +88,18 @@ export const createSettingsStore = ({ store, sendProfile, locale }: SettingsDeps
   let loading: Promise<Settings> | undefined;
   const listeners = new Set<(settings: Settings) => void>();
 
-  const load = (): Promise<Settings> =>
-    (loading ??= store
+  /** Reads the device once; later calls give the current settings (also after a save). */
+  const load = async (): Promise<Settings> => {
+    loading ??= store
       .get(SETTINGS_KEY)
       .catch(() => null)
       .then(raw => {
-        current = parse(raw) ?? defaultSettings(locale);
+        current ??= parse(raw) ?? defaultSettings(locale);
         return current;
-      }));
+      });
+    await loading;
+    return current!;
+  };
 
   const toBody = ({ country, services, showEverything }: Settings): ProfilePutBody => ({
     country,

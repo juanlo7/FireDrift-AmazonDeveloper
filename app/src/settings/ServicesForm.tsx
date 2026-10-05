@@ -16,6 +16,16 @@ import { countryName, type Settings } from './settingsStore';
  */
 export const MAX_PROVIDERS = 12;
 
+/**
+ * Not subscriptions the user "has": add-on channels sold inside another service
+ * ("MGM+ Amazon Channel"), rent-and-buy stores and JustWatch's own channel.
+ */
+const NOT_A_SERVICE =
+  /\b(amazon|apple tv|roku premium) channels?\b|^amazon video$|\bstore$|google play|fandango|justwatch/i;
+
+export const pickProviders = (providers: Provider[]) =>
+  providers.filter(p => !NOT_A_SERVICE.test(p.name)).slice(0, MAX_PROVIDERS);
+
 export interface ServicesFormProps {
   api: ApiClient;
   initial: Settings;
@@ -44,7 +54,7 @@ export const ServicesForm = ({ api, initial, mode, onSave, onSkip, saving }: Ser
     setError(null);
     api
       .getProviders(country)
-      .then(response => setProviders(response.providers.slice(0, MAX_PROVIDERS)))
+      .then(response => setProviders(pickProviders(response.providers)))
       .catch((e: unknown) => setError(e instanceof Error ? e.message : String(e)));
   }, [api, country]);
 
@@ -65,22 +75,9 @@ export const ServicesForm = ({ api, initial, mode, onSave, onSkip, saving }: Ser
         {picked === 0
           ? mode === 'setup'
             ? 'Pick your services, or skip: FireDrift will use all of them.'
-            : 'No services picked: FireDrift uses all of them.'
+            : 'No services picked: FireDrift uses all of them. Back leaves without saving.'
           : `${picked} service${picked === 1 ? '' : 's'} picked. The feed shows what you can watch on them.`}
       </Text>
-
-      <FocusGuideView autoFocus style={styles.row}>
-        <FocusableButton
-          label={`Country: ${countryName(country)}`}
-          onPress={() => setPickingCountry(true)}
-          testID="settings-country"
-        />
-        <FocusableButton
-          label={`Show everything: ${showEverything ? 'On' : 'Off'}`}
-          onPress={() => setShowEverything(v => !v)}
-          testID="settings-show-everything"
-        />
-      </FocusGuideView>
 
       <View style={styles.grid}>
         {error ? (
@@ -106,16 +103,41 @@ export const ServicesForm = ({ api, initial, mode, onSave, onSkip, saving }: Ser
       </View>
 
       <FocusGuideView autoFocus style={styles.row}>
-        <FocusableButton
-          label={saving ? 'Saving…' : mode === 'setup' ? 'Done' : 'Save'}
-          onPress={() => !saving && save()}
-          testID="settings-save"
-        />
-        {mode === 'setup' && onSkip ? (
-          <FocusableButton label="Skip for now" onPress={() => !saving && onSkip()} testID="settings-skip" />
-        ) : (
-          <Text style={styles.hint}>Back leaves without saving.</Text>
-        )}
+        {[
+          <FocusableButton
+            key="save"
+            label={saving ? 'Saving…' : mode === 'setup' ? 'Done' : 'Save'}
+            onPress={() => !saving && save()}
+            style={styles.button}
+            testID="settings-save"
+          />,
+          ...(mode === 'setup' && onSkip
+            ? [
+                <FocusableButton
+                  key="skip"
+                  label="Skip"
+                  onPress={() => !saving && onSkip()}
+                  style={styles.button}
+                  testID="settings-skip"
+                />,
+              ]
+            : []),
+          <FocusableButton
+            key="country"
+            label={`Country: ${country}`}
+            accessibilityLabel={`Country: ${countryName(country)}`}
+            onPress={() => setPickingCountry(true)}
+            style={styles.button}
+            testID="settings-country"
+          />,
+          <FocusableButton
+            key="show-all"
+            label={`Show all: ${showEverything ? 'On' : 'Off'}`}
+            onPress={() => setShowEverything(v => !v)}
+            style={styles.button}
+            testID="settings-show-everything"
+          />,
+        ]}
       </FocusGuideView>
 
       <CountryPicker
@@ -132,9 +154,10 @@ export const ServicesForm = ({ api, initial, mode, onSave, onSkip, saving }: Ser
 };
 
 const styles = StyleSheet.create({
-  form: { flex: 1, gap: spacing.sm },
-  title: { ...typography.title, color: colors.text },
+  form: { flex: 1, gap: spacing.xs },
+  title: { ...typography.subtitle, color: colors.text },
   hint: { ...typography.caption, color: colors.textMuted },
-  row: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
+  row: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: spacing.sm },
+  button: { paddingHorizontal: spacing.md },
   grid: { flex: 1, flexDirection: 'row', flexWrap: 'wrap', alignContent: 'flex-start', gap: spacing.sm, padding: spacing.xs },
 });

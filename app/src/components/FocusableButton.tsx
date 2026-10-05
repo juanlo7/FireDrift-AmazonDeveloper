@@ -6,6 +6,8 @@ import { colors, focus, radius, spacing, typography } from '../theme';
 
 export interface FocusableButtonProps {
   label: string;
+  /** What screen readers say, when the visible label is short. Defaults to `label`. */
+  accessibilityLabel?: string;
   onPress: () => void;
   /** Takes focus when the screen opens. Use on one element per screen. */
   hasTVPreferredFocus?: boolean;
@@ -17,6 +19,7 @@ export interface FocusableButtonProps {
 /** D-pad button with a visible focus state (scale and ring). */
 export const FocusableButton = ({
   label,
+  accessibilityLabel,
   onPress,
   hasTVPreferredFocus,
   onFocus,
@@ -28,7 +31,7 @@ export const FocusableButton = ({
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel={label}
+      accessibilityLabel={accessibilityLabel ?? label}
       hasTVPreferredFocus={hasTVPreferredFocus}
       onPress={onPress}
       onFocus={handleFocus}
