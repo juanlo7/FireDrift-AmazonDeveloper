@@ -129,9 +129,15 @@ describe('createImagePrefetcher', () => {
 });
 
 describe('coverMeta', () => {
-  it('joins year, type, runtime and rating', () => {
-    expect(coverMeta(card(1, { year: 2017, type: 'series', runtimeMinutes: null, rating: 8.4 }))).toBe(
-      '2017  ·  Series  ·  ★ 8.4',
+  it('joins year, first genre, runtime and rating', () => {
+    expect(coverMeta(card(1, { year: 2017, genres: ['Crime', 'Drama'], runtimeMinutes: 164, rating: 8.4 }))).toBe(
+      '2017  ·  Crime  ·  2 h 44 min  ·  Rated 8.4',
+    );
+  });
+
+  it('falls back to the type when there is no genre', () => {
+    expect(coverMeta(card(1, { year: 2017, genres: [], type: 'series', runtimeMinutes: 45, rating: null }))).toBe(
+      '2017  ·  Series  ·  45 min',
     );
   });
 });

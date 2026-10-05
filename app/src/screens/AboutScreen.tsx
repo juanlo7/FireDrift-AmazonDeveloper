@@ -49,7 +49,7 @@ const styles = StyleSheet.create({
   body: { ...typography.body, color: colors.textMuted },
   tmdbLogo: { width: 185, height: 24, marginTop: spacing.sm },
   notice: { fontSize: 16, color: colors.text },
-  heading: { fontSize: 18, fontWeight: '700', color: colors.primary },
+  heading: { ...typography.label, fontSize: 16, color: colors.text },
   gap: { marginTop: spacing.sm },
   line: { fontSize: 14, color: colors.text },
   strong: { fontWeight: '700' },

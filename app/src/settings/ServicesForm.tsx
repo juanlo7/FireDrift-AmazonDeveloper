@@ -154,10 +154,10 @@ export const ServicesForm = ({ api, initial, mode, onSave, onSkip, saving }: Ser
 };
 
 const styles = StyleSheet.create({
-  form: { flex: 1, gap: spacing.xs },
-  title: { ...typography.subtitle, color: colors.text },
+  form: { flex: 1, justifyContent: 'center', gap: spacing.md },
+  title: { ...typography.title, color: colors.text },
   hint: { ...typography.caption, color: colors.textMuted },
   row: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: spacing.sm },
   button: { paddingHorizontal: spacing.md },
-  grid: { flex: 1, flexDirection: 'row', flexWrap: 'wrap', alignContent: 'flex-start', gap: spacing.sm, padding: spacing.xs },
+  grid: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md, paddingVertical: spacing.md },
 });

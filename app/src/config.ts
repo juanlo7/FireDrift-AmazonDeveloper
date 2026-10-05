@@ -19,8 +19,8 @@ export interface AppConfig {
 }
 
 export const config: AppConfig = {
-  apiMode: 'mock',
-  apiBaseUrl: '',
+  apiMode: 'real',
+  apiBaseUrl: 'http://localhost:8787',
   apiTimeoutMs: 8000,
   serviceAppOverrides: {},
 };

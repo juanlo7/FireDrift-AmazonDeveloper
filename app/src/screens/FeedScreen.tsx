@@ -18,16 +18,16 @@ import { deviceProfile } from '../profile';
 import type { RootScreenProps } from '../navigation/RootNavigator';
 import { useSettings } from '../settings';
 import { signalQueue } from '../signals';
-import { colors, safeArea, spacing, typography } from '../theme';
+import { colors, fonts, spacing, typography } from '../theme';
 import { WatchNowSheet } from '../watchNow';
 
 const feedDeps: FeedDeps = { api, getProfileId: deviceProfile.getProfileId, signals: signalQueue };
 
+// OK is on the "Watch on …" chip itself.
 const KEY_HINTS = [
-  ['↑ ↓', 'Browse'],
-  ['←', 'Skip'],
-  ['→', 'Like'],
-  ['OK', 'Watch now'],
+  ['Up · Down', 'Browse'],
+  ['Right', 'Like'],
+  ['Left', 'Skip'],
   ['Back', 'Menu'],
 ] as const;
 
@@ -86,7 +86,12 @@ export const FeedScreen = ({ navigation }: RootScreenProps<'Feed'>) => {
     <Screen testID="screen-feed">
       {feed.status === 'ready' && feed.title ? (
         <>
-          <CoverView key={titleKey(feed.title)} title={feed.title} isLiked={feed.isLiked} />
+          <CoverView
+            key={titleKey(feed.title)}
+            title={feed.title}
+            isLiked={feed.isLiked}
+            position={feed.position}
+          />
           <Pressable
             key={`cover-focus-${focusEpoch}`}
             accessibilityRole="button"
@@ -99,13 +104,16 @@ export const FeedScreen = ({ navigation }: RootScreenProps<'Feed'>) => {
           <View style={styles.hints} testID="feed-hints">
             {KEY_HINTS.map(([key, label]) => (
               <Text key={label} style={styles.hint}>
-                <Text style={styles.hintKey}>{key}</Text> {label}
+                <Text style={styles.hintKey}>{key}</Text>  {label}
               </Text>
             ))}
           </View>
         </>
       ) : (
         <View style={styles.message}>
+          <Text style={styles.messageTitle}>
+            {feed.status === 'loading' ? 'Tonight' : feed.status === 'empty' ? 'Nothing showing' : 'Lights out'}
+          </Text>
           <Text style={styles.messageText} testID="feed-status">
             {feed.status === 'loading'
               ? 'Finding something to watch…'
@@ -152,15 +160,16 @@ export const FeedScreen = ({ navigation }: RootScreenProps<'Feed'>) => {
 const styles = StyleSheet.create({
   hints: {
     position: 'absolute',
-    left: safeArea.horizontal,
-    right: safeArea.horizontal,
-    bottom: safeArea.vertical,
+    left: 410,
+    right: 60,
+    bottom: 40,
     flexDirection: 'row',
-    gap: spacing.lg,
+    gap: spacing.xl,
   },
-  hint: { ...typography.caption, color: colors.textMuted },
-  hintKey: { color: colors.text, fontWeight: '700' },
-  message: { flex: 1, justifyContent: 'center', maxWidth: 1200, gap: spacing.md },
-  messageText: { ...typography.subtitle, color: colors.text },
+  hint: { fontFamily: fonts.body, fontSize: 13, color: colors.textMuted },
+  hintKey: { ...typography.label, color: colors.text },
+  message: { flex: 1, justifyContent: 'center', maxWidth: 560, gap: spacing.lg },
+  messageTitle: { ...typography.title, color: colors.text },
+  messageText: { ...typography.body, color: colors.textMuted },
   actions: { flexDirection: 'row', gap: spacing.md },
 });

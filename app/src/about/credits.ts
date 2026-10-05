@@ -24,5 +24,6 @@ export const OPEN_SOURCE: { name: string; license: string }[] = [
   { name: 'react-native-safe-area-context', license: 'MIT' },
   { name: 'React Native Async Storage', license: 'MIT' },
   { name: 'Focus helpers adapted from vega-tv-interfaces-sample (Amazon)', license: 'MIT-0' },
+  { name: 'Big Shoulders Display and Figtree fonts', license: 'SIL OFL 1.1' },
   { name: 'FireDrift', license: 'MIT' },
 ];

@@ -10,3 +10,7 @@ node_modules/
 agent/.build/
 __pycache__/
 .pytest_cache/
+
+# Impeccable design mocks and review captures (local only)
+.impeccable/mocks/
+.impeccable/review/

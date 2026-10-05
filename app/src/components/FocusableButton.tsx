@@ -16,7 +16,7 @@ export interface FocusableButtonProps {
   testID?: string;
 }
 
-/** D-pad button with a visible focus state (scale and ring). */
+/** D-pad pill button. Focus fills it with amber and lifts it. */
 export const FocusableButton = ({
   label,
   accessibilityLabel,
@@ -50,20 +50,17 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.sm,
     borderRadius: radius.pill,
     backgroundColor: colors.surfaceRaised,
-    borderWidth: focus.ringWidth,
-    borderColor: 'transparent',
   },
   focused: {
     backgroundColor: colors.primary,
-    borderColor: focus.ringColor,
     transform: [{ scale: focus.scale }],
+    ...focus.shadow,
   },
   label: {
-    ...typography.body,
+    ...typography.subtitle,
     color: colors.text,
   },
   labelFocused: {
     color: colors.onPrimary,
-    fontWeight: '700',
   },
 });

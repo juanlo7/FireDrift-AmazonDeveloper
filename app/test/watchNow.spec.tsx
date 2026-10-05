@@ -26,6 +26,16 @@ describe('toServiceOptions', () => {
     ]);
   });
 
+  it('shows a service once when TMDB lists its plans separately', () => {
+    const options = toServiceOptions([
+      offer(8, 'subscription', 'Netflix'),
+      offer(1796, 'subscription', 'Netflix Standard with Ads'),
+      offer(531, 'subscription', 'Paramount Plus Premium'),
+      offer(582, 'subscription', 'Paramount Plus Essential'),
+    ]);
+    expect(options.map(o => o.name)).toEqual(['Netflix', 'Paramount Plus Premium', 'Paramount Plus Essential']);
+  });
+
   it('keeps the backend order (my services first) inside each group', () => {
     const options = toServiceOptions([offer(8, 'subscription'), offer(119, 'ads')]);
     expect(options.map(o => o.providerId)).toEqual([8, 119]);
