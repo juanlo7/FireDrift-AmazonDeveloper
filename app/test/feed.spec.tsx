@@ -96,6 +96,7 @@ describe('feedCommandFor', () => {
     ['right', 'like'],
     ['left', 'skip'],
     ['select', 'watchNow'],
+    ['enter', 'watchNow'],
     ['playpause', null],
   ])('%s → %s', (eventType, command) => {
     expect(feedCommandFor({ eventType, eventKeyAction: 0 })).toBe(command);

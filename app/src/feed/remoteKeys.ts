@@ -8,7 +8,9 @@ const KEY_COMMANDS: Record<string, FeedCommand> = {
   up: 'previous',
   right: 'like',
   left: 'skip',
+  // The remote's OK sends `select`; Enter on the virtual device's keyboard sends `enter`.
   select: 'watchNow',
+  enter: 'watchNow',
 };
 
 /** Maps a key press to a feed command. Key releases (`eventKeyAction` 1) do nothing. */

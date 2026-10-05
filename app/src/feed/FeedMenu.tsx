@@ -24,7 +24,7 @@ export const FeedMenu = ({ visible, onSelect, onClose, onExit }: FeedMenuProps) 
             FireDrift
           </Text>
           <FocusableButton
-            label="Back to the feed"
+            label="Feed"
             hasTVPreferredFocus
             onPress={onClose}
             testID="menu-feed"
@@ -52,13 +52,14 @@ const styles = StyleSheet.create({
   },
   panel: {
     height: '100%',
-    width: 520,
+    width: '34%',
     backgroundColor: colors.surface,
     borderTopRightRadius: radius.md,
     borderBottomRightRadius: radius.md,
-    padding: spacing.xl,
-    gap: spacing.md,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+    gap: spacing.xs,
     justifyContent: 'center',
   },
-  title: { ...typography.title, color: colors.text, marginBottom: spacing.md },
+  title: { ...typography.subtitle, color: colors.text, marginBottom: spacing.xs },
 });

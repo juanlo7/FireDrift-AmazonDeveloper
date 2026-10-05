@@ -86,13 +86,13 @@ export const CoverView = ({ title, isLiked }: CoverViewProps) => {
         <Text style={styles.name} numberOfLines={2} testID="feed-title">
           {title.name}
         </Text>
-        <Text style={styles.meta} testID="feed-meta">
+        <Text style={styles.meta} numberOfLines={1} testID="feed-meta">
           {coverMeta(title)}
         </Text>
         {title.genres.length ? (
           <Text style={styles.genres}>{title.genres.slice(0, 3).join('  /  ')}</Text>
         ) : null}
-        <Text style={styles.overview} numberOfLines={5} testID="feed-overview">
+        <Text style={styles.overview} numberOfLines={4} testID="feed-overview">
           {title.overview || 'No synopsis yet.'}
         </Text>
       </View>
@@ -121,13 +121,13 @@ const styles = StyleSheet.create({
   content: {
     position: 'absolute',
     left: safeArea.horizontal,
-    bottom: safeArea.vertical + 96,
-    width: 1000,
-    gap: spacing.sm,
+    right: '38%',
+    bottom: safeArea.vertical + spacing.xl,
+    gap: spacing.xs,
   },
   poster: {
-    width: 240,
-    height: 360,
+    width: 160,
+    height: 240,
     borderRadius: radius.md,
     marginBottom: spacing.sm,
     backgroundColor: colors.surfaceRaised,
@@ -144,7 +144,7 @@ const styles = StyleSheet.create({
   badgeServices: { backgroundColor: colors.surfaceRaised, color: colors.text },
   badgeLiked: { backgroundColor: colors.primary, color: colors.onPrimary },
   name: { ...typography.display, color: colors.text },
-  meta: { ...typography.subtitle, color: colors.primary },
+  meta: { ...typography.body, fontWeight: '700', color: colors.primary },
   genres: { ...typography.caption, color: colors.text },
-  overview: { ...typography.body, color: colors.textMuted, lineHeight: 40 },
+  overview: { ...typography.body, color: colors.textMuted },
 });
