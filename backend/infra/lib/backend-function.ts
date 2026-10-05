@@ -12,6 +12,8 @@ export interface BackendFunctionProps {
   /** File name in `backend/src/handlers/`, without extension. It must export `handler`. */
   handler: string;
   environment?: Record<string, string>;
+  /** Defaults to 10 s. */
+  timeout?: Duration;
 }
 
 /** Lambda with the cost rules of requirements section 7: ARM, small, short, logs kept 7 days. */
@@ -25,7 +27,7 @@ export class BackendFunction extends NodejsFunction {
       runtime: Runtime.NODEJS_22_X,
       architecture: Architecture.ARM_64,
       memorySize: 256,
-      timeout: Duration.seconds(10),
+      timeout: props.timeout ?? Duration.seconds(10),
       environment: props.environment,
       logGroup: new LogGroup(scope, `${id}Logs`, {
         retention: RetentionDays.ONE_WEEK,
