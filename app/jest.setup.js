@@ -14,3 +14,8 @@ jest.mock('@amazon-devices/react-native-kepler/Libraries/Utilities/BackHandler.k
 jest.mock('@amazon-devices/react-native-kepler/Libraries/Utilities/Dimensions', () =>
   require('./test/mocks/dimensions'),
 );
+
+// AsyncStorage is a native module on Vega; tests use the package's in-memory mock.
+jest.mock('@amazon-devices/react-native-async-storage__async-storage', () =>
+  require('@amazon-devices/react-native-async-storage__async-storage/jest/async-storage-mock'),
+);
