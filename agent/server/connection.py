@@ -9,6 +9,7 @@ from pydantic import BaseModel, ValidationError
 
 from brain.brain import Brain, BrainSession
 from brain.chips import fallback_chips
+from brain.runtime_config import ButlerConfig
 from brain.session import Session
 from domain.models import (
     AnswerDeltaEvent,
@@ -33,6 +34,7 @@ logger = logging.getLogger(__name__)
 
 ERROR_MESSAGE = "Something went wrong on my side. Here are some picks for you."
 NO_VOICE_MESSAGE = "I can't hear you yet. Use the chips below."
+DISABLED_MESSAGE = "The butler is resting. Here are some picks for you."
 FEEDBACK_WORDS = {"like": "liked", "skip": "skipped", "watch_now": "chose to watch"}
 
 
@@ -63,6 +65,7 @@ class ButlerConnection:
         voice_out: VoiceOut,
         voice_in_factory: Callable[[], VoiceIn],
         idle_timeout_s: float = 600,
+        butler_config: Callable[[], ButlerConfig] = ButlerConfig,
     ):
         self._transport = transport
         self._brain = brain
@@ -70,6 +73,7 @@ class ButlerConnection:
         self._voice_out = voice_out
         self._voice_in_factory = voice_in_factory
         self._idle_timeout_s = idle_timeout_s
+        self._butler_config = butler_config
         self._send_lock = asyncio.Lock()
         self._turn: asyncio.Task[None] | None = None
         self._voice_in: VoiceIn | None = None
@@ -79,8 +83,15 @@ class ButlerConnection:
         async with self._send_lock:
             await self._transport.send(event.model_dump_json(by_alias=True, exclude_none=True))
 
-    async def _fallback(self, message: str = ERROR_MESSAGE) -> None:
-        await self._send(FallbackEvent(t="fallback", reason="error", message=message, chips=fallback_chips()))
+    async def _fallback(self, message: str = ERROR_MESSAGE, reason: str = "error") -> None:
+        await self._send(FallbackEvent(t="fallback", reason=reason, message=message, chips=fallback_chips()))
+
+    async def _disabled(self) -> bool:
+        """The kill switch (`CONFIG / ACTIVE` → `butler.enabled`): answer with chips only."""
+        if self._butler_config().enabled:
+            return False
+        await self._fallback(DISABLED_MESSAGE, reason="disabled")
+        return True
 
     async def _receive(self) -> str | bytes | None:
         try:
@@ -96,13 +107,16 @@ class ButlerConnection:
             if not isinstance(start, SessionStartEvent):
                 await self._fallback()
                 return
+            if await self._disabled():
+                return
             self.brain_session = self._brain.start(
                 Session(
                     profile_id=start.profile_id,
                     country=start.country,
                     services=start.services,
                     has_mic=start.has_mic,
-                )
+                ),
+                model_id=self._butler_config().model_id,
             )
             while (frame := await self._receive()) is not None:
                 if isinstance(frame, bytes):
@@ -152,6 +166,8 @@ class ButlerConnection:
 
     async def _start_turn(self, user_input: TextInput | ChipInput) -> None:
         await self._cancel_turn()
+        if await self._disabled():
+            return
         self._turn = asyncio.create_task(self._run_turn(user_input))
 
     async def _cancel_turn(self) -> None:

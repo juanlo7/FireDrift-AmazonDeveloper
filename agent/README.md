@@ -104,6 +104,49 @@ uv run python -m server.fake_client ws://localhost:8080/ws
 agent event against the contract; the app client (#61) can follow the same order.
 From the VVD, forward the port: `vega device start-port-forwarding -p 8080 --forward false`.
 
+## On AWS (`backend/infra/lib/butler-construct.ts`, #48)
+
+`cdk deploy` (see `backend/README.md`) builds the agent package for linux/arm64
+(`scripts/package.sh`, no Docker) and creates:
+
+- **AgentCore Runtime** running `main.py`: the butler WebSocket at
+  `wss://bedrock-agentcore.us-east-1.amazonaws.com/runtimes/<RuntimeArn, URL-encoded>/ws`
+  (stack output `ButlerWebSocketUrl`). Idle sessions end after 10 minutes, any
+  session after 1 hour. Frames are limited to **32 KB**: split audio into
+  smaller binary frames.
+- **Device sign-in** with Cognito (outputs `UserPoolId`, `UserPoolClientId`).
+  The TV app has no login and no secret:
+  1. First run: make a random password (24+ characters), keep it with the
+     profile ID on the device, and call `SignUp` with `Username = profileId`.
+     A trigger confirms the account at once.
+  2. `InitiateAuth` with `USER_PASSWORD_AUTH` → access token (1 hour) and
+     refresh token (30 days); refresh with `REFRESH_TOKEN_AUTH`.
+  3. Open the WebSocket with the access token. A client that cannot set
+     headers sends it as subprotocols:
+     `["base64UrlBearerAuthorization.<token, base64url without padding>", "base64UrlBearerAuthorization"]`.
+  These are unsigned HTTPS calls to `cognito-idp.us-east-1.amazonaws.com`
+  (`X-Amz-Target: AWSCognitoIdentityProviderService.SignUp` / `.InitiateAuth`).
+- **AgentCore Gateway** (IAM auth, MCP) with the weight tools as Lambda targets
+  (`get-weights`, `update-weights`, `ranked-picks`); the Runtime calls them with
+  `McpToolClient` (`FIREDRIFT_TOOLS=gateway`). `resolve_titles` and `similar`
+  answer from fixtures until #40 adds their targets.
+- **Runtime config** in DynamoDB, read every minute: `CONFIG / ACTIVE` →
+  `butler`. Turn the butler off (every session gets `fallback("disabled")`):
+
+  ```sh
+  aws dynamodb update-item --table-name <TableName> --key '{"pk":{"S":"CONFIG"},"sk":{"S":"ACTIVE"}}' \
+    --update-expression "SET butler = :b" \
+    --expression-attribute-values '{":b":{"M":{"enabled":{"BOOL":false}}}}'
+  ```
+
+  `modelId` picks the model for new sessions; the limits are for `check_caps` (#55).
+
+Try the deployed butler like the TV app does:
+
+```sh
+uv run python -m server.fake_client <ButlerWebSocketUrl> --cognito-client <UserPoolClientId> --subprotocol
+```
+
 The zod schemas in `packages/domain` are the source of truth. When a contract
 changes, update `domain/models.py` in the same PR; `tests/test_fixtures.py`
 fails if the mirror and the fixtures drift apart.

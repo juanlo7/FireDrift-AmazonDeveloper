@@ -15,7 +15,9 @@ from domain.models import (
     WeightsSummary,
 )
 
-FIXTURES = Path(__file__).resolve().parents[2] / "packages" / "domain" / "fixtures" / "tools"
+# In the repo the fixtures live in packages/domain; the Runtime package copies them next to the code.
+_PACKAGED = Path(__file__).resolve().parents[1] / "fixtures" / "tools"
+FIXTURES = _PACKAGED if _PACKAGED.is_dir() else Path(__file__).resolve().parents[2] / "packages" / "domain" / "fixtures" / "tools"
 
 
 def load_fixture(name: str) -> Any:

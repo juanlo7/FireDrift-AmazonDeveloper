@@ -4,6 +4,7 @@ import asyncio
 import logging
 import re
 from collections.abc import AsyncIterator, Callable
+from dataclasses import replace
 from pathlib import Path
 from typing import Any
 
@@ -128,5 +129,7 @@ class Brain:
         self._config = config or BrainConfig()
         self._model_factory = model_factory
 
-    def start(self, session: Session) -> BrainSession:
-        return BrainSession(session, self._client, self._model_factory(self._config), self._config)
+    def start(self, session: Session, model_id: str | None = None) -> BrainSession:
+        """`model_id` (from the runtime config) overrides the configured model for this session."""
+        config = replace(self._config, model_id=model_id) if model_id else self._config
+        return BrainSession(session, self._client, self._model_factory(config), config)

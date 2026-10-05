@@ -1,5 +1,6 @@
 import { CfnOutput, Duration } from "aws-cdk-lib";
 import { PolicyStatement } from "aws-cdk-lib/aws-iam";
+import type { IFunction } from "aws-cdk-lib/aws-lambda";
 import { Construct } from "constructs";
 import { BackendFunction } from "./backend-function";
 import type { BackendContext } from "./firedrift-stack";
@@ -39,6 +40,9 @@ const TOOLS: Tool[] = [
  * Gateway (#48) invokes them, using the ARNs in the stack outputs.
  */
 export class ToolsConstruct extends Construct {
+  /** Lambda of each tool, by tool name (`get_weights`, ...), for the Gateway targets. */
+  readonly functions: Record<string, IFunction> = {};
+
   constructor(scope: Construct, id: string, ctx: BackendContext) {
     super(scope, id);
 
@@ -55,6 +59,7 @@ export class ToolsConstruct extends Construct {
           new PolicyStatement({ actions: ["secretsmanager:GetSecretValue"], resources: [ctx.tmdbSecret.secretArn] }),
         );
       }
+      this.functions[tool.name] = fn;
       new CfnOutput(this, `${tool.id}Arn`, { value: fn.functionArn, description: `Lambda of the ${tool.name} tool` });
     }
   }

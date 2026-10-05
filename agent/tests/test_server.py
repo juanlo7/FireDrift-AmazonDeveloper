@@ -167,6 +167,12 @@ def test_the_sentence_splitter_strips_markers_and_keeps_sentences_whole():
     assert rest == ["How are you?", "Fine"]
 
 
+def test_the_sentence_splitter_drops_markdown_emphasis():
+    parser = SentenceSplitter()
+    out = [s.text for s in parser.feed("How about *The Love Hypothesis* or **1899**? ")] + [s.text for s in parser.flush()]
+    assert out == ["How about The Love Hypothesis or 1899?"]
+
+
 def test_the_sentence_splitter_does_not_split_after_titles():
     parser = SentenceSplitter()
     out = [s.text for s in parser.feed("It stars Dr. Adam Carlsen. ")] + [s.text for s in parser.flush()]

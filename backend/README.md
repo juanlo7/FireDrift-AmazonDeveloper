@@ -186,6 +186,7 @@ created from `FireDriftStack`:
 - `catalog-construct.ts` (P1): `GET /providers`, `GET /titles/{type}/{tmdbId}`.
 - `taste-construct.ts` (P2): profile, signals, pool and weights routes.
 - `tools-construct.ts` (P2): the weight tools for the agent, without routes.
+- `butler-construct.ts` (P2): the butler on AgentCore (device sign-in, Runtime, Gateway); see `agent/README.md`.
 
 A construct gets a `BackendContext` (`table`, `tmdbSecret`, `addRoute`). Create
 each Lambda with `new BackendFunction(this, id, { handler: "<file in
@@ -206,7 +207,7 @@ One table for everything. Profile items share the partition `PROFILE#<profileId>
 | Butler adjustment | `PROFILE#<profileId>` | `WEIGHTS#ADJUST` | `weights`, `updatedAt` (decays on read) | — | `update_weights` (#47) |
 | Weight change | `PROFILE#<profileId>` | `CHANGE#<at>#<changeId>` | the `WeightChange` fields; last 20 kept | — | `update_weights` (#47) |
 | Pool | `PROFILE#<profileId>` | `POOL#<poolId>` | `algorithmVersion`, `titles` (`type` and `tmdbId` only), `createdAt` | 7 days | pool (#44, #46) |
-| Config | `CONFIG` | `ACTIVE` | `taste` (any `TasteConfig` field); later butler caps, kill switch, model ID | — | by hand; code has defaults |
+| Config | `CONFIG` | `ACTIVE` | `taste` (any `TasteConfig` field); `butler` (`enabled` kill switch, `modelId`, `maxTurnsPerSession`, `maxTurnsPerProfilePerDay`, `maxTurnsPerDay`) | — | by hand; code has defaults |
 
 Seen titles come from the signals and the last pools, so they need no item of
 their own. Weight changes are written by `update_weights` (#47).

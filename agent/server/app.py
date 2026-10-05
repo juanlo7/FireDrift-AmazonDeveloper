@@ -15,6 +15,7 @@ from bedrock_agentcore.runtime import BedrockAgentCoreApp
 from brain.brain import Brain
 from brain.config import BrainConfig
 from brain.fixture_tools import FixtureToolClient
+from brain.runtime_config import ConfigReader
 from brain.tool_client import CompositeToolClient, LambdaToolClient, ToolClient
 
 from .connection import ButlerConnection
@@ -47,20 +48,41 @@ class StarletteTransport:
 
 
 def default_tool_client(config: BrainConfig) -> ToolClient:
-    """P2's weight tools by Lambda; `resolve_titles` and `similar` from fixtures until #40 ships."""
-    functions = {
-        "get_weights": config.tools.get_weights,
-        "update_weights": config.tools.update_weights,
-        "ranked_picks": config.tools.ranked_picks,
-    }
-    weights = LambdaToolClient(functions, boto3.client("lambda", region_name=config.region))
+    """P2's weight tools through AgentCore Gateway (`FIREDRIFT_TOOLS=gateway`, the Runtime default)
+    or by Lambda (`lambda`, local runs); `resolve_titles` and `similar` from fixtures until #40 ships."""
+    if os.environ.get("FIREDRIFT_TOOLS", "lambda") == "gateway":
+        from brain.mcp_tool_client import McpToolClient, gateway_mcp_client
+
+        weights: ToolClient = McpToolClient(gateway_mcp_client(os.environ["FIREDRIFT_GATEWAY_URL"], config.region))
+    else:
+        functions = {
+            "get_weights": config.tools.get_weights,
+            "update_weights": config.tools.update_weights,
+            "ranked_picks": config.tools.ranked_picks,
+        }
+        weights = LambdaToolClient(functions, boto3.client("lambda", region_name=config.region))
     return CompositeToolClient(weights=weights, grounding=FixtureToolClient())
 
 
-def create_app(brain: Brain | None = None, idle_timeout_s: float = IDLE_TIMEOUT_S) -> BedrockAgentCoreApp:
+def default_config_reader(config: BrainConfig) -> ConfigReader:
+    table = os.environ.get("TABLE_NAME")
+    return ConfigReader(boto3.resource("dynamodb", region_name=config.region).Table(table) if table else None)
+
+
+def create_app(
+    brain: Brain | None = None,
+    idle_timeout_s: float = IDLE_TIMEOUT_S,
+    config_reader: ConfigReader | None = None,
+) -> BedrockAgentCoreApp:
     config = BrainConfig()
     brain = brain or Brain(default_tool_client(config), config)
+    reader = config_reader or default_config_reader(config)
     app = BedrockAgentCoreApp()
+
+    @app.entrypoint
+    def invocations(payload: dict, context: object) -> dict:
+        """The Runtime HTTP contract needs `/invocations`; the butler itself talks over `/ws`."""
+        return {"message": "FireDrift butler: connect to /ws"}
 
     @app.websocket
     async def butler(websocket: WebSocket, context: object) -> None:
@@ -74,6 +96,7 @@ def create_app(brain: Brain | None = None, idle_timeout_s: float = IDLE_TIMEOUT_
                 voice_out=SilentVoiceOut(),
                 voice_in_factory=NoVoiceIn,
                 idle_timeout_s=idle_timeout_s,
+                butler_config=reader.butler,
             )
             await connection.run()
         finally:

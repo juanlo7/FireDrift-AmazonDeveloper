@@ -10,6 +10,8 @@ from typing import Protocol
 from domain.models import CuedSentence, SpeechEvent
 
 GESTURE_MARKER = re.compile(r"\{\{\s*\w+\s*\}\}\s*")
+# Some models add markdown emphasis although the prompt asks for plain text.
+MARKDOWN_EMPHASIS = re.compile(r"(\*{1,2}|_{2})(\S.*?\S|\S)\1")
 SENTENCE_END = re.compile(r"(?<=[.!?])\s+")
 # A period after these does not end a sentence ("Dr. Adam Carlsen").
 ABBREVIATIONS = ("Dr.", "Mr.", "Mrs.", "Ms.", "St.", "Jr.", "Sr.", "vs.", "Vol.", "No.")
@@ -56,7 +58,7 @@ class SentenceSplitter:
         self._buffer = ""
 
     def _sentence(self, text: str) -> CuedSentence | None:
-        clean = GESTURE_MARKER.sub("", text).strip()
+        clean = MARKDOWN_EMPHASIS.sub(r"\2", GESTURE_MARKER.sub("", text)).strip()
         return CuedSentence(text=clean, cues=[]) if clean else None
 
     def feed(self, raw_text: str) -> list[CuedSentence]:
