@@ -168,6 +168,13 @@ describe("ranked_picks", () => {
     expect(runtime.pools.saved).toHaveLength(0);
   });
 
+  it("gives the best matches, without the discovery share", async () => {
+    const { runtime, rankedPicks } = setup();
+    await runtime.signals.putNew(PROFILE_ID, [5, 10, 15, 20, 25].map((id) => signal("like", id)));
+    const { titles } = RankedPicksOutput.parse(await rankedPicks({ profileId: PROFILE_ID, count: 5 }));
+    expect(titles.every((t) => t.genres.some((g) => g === "Action" || g === "Action & Adventure"))).toBe(true);
+  });
+
   it("caps count at maxRankedPicks", async () => {
     const { rankedPicks } = setup();
     const { titles } = RankedPicksOutput.parse(await rankedPicks({ profileId: PROFILE_ID, count: 30 }));

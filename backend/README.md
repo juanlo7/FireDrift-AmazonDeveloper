@@ -125,8 +125,9 @@ tool input as the event and gets the output back. The stack outputs their ARNs
   `DEFAULT_TASTE_CONFIG.butler`): 3 features per call, ±0.5 per delta,
   adjustment within [-1, 1]. It writes only the adjustment layer, keeps the last
   20 changes, and `POST /weights/undo` reverts it.
-- `ranked_picks` runs the pool algorithm for up to 10 titles, leaves out what
-  the feed already showed and saves nothing.
+- `ranked_picks` runs the pool algorithm for up to 10 titles with its own
+  quotas (60 % favourites, 40 % genres, no discovery: the butler wants the best
+  matches), leaves out what the feed already showed and saves nothing.
 
 Try one after a deploy (the function name is in the stack outputs):
 
