@@ -2,6 +2,7 @@ import type { DynamoDBDocumentClient } from "@aws-sdk/lib-dynamodb";
 import {
   BatchGetCommand,
   DeleteCommand,
+  PutCommand,
   QueryCommand,
   TransactWriteCommand,
 } from "@aws-sdk/lib-dynamodb";
@@ -12,11 +13,20 @@ export const MAX_KEPT_CHANGES = 20;
 
 export interface WeightLayers {
   learned: WeightMap;
+  /** Feature labels of the learned layer (#46). */
+  labels: Record<string, string>;
+  /** Stored butler adjustment, before decay. */
   adjustment: WeightMap;
+  /** When the adjustment was last written; decay counts from here. */
+  adjustmentUpdatedAt: string | null;
 }
+
+const EMPTY_LAYERS: WeightLayers = { learned: {}, labels: {}, adjustment: {}, adjustmentUpdatedAt: null };
 
 export interface WeightStore {
   getLayers(profileId: string): Promise<WeightLayers>;
+  /** Replaces the learned layer, recomputed from signals on every pool (#46). */
+  saveLearned(profileId: string, weights: WeightMap, labels: Record<string, string>): Promise<void>;
   /** Newest first, at most `MAX_KEPT_CHANGES`. */
   listChanges(profileId: string): Promise<WeightChange[]>;
   /** Saves a butler change and the adjustment layer it produced (#47). */
@@ -34,11 +44,13 @@ const changeSk = (change: WeightChange) => `CHANGE#${change.at}#${change.changeI
 
 const toWeightMap = (value: unknown): WeightMap =>
   value && typeof value === "object" ? (value as WeightMap) : {};
+const toLabels = (value: unknown): Record<string, string> =>
+  value && typeof value === "object" ? (value as Record<string, string>) : {};
 
 /**
  * Weight items, all in the profile partition:
- * `WEIGHTS#LEARNED` and `WEIGHTS#ADJUST` with `weights` (feature → number) and
- * `updatedAt`; `CHANGE#<at>#<changeId>` with the `WeightChange` fields.
+ * `WEIGHTS#LEARNED` (`weights`, `labels`, `updatedAt`), `WEIGHTS#ADJUST`
+ * (`weights`, `updatedAt`) and `CHANGE#<at>#<changeId>` with the `WeightChange` fields.
  */
 export const createDynamoDbWeightStore = (
   doc: DynamoDBDocumentClient,
@@ -86,8 +98,23 @@ export const createDynamoDbWeightStore = (
         }),
       );
       const items = Responses?.[tableName] ?? [];
-      const layer = (sk: string) => toWeightMap(items.find((item) => item.sk === sk)?.weights);
-      return { learned: layer(LEARNED_SK), adjustment: layer(ADJUST_SK) };
+      const learned = items.find((item) => item.sk === LEARNED_SK);
+      const adjustment = items.find((item) => item.sk === ADJUST_SK);
+      return {
+        learned: toWeightMap(learned?.weights),
+        labels: toLabels(learned?.labels),
+        adjustment: toWeightMap(adjustment?.weights),
+        adjustmentUpdatedAt: typeof adjustment?.updatedAt === "string" ? adjustment.updatedAt : null,
+      };
+    },
+
+    async saveLearned(profileId, weights, labels) {
+      await doc.send(
+        new PutCommand({
+          TableName: tableName,
+          Item: { pk: pk(profileId), sk: LEARNED_SK, weights, labels, updatedAt: new Date().toISOString() },
+        }),
+      );
     },
 
     async listChanges(profileId) {
@@ -139,10 +166,12 @@ export const createDynamoDbWeightStore = (
 /** In-memory weights for the local API and tests. */
 export const createMemoryWeightStore = (seed: Record<string, Partial<WeightLayers>> = {}): WeightStore => {
   const layers = new Map<string, WeightLayers>(
-    Object.entries(seed).map(([id, layer]) => [id, { learned: {}, adjustment: {}, ...layer }]),
+    Object.entries(seed).map(([id, layer]) => [id, { ...EMPTY_LAYERS, ...layer }]),
   );
   const changes = new Map<string, WeightChange[]>();
-  const layersOf = (id: string) => layers.get(id) ?? { learned: {}, adjustment: {} };
+  const layersOf = (id: string) => layers.get(id) ?? EMPTY_LAYERS;
+  const setAdjustment = (id: string, adjustment: WeightMap) =>
+    layers.set(id, { ...layersOf(id), adjustment, adjustmentUpdatedAt: new Date().toISOString() });
   const markUndone = (id: string, changeIds: string[]) =>
     changes.set(
       id,
@@ -153,20 +182,23 @@ export const createMemoryWeightStore = (seed: Record<string, Partial<WeightLayer
     async getLayers(profileId) {
       return layersOf(profileId);
     },
+    async saveLearned(profileId, learned, labels) {
+      layers.set(profileId, { ...layersOf(profileId), learned, labels });
+    },
     async listChanges(profileId) {
       return [...(changes.get(profileId) ?? [])];
     },
     async addChange(profileId, change, adjustment) {
       changes.set(profileId, [change, ...(changes.get(profileId) ?? [])].slice(0, MAX_KEPT_CHANGES));
-      layers.set(profileId, { ...layersOf(profileId), adjustment });
+      setAdjustment(profileId, adjustment);
     },
     async undoChange(profileId, change, adjustment) {
       markUndone(profileId, [change.changeId]);
-      layers.set(profileId, { ...layersOf(profileId), adjustment });
+      setAdjustment(profileId, adjustment);
     },
     async resetAdjustment(profileId, pending) {
       markUndone(profileId, pending.map((change) => change.changeId));
-      layers.set(profileId, { ...layersOf(profileId), adjustment: {} });
+      setAdjustment(profileId, {});
     },
   };
 };

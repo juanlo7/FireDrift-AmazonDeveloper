@@ -1,8 +1,9 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { WeightsResponse, type WeightChange } from "@firedrift/domain";
 import { createWeightsHandler } from "../src/handlers/weights";
 import { applyDeltas, effectiveWeights, SUMMARY_TOP_N, toSummary, WEIGHT_RANGE } from "../src/weights/summary";
 import { createMemoryWeightStore } from "../src/weights/weightStore";
+import { createWeightsService } from "../src/weights/weightsService";
 import { body, event, PROFILE_ID } from "./profileFakes";
 
 const change = (changeId: string, delta: number, at = "2026-10-04T18:00:00Z"): WeightChange => ({
@@ -37,9 +38,16 @@ describe("weight math", () => {
 });
 
 describe("weights routes", () => {
+  // Same instant as the newest change, so nothing has decayed yet.
+  beforeEach(() => {
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(Date.parse("2026-10-04T18:05:00Z"));
+  });
+  afterEach(() => vi.useRealTimers());
+
   const setup = async () => {
     const store = createMemoryWeightStore({ [PROFILE_ID]: { learned: { "genre:18": 0.4 } } });
-    await store.addChange(PROFILE_ID, change("c1", 0.3, "2026-10-04T18:00:00Z"), { "genre:28": 0.3 });
+    await store.addChange(PROFILE_ID, change("c1", 0.3, "2026-10-04T18:05:00Z"), { "genre:28": 0.3 });
     await store.addChange(PROFILE_ID, change("c2", 0.2, "2026-10-04T18:05:00Z"), { "genre:28": 0.5 });
     const deps = () => ({ weights: store });
     return {
@@ -90,5 +98,36 @@ describe("weights routes", () => {
   it("rejects a bad profileId", async () => {
     const { get } = await setup();
     expect((await get(event({ profileId: "nope" }))).statusCode).toBe(400);
+  });
+});
+
+describe("adjustment decay", () => {
+  it("halves the butler adjustment every 7 days and shows learned labels", async () => {
+    const store = createMemoryWeightStore({
+      [PROFILE_ID]: {
+        learned: { "genre:18": 0.2 },
+        labels: { "genre:18": "Drama" },
+        adjustment: { "genre:28": 0.8 },
+        adjustmentUpdatedAt: "2026-10-01T00:00:00Z",
+      },
+    });
+    const service = createWeightsService(store, { now: () => Date.parse("2026-10-08T00:00:00Z") });
+    const summary = await service.summary(PROFILE_ID);
+    expect(summary.likes).toEqual([
+      { feature: "genre:28", label: "genre:28", weight: 0.4 },
+      { feature: "genre:18", label: "Drama", weight: 0.2 },
+    ]);
+  });
+
+  it("undo removes what is left of a decayed change", async () => {
+    const store = createMemoryWeightStore();
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(Date.parse("2026-10-01T00:00:00Z"));
+    await store.addChange(PROFILE_ID, change("c1", 0.8, "2026-10-01T00:00:00Z"), { "genre:28": 0.8 });
+    vi.setSystemTime(Date.parse("2026-10-08T00:00:00Z"));
+    const service = createWeightsService(store);
+    expect((await service.summary(PROFILE_ID)).likes[0]?.weight).toBeCloseTo(0.4);
+    expect((await service.undo(PROFILE_ID)).likes).toEqual([]);
+    vi.useRealTimers();
   });
 });
