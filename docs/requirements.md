@@ -56,7 +56,7 @@ real TV constraint (low RAM) solved on purpose.
 
 | ID | Requirement |
 |---|---|
-| FR-1 | Trailer feed with one recycled player |
+| FR-1 | Cover feed browsed with the remote (D8 plan B; trailer player is stretch) |
 | FR-2 | Taste learning from signals (like, skip, watch now, watch time) |
 | FR-3 | "Watch now": open the streaming service |
 | FR-4 | My services and country |
@@ -80,27 +80,33 @@ real TV constraint (low RAM) solved on purpose.
 Acceptance criteria use Given / When / Then. Each one must pass on the Vega
 simulator or a device, with the remote only.
 
-### FR-1 Trailer feed with one recycled player
+### FR-1 Cover feed (D8 plan B)
 
 The device has little RAM. The feed is a **paced sequence**, not a smooth
-TikTok-style scroll.
+TikTok-style scroll. Since spike V1 (D8 plan B) there is **no trailer player**:
+each title is a full-screen **cover** (backdrop with a slow animated drift,
+title, year, type, runtime, rating, genres and synopsis).
 
-- Exactly **one** trailer player (WebView + YouTube IFrame API) exists at any
-  time, reused for every title.
-- Each title shows its **cover** (poster, title, year, rating, genres) for a
-  **minimum hold** (default 3 s, one constant) while the player loads behind it.
-  Then the trailer plays full screen.
-- The app prefetches metadata and images for the next 3 titles, never video.
-- Official YouTube player only: no download, re-hosting, or hidden required
-  controls.
+- Only the cover on screen holds images. The app prefetches metadata and images
+  for the next 3 titles, never video.
+- A new pool is requested when the current one is nearly used (5 titles or
+  fewer left), never per signal.
+- Remote: Up/Down = previous/next, Right = Like, Left = Skip, OK = Watch now,
+  Back = menu.
 
 Acceptance:
-- Given the feed is open, when I press Down, then the next cover appears and
-  stays at least the minimum hold before the trailer starts.
-- Given I browsed 20 titles, then there is still one player instance and memory
-  does not grow between titles (device profiler).
-- Given a trailer fails (no video, blocked, offline), then the cover stays with
-  the synopsis and the feed keeps working.
+- Given the feed is open, when I press Down, then the next cover is visible in
+  under 500 ms (NFR-3).
+- Given I browsed 20 titles, then memory does not grow between titles (device
+  profiler).
+- Given a title has no backdrop, or the pool refill fails (offline), then the
+  cover still shows its poster or synopsis and the feed keeps working.
+- Given the feed is open, then every remote key above does its action and Back
+  opens a menu with Butler, Settings and About.
+
+Original plan (stretch, Apple Silicon VVD or device only): one reused WebView
+with the official YouTube IFrame API that plays the trailer after a minimum
+cover hold of 3 s. See `docs/spikes.md`.
 
 ### FR-2 Taste learning
 

@@ -1,105 +1,143 @@
-import React, { useEffect, useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
-import type { PoolResponse, TitleCard } from '@firedrift/domain';
+import React, { useEffect, useRef, useState } from 'react';
+import { BackHandler, StyleSheet, Text, View } from 'react-native';
+import { useIsFocused } from '@amazon-devices/react-navigation__native';
+import type { TitleCard } from '@firedrift/domain';
 import { api } from '../api';
 import { FocusableButton, Screen } from '../components';
-import { FocusGuideView } from '../focus';
+import {
+  CoverView,
+  FeedMenu,
+  feedCommandFor,
+  titleKey,
+  useFeed,
+  type FeedCommand,
+  type FeedDeps,
+} from '../feed';
+import { FocusGuideView, useRemoteKeys } from '../focus';
 import { deviceProfile } from '../profile';
 import type { RootScreenProps } from '../navigation/RootNavigator';
-import { colors, spacing, typography } from '../theme';
+import { signalQueue } from '../signals';
+import { colors, safeArea, spacing, typography } from '../theme';
 import { WatchNowSheet } from '../watchNow';
 
-/** Home. Shows one pool title at a time until the cover feed (#35). */
+const feedDeps: FeedDeps = { api, getProfileId: deviceProfile.getProfileId, signals: signalQueue };
+
+const KEY_HINTS = [
+  ['↑ ↓', 'Browse'],
+  ['←', 'Skip'],
+  ['→', 'Like'],
+  ['OK', 'Watch now'],
+  ['Back', 'Menu'],
+] as const;
+
+/**
+ * Home, FR-1 with D8 plan B: one full-screen cover at a time, browsed with
+ * the remote. Up/Down = previous/next, Right = Like, Left = Skip,
+ * OK = Watch now, Back = menu.
+ */
 export const FeedScreen = ({ navigation }: RootScreenProps<'Feed'>) => {
-  const [pool, setPool] = useState<PoolResponse | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [index, setIndex] = useState(0);
+  const isFocused = useIsFocused();
+  const [menuOpen, setMenuOpen] = useState(false);
   const [watchNow, setWatchNow] = useState<TitleCard | null>(null);
+  const active = isFocused && !menuOpen && !watchNow;
+  const feed = useFeed(feedDeps, active);
+
+  const run: Record<FeedCommand, () => void> = {
+    next: feed.next,
+    previous: feed.previous,
+    like: feed.like,
+    skip: feed.skip,
+    watchNow: () => feed.title && setWatchNow(feed.title),
+  };
+  // The key listener lives for the whole screen; it always reads the latest state.
+  const latest = useRef({ active, ready: feed.status === 'ready', run });
+  latest.current = { active, ready: feed.status === 'ready', run };
+
+  useRemoteKeys(event => {
+    const { active: isActive, ready, run: commands } = latest.current;
+    const command = feedCommandFor(event);
+    if (isActive && ready && command) commands[command]();
+  });
 
   useEffect(() => {
-    deviceProfile
-      .getProfileId()
-      .then(profileId => api.getPool(profileId))
-      .then(setPool)
-      .catch((e: unknown) => setError(e instanceof Error ? e.message : String(e)));
-  }, []);
-
-  const title = pool?.titles[index] ?? null;
-  const nextTitle = () => {
-    setWatchNow(null);
-    if (pool?.titles.length) setIndex(i => (i + 1) % pool.titles.length);
-  };
+    if (!active) return;
+    const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
+      setMenuOpen(true);
+      return true;
+    });
+    return () => subscription.remove();
+  }, [active]);
 
   return (
     <Screen testID="screen-feed">
-      <FocusGuideView autoFocus style={styles.menu}>
-        <FocusableButton
-          label="Butler"
-          onPress={() => navigation.navigate('Butler')}
-          testID="menu-butler"
-        />
-        <FocusableButton
-          label="Settings"
-          onPress={() => navigation.navigate('Settings')}
-          testID="menu-settings"
-        />
-        <FocusableButton
-          label="About"
-          onPress={() => navigation.navigate('About')}
-          testID="menu-about"
-        />
-      </FocusGuideView>
-
-      <View style={styles.body}>
-        {error ? (
-          <Text style={styles.overview} testID="feed-status">
-            Could not load the pool: {error}
+      {feed.status === 'ready' && feed.title ? (
+        <>
+          <CoverView key={titleKey(feed.title)} title={feed.title} isLiked={feed.isLiked} />
+          <View style={styles.hints} testID="feed-hints">
+            {KEY_HINTS.map(([key, label]) => (
+              <Text key={label} style={styles.hint}>
+                <Text style={styles.hintKey}>{key}</Text> {label}
+              </Text>
+            ))}
+          </View>
+        </>
+      ) : (
+        <View style={styles.message}>
+          <Text style={styles.messageText} testID="feed-status">
+            {feed.status === 'loading'
+              ? 'Finding something to watch…'
+              : feed.status === 'empty'
+                ? 'Nothing new on your services right now. Try more services in Settings.'
+                : `Could not load the feed: ${feed.error ?? 'unknown error'}`}
           </Text>
-        ) : !title ? (
-          <Text style={styles.overview} testID="feed-status">
-            Loading pool…
-          </Text>
-        ) : (
-          <>
-            <Text style={styles.name} testID="feed-title">
-              {title.name}
-            </Text>
-            <Text style={styles.meta}>
-              {[title.year, title.genres.slice(0, 3).join(', '), title.rating?.toFixed(1)]
-                .filter(Boolean)
-                .join('  ·  ')}
-            </Text>
-            <Text style={styles.overview} numberOfLines={4} testID="feed-status">
-              {title.overview}
-            </Text>
+          {feed.status === 'loading' ? null : (
             <FocusGuideView autoFocus style={styles.actions}>
+              <FocusableButton label="Try again" hasTVPreferredFocus onPress={feed.retry} testID="feed-retry" />
               <FocusableButton
-                label="Watch now"
-                hasTVPreferredFocus
-                onPress={() => setWatchNow(title)}
-                testID="feed-watch-now"
+                label="Settings"
+                onPress={() => navigation.navigate('Settings')}
+                testID="feed-settings"
               />
-              <FocusableButton label="Next title" onPress={nextTitle} testID="feed-next" />
             </FocusGuideView>
-          </>
-        )}
-      </View>
+          )}
+        </View>
+      )}
+
+      <FeedMenu
+        visible={menuOpen}
+        onClose={() => setMenuOpen(false)}
+        onSelect={item => {
+          setMenuOpen(false);
+          navigation.navigate(item);
+        }}
+        onExit={() => BackHandler.exitApp()}
+      />
 
       <WatchNowSheet
         title={watchNow}
         source="feed"
         onClose={() => setWatchNow(null)}
-        onNextTitle={nextTitle}
+        onNextTitle={() => {
+          setWatchNow(null);
+          feed.next();
+        }}
       />
     </Screen>
   );
 };
 
 const styles = StyleSheet.create({
-  menu: { flexDirection: 'row', gap: spacing.md },
-  body: { flex: 1, justifyContent: 'center', maxWidth: 1200, gap: spacing.sm },
-  name: { ...typography.display, color: colors.text },
-  meta: { ...typography.subtitle, color: colors.primary },
-  overview: { ...typography.body, color: colors.textMuted },
-  actions: { flexDirection: 'row', gap: spacing.md, marginTop: spacing.md },
+  hints: {
+    position: 'absolute',
+    left: safeArea.horizontal,
+    right: safeArea.horizontal,
+    bottom: safeArea.vertical,
+    flexDirection: 'row',
+    gap: spacing.lg,
+  },
+  hint: { ...typography.caption, color: colors.textMuted },
+  hintKey: { color: colors.text, fontWeight: '700' },
+  message: { flex: 1, justifyContent: 'center', maxWidth: 1200, gap: spacing.md },
+  messageText: { ...typography.subtitle, color: colors.text },
+  actions: { flexDirection: 'row', gap: spacing.md },
 });

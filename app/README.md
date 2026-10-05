@@ -26,6 +26,7 @@ Run them from `app/`.
 | `src/focus/` | `TVFocusProvider` / `useTVFocus`, `FocusGuideView`, `useFocusState`, `useRemoteKeys` (adapted from `vega-tv-interfaces-sample`) |
 | `src/components/` | `FocusableButton` (focus ring and scale) and `Screen` (TV safe area) |
 | `src/theme/` | Colors, spacing, safe area, type scale and focus tokens |
+| `src/feed/` | Cover feed (FR-1, plan B): pool and refill model, remote key map, image prefetch, `useFeed`, `CoverView`, Back menu |
 | `src/signals/` | Batched signal queue (FR-2) and the cover dwell tracker |
 | `src/profile/` | Anonymous device profile ID |
 | `src/storage.ts` | AsyncStorage wrapper (`KeyValueStore`) |
@@ -73,15 +74,38 @@ Import the client with `import { api } from '../api'`; screens never call
   }, [title]);
   ```
 
+## Feed
+
+One full-screen cover at a time (D8 plan B: backdrop with a slow drift, title,
+meta, genres, synopsis). No list, no carousel: only the cover on screen holds
+images.
+
+| Key | Action |
+|---|---|
+| Down / Up | Next / previous title (the last 20 stay for Up) |
+| Right | Like (once per title, shows "♥ Liked") |
+| Left | Skip and go to the next title |
+| OK | Watch now sheet |
+| Back | Menu: Butler, Settings, About, Exit. Back again closes it |
+
+- The next 3 covers' images are prefetched (`Image.prefetch`), never video.
+- A new pool is asked for when 5 titles or fewer are left. If it fails or
+  brings nothing new, the feed waits 60 s before asking again and keeps the
+  titles it has.
+- Cover dwell is measured only while the feed is on screen with no menu or
+  sheet open.
+
 ## Focus and the remote
 
 - Every screen needs one element with `hasTVPreferredFocus`.
 - Group rows of focusable items in a `FocusGuideView` (`autoFocus` remembers
   the last focused child).
-- Back is handled by the navigator: it pops the stack, and on Feed it leaves
-  the app.
+- Back is handled by the navigator: it pops the stack. On Feed it opens the
+  menu instead; Exit in the menu (or Home) leaves the app.
 
 ## Tests
 
 `jest.setup.js` replaces two broken mocks of the Vega jest preset
 (`BackHandler` and `Dimensions`); without it React Navigation crashes in tests.
+The `BackHandler` mock keeps its listeners: `BackHandler.__pressBack()` presses
+the remote's Back key in a test.
