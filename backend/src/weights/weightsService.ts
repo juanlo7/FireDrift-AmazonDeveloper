@@ -1,7 +1,9 @@
-import type { WeightsSummary } from "@firedrift/domain";
-import { DEFAULT_TASTE_CONFIG } from "../taste/config";
+import { randomUUID } from "node:crypto";
+import type { UpdateWeightsOutput, WeightChange, WeightDelta, WeightsSummary } from "@firedrift/domain";
+import { DEFAULT_TASTE_CONFIG, type TasteConfig } from "../taste/config";
 import type { ConfigStore } from "../taste/configStore";
 import { applyDeltas, decayAdjustment, decayFactor, effectiveWeights, toSummary, type WeightMap } from "./summary";
+import { limitChange } from "./limits";
 import type { WeightLayers, WeightStore } from "./weightStore";
 
 /** What `GET /weights`, undo and reset answer, and what `get_weights` (#47) reuses. */
@@ -11,6 +13,11 @@ export interface WeightsService {
   undo(profileId: string): Promise<WeightsSummary>;
   /** Clears the butler adjustment layer. Pending changes are marked undone, so undo cannot replay them. */
   reset(profileId: string): Promise<WeightsSummary>;
+  /**
+   * The butler's `update_weights`: applies the limits and saves the change to
+   * the adjustment layer. Returns null when nothing is left to change.
+   */
+  update(profileId: string, changes: WeightDelta[], reason: string): Promise<UpdateWeightsOutput | null>;
 }
 
 export interface WeightsServiceOptions {
@@ -24,8 +31,9 @@ export const effectiveFromLayers = (layers: WeightLayers, now: number, halfLifeD
 
 export const createWeightsService = (store: WeightStore, options: WeightsServiceOptions = {}): WeightsService => {
   const now = options.now ?? Date.now;
-  const halfLife = async () =>
-    (await options.config?.getTasteConfig())?.adjustmentHalfLifeDays ?? DEFAULT_TASTE_CONFIG.adjustmentHalfLifeDays;
+  const tasteConfig = async (): Promise<TasteConfig> =>
+    (await options.config?.getTasteConfig()) ?? DEFAULT_TASTE_CONFIG;
+  const halfLife = async () => (await tasteConfig()).adjustmentHalfLifeDays;
 
   const summary = async (profileId: string) => {
     const [layers, changes, halfLifeDays] = await Promise.all([
@@ -61,6 +69,22 @@ export const createWeightsService = (store: WeightStore, options: WeightsService
         await store.undoChange(profileId, last, reverted);
       }
       return summary(profileId);
+    },
+    async update(profileId, changes, reason) {
+      const [layers, config] = await Promise.all([store.getLayers(profileId), tasteConfig()]);
+      const at = new Date(now()).toISOString();
+      const current = decayAdjustment(layers.adjustment, layers.adjustmentUpdatedAt, now(), config.adjustmentHalfLifeDays);
+      const limited = limitChange(changes, current, config.butler);
+      if (limited.applied.length === 0) return null;
+      const change: WeightChange = {
+        changeId: `chg_${randomUUID().replace(/-/g, "").slice(0, 12)}`,
+        changes: limited.applied,
+        reason,
+        at,
+        undone: false,
+      };
+      await store.addChange(profileId, change, limited.adjustment);
+      return { change, clamped: limited.clamped };
     },
     async reset(profileId) {
       const pending = (await store.listChanges(profileId)).filter((change) => !change.undone);
