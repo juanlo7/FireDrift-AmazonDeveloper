@@ -7,7 +7,7 @@ let template: Template;
 
 beforeAll(() => {
   // Skip esbuild bundling: these tests check the template, not the code.
-  const app = new App({ context: { "aws:cdk:bundling-stacks": [] } });
+  const app = new App({ context: { "aws:cdk:bundling-stacks": [], "firedrift:skipAgentPackage": true } });
   const stack = new FireDriftStack(app, "FireDrift-test", { envName: "dev", env: { region: "us-east-1" } });
   Tags.of(app).add("project", "firedrift");
   Tags.of(app).add("env", "dev");
@@ -116,12 +116,15 @@ describe("routes", () => {
     expect(actionsOf(prefix)).toEqual(new Set(actions));
   });
 
-  it("never grants wildcard actions", () => {
+  it("never grants wildcard actions, except CDK's read of its own assets bucket", () => {
     const statements = Object.values(template.findResources("AWS::IAM::Policy")).flatMap(
-      ({ Properties }) => Properties.PolicyDocument.Statement as { Action: string | string[] }[],
+      ({ Properties }) => Properties.PolicyDocument.Statement as { Action: string | string[]; Resource: unknown }[],
     );
-    for (const { Action } of statements) {
-      for (const action of [Action].flat()) expect(action).not.toContain("*");
+    for (const { Action, Resource } of statements) {
+      const onAssets = JSON.stringify(Resource).includes("cdk-hnb659fds-assets-");
+      for (const action of [Action].flat()) {
+        if (!onAssets) expect(action).not.toContain("*");
+      }
     }
   });
 
@@ -132,5 +135,51 @@ describe("routes", () => {
     }
     const routes = Object.values(template.findResources("AWS::ApiGatewayV2::Route"));
     expect(routes.every(({ Properties }) => !String(Properties.RouteKey).includes("tool"))).toBe(true);
+  });
+});
+
+describe("butler on AgentCore (#48)", () => {
+  it("authorizes the Runtime with the device user pool", () => {
+    const runtimes = Object.values(template.findResources("AWS::BedrockAgentCore::Runtime"));
+    expect(runtimes).toHaveLength(1);
+    const auth = JSON.stringify(runtimes[0]!.Properties.AuthorizerConfiguration);
+    expect(auth).toContain("cognito-idp");
+    expect(auth).toContain("AllowedClients");
+    expect(JSON.stringify(runtimes[0]!.Properties.EnvironmentVariables)).toContain("gateway");
+  });
+
+  it("lets devices sign up on their own, confirmed by the PreSignUp trigger, with no client secret", () => {
+    template.hasResourceProperties("AWS::Cognito::UserPool", {
+      AdminCreateUserConfig: { AllowAdminCreateUserOnly: false },
+      LambdaConfig: { PreSignUp: Match.anyValue() },
+    });
+    template.hasResourceProperties("AWS::Cognito::UserPoolClient", {
+      GenerateSecret: false,
+      ExplicitAuthFlows: Match.arrayWith(["ALLOW_USER_PASSWORD_AUTH", "ALLOW_REFRESH_TOKEN_AUTH"]),
+    });
+  });
+
+  it("puts the three weight tools behind an IAM-authorized Gateway", () => {
+    template.hasResourceProperties("AWS::BedrockAgentCore::Gateway", { AuthorizerType: "AWS_IAM", ProtocolType: "MCP" });
+    const targets = Object.values(template.findResources("AWS::BedrockAgentCore::GatewayTarget"));
+    expect(targets.map(({ Properties }) => Properties.Name).sort()).toEqual(["get-weights", "ranked-picks", "update-weights"]);
+  });
+
+  it("limits Bedrock to the two butler models", () => {
+    const statements = Object.values(template.findResources("AWS::IAM::Policy")).flatMap(
+      ({ Properties }) => Properties.PolicyDocument.Statement as { Action: string | string[]; Resource: unknown }[],
+    );
+    const bedrock = statements.filter((st) => [st.Action].flat().some((a) => a.startsWith("bedrock:Invoke")));
+    expect(bedrock).toHaveLength(1);
+    const resources = JSON.stringify(bedrock[0]!.Resource);
+    for (const model of ["claude-haiku-4-5-20251001-v1:0", "nova-2-lite-v1:0"]) expect(resources).toContain(model);
+    expect(resources).not.toMatch(/foundation-model\/\*"/);
+  });
+
+  it("outputs what the app needs to connect", () => {
+    const outputs = Object.keys(template.findOutputs("*"));
+    for (const name of ["RuntimeArn", "ButlerWebSocketUrl", "UserPoolId", "UserPoolClientId", "GatewayUrl"]) {
+      expect(outputs.some((key) => key.includes(name))).toBe(true);
+    }
   });
 });

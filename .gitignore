@@ -7,5 +7,6 @@ node_modules/
 
 # Python
 .venv/
+agent/.build/
 __pycache__/
 .pytest_cache/
