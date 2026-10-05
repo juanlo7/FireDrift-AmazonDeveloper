@@ -21,8 +21,8 @@ describe("cost rules (requirements section 7)", () => {
     for (const [logicalId, { Properties }] of Object.entries(functions)) {
       expect(Properties.Architectures).toEqual(["arm64"]);
       expect(Properties.MemorySize).toBeLessThanOrEqual(256);
-      // Only the pool builder may take longer: its first run warms the TMDB cache.
-      expect(Properties.Timeout).toBeLessThanOrEqual(logicalId.startsWith("TasteGetPool") ? 20 : 10);
+      // Only the pool builders may take longer: their first run warms the TMDB cache.
+      expect(Properties.Timeout).toBeLessThanOrEqual(/^(TasteGetPool|ToolsRankedPicksTool)/.test(logicalId) ? 20 : 10);
       expect(Properties.VpcConfig).toBeUndefined();
     }
   });
@@ -103,6 +103,15 @@ describe("routes", () => {
       ["dynamodb:GetItem", "dynamodb:PutItem", "dynamodb:Query", "dynamodb:BatchGetItem", "secretsmanager:GetSecretValue"],
     ],
     ["TasteGetWeights", ["dynamodb:BatchGetItem", "dynamodb:Query", "dynamodb:GetItem"]],
+    ["ToolsGetWeightsTool", ["dynamodb:BatchGetItem", "dynamodb:Query", "dynamodb:GetItem"]],
+    [
+      "ToolsUpdateWeightsTool",
+      ["dynamodb:BatchGetItem", "dynamodb:Query", "dynamodb:GetItem", "dynamodb:PutItem", "dynamodb:DeleteItem"],
+    ],
+    [
+      "ToolsRankedPicksTool",
+      ["dynamodb:BatchGetItem", "dynamodb:Query", "dynamodb:GetItem", "dynamodb:PutItem", "secretsmanager:GetSecretValue"],
+    ],
   ])("gives %s only the actions it uses", (prefix, actions) => {
     expect(actionsOf(prefix)).toEqual(new Set(actions));
   });
@@ -114,5 +123,14 @@ describe("routes", () => {
     for (const { Action } of statements) {
       for (const action of [Action].flat()) expect(action).not.toContain("*");
     }
+  });
+
+  it("exposes the agent tools only through stack outputs, not HTTP routes", () => {
+    const outputs = Object.keys(template.findOutputs("*"));
+    for (const tool of ["GetWeightsTool", "UpdateWeightsTool", "RankedPicksTool"]) {
+      expect(outputs.some((name) => name.includes(`${tool}Arn`))).toBe(true);
+    }
+    const routes = Object.values(template.findResources("AWS::ApiGatewayV2::Route"));
+    expect(routes.every(({ Properties }) => !String(Properties.RouteKey).includes("tool"))).toBe(true);
   });
 });
