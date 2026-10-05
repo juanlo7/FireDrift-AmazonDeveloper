@@ -2,7 +2,7 @@ import React from 'react';
 import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import type { Provider } from '@firedrift/domain';
 import { useFocusState } from '../focus';
-import { colors, focus, radius, spacing } from '../theme';
+import { colors, focus, radius } from '../theme';
 
 export interface ProviderTileProps {
   provider: Provider;
