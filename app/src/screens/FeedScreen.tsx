@@ -16,6 +16,7 @@ import {
 import { FocusGuideView, useRemoteKeys } from '../focus';
 import { deviceProfile } from '../profile';
 import type { RootScreenProps } from '../navigation/RootNavigator';
+import { useSettings } from '../settings';
 import { signalQueue } from '../signals';
 import { colors, safeArea, spacing, typography } from '../theme';
 import { WatchNowSheet } from '../watchNow';
@@ -40,7 +41,11 @@ export const FeedScreen = ({ navigation }: RootScreenProps<'Feed'>) => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [watchNow, setWatchNow] = useState<TitleCard | null>(null);
   const active = isFocused && !menuOpen && !watchNow;
-  const feed = useFeed(feedDeps, active);
+  const settings = useSettings();
+  const reloadKey = settings
+    ? `${settings.country}|${[...settings.services].sort().join(',')}|${settings.showEverything}`
+    : '';
+  const feed = useFeed(feedDeps, active, reloadKey);
 
   const run: Record<FeedCommand, () => void> = {
     next: feed.next,

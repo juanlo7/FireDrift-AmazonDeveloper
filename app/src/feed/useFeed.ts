@@ -37,6 +37,8 @@ export interface FeedDeps {
 export const useFeed = (
   { api, getProfileId, signals, prefetchImages, now = Date.now }: FeedDeps,
   active: boolean,
+  /** When it changes (new services or country), the feed starts again with a new pool. */
+  reloadKey = '',
 ) => {
   const [feed, setFeed] = useState<FeedState>(emptyFeed);
   const [load, setLoad] = useState<'loading' | 'loaded' | 'error'>('loading');
@@ -44,6 +46,8 @@ export const useFeed = (
   const [liked, setLiked] = useState<ReadonlySet<string>>(() => new Set());
   const loading = useRef(false);
   const retryAfter = useRef(0);
+  // A pool that arrives after a reload belongs to the old settings and is ignored.
+  const generation = useRef(0);
   const feedRef = useRef(feed);
   feedRef.current = feed;
 
@@ -53,8 +57,10 @@ export const useFeed = (
   const loadPool = useCallback(async () => {
     if (loading.current) return;
     loading.current = true;
+    const started = generation.current;
     try {
       const pool = await api.getPool(await getProfileId());
+      if (started !== generation.current) return;
       const known = new Set(feedRef.current.titles.map(titleKey));
       if (!pool.titles.some(t => !known.has(titleKey(t)))) {
         retryAfter.current = now() + REFILL_RETRY_MS;
@@ -63,12 +69,13 @@ export const useFeed = (
       setLoad('loaded');
       setError(null);
     } catch (e: unknown) {
+      if (started !== generation.current) return;
       // A failed refill keeps the titles the feed already has.
       retryAfter.current = now() + REFILL_RETRY_MS;
       setError(e instanceof Error ? e.message : String(e));
       setLoad('error');
     } finally {
-      loading.current = false;
+      if (started === generation.current) loading.current = false;
     }
   }, [api, getProfileId, now]);
 
@@ -78,9 +85,21 @@ export const useFeed = (
     loadPool();
   }, [loadPool]);
 
+  const firstKey = useRef(reloadKey);
   useEffect(() => {
+    if (reloadKey === firstKey.current) {
+      loadPool();
+      return;
+    }
+    firstKey.current = reloadKey;
+    generation.current += 1;
+    loading.current = false;
+    retryAfter.current = 0;
+    setFeed(emptyFeed);
+    setLiked(new Set());
+    setLoad('loading');
     loadPool();
-  }, [loadPool]);
+  }, [reloadKey, loadPool]);
 
   const status: FeedStatus = feed.titles.length
     ? 'ready'

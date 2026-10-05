@@ -27,6 +27,9 @@ Run them from `app/`.
 | `src/components/` | `FocusableButton` (focus ring and scale) and `Screen` (TV safe area) |
 | `src/theme/` | Colors, spacing, safe area, type scale and focus tokens |
 | `src/feed/` | Cover feed (FR-1, plan B): pool and refill model, remote key map, image prefetch, `useFeed`, `CoverView`, Back menu |
+| `src/settings/` | Country, services and "show everything" (FR-4): device store, `PUT /profiles`, logo grid, country picker |
+| `src/about/` | Attributions and credits shown on About (TMDB, JustWatch, butler AI and assets, licenses) |
+| `assets/images/` | Bundled images (TMDB logo from themoviedb.org/about/logos-attribution) |
 | `src/signals/` | Batched signal queue (FR-2) and the cover dwell tracker |
 | `src/profile/` | Anonymous device profile ID |
 | `src/storage.ts` | AsyncStorage wrapper (`KeyValueStore`) |
@@ -94,6 +97,19 @@ images.
   titles it has.
 - Cover dwell is measured only while the feed is on screen with no menu or
   sheet open.
+
+## Services and country
+
+- **First run** opens on Setup: a logo grid of the country's top 12 services
+  (OK toggles), the country (from the device locale, `US` if unknown) and "show
+  everything". **Skip for now** keeps the device country and all services. The
+  feed opens either way.
+- **Settings** (Back → Settings on the feed) edits the same values. Save goes
+  back; Back leaves without saving.
+- Saved on the device (`firedrift.settings`) and sent with `PUT /profiles/{id}`
+  before the feed asks for a pool. When they change, the feed starts again with
+  a new pool. At start the app sends the profile again in case it never
+  reached the backend.
 
 ## Focus and the remote
 
