@@ -89,7 +89,10 @@ Requirements 4.1. Pure functions over the TMDB client and the stores.
   feature kind's factor to every feature of its title, then weights are scaled
   so the strongest is ±1. Strengths: Watch now 1, Like 0.6, long cover dwell
   0.15, short cover dwell −0.1, Skip −0.6. Saved to `WEIGHTS#LEARNED` with labels.
-- **Butler adjustment** decays with a half-life of 7 days.
+- **Butler adjustment** decays with a half-life of 7 days. When the butler
+  lowers a feature, titles with it keep only (1 + adjustment) of their score
+  (`muteFactor`): −0.5 halves them, −1 removes them. Otherwise keywords and cast
+  learned from the same likes would keep the lowered genre on top.
 - **Pool** (`buildPool.ts`): quotas 50 % favourites (TMDB recommendations of the
   newest liked titles, one per seed per round), 30 % genre picks (discover with
   the top 3 genres), 20 % discovery (popular outside known genres). Candidates
@@ -101,6 +104,37 @@ Requirements 4.1. Pure functions over the TMDB client and the stores.
   The item `CONFIG / ACTIVE` can override any field under `taste`, without a
   redeploy, for example `{"taste": {"quotas": {"discovery": 0.3}}}` or
   `{"taste": {"algorithmVersion": "cold-start-1"}}` to roll back.
+
+## Agent tools (P2)
+
+Lambdas without an HTTP route; AgentCore Gateway (#48) calls them with the
+tool input as the event and gets the output back. The stack outputs their ARNs
+(`…GetWeightsToolArn`, `…UpdateWeightsToolArn`, `…RankedPicksToolArn`).
+
+| Tool | Handler | Output |
+|---|---|---|
+| `get_weights` | `src/handlers/tools/getWeights.ts` | `WeightsSummary` |
+| `update_weights` | `src/handlers/tools/updateWeights.ts` | `{ change, clamped }` |
+| `ranked_picks` | `src/handlers/tools/rankedPicks.ts` | `{ titles }` |
+
+- Input and output follow `docs/contracts.md` section 5, validated with the
+  schemas of `@firedrift/domain`. `src/shared/tool.ts` (`createToolHandler`)
+  does the validation and turns any failure into `{ error: { code, message } }`;
+  use it for any new tool.
+- `update_weights` limits (`src/weights/limits.ts`, numbers in
+  `DEFAULT_TASTE_CONFIG.butler`): 3 features per call, ±0.5 per delta,
+  adjustment within [-1, 1]. It writes only the adjustment layer, keeps the last
+  20 changes, and `POST /weights/undo` reverts it.
+- `ranked_picks` runs the pool algorithm for up to 10 titles, leaves out what
+  the feed already showed and saves nothing.
+
+Try one after a deploy (the function name is in the stack outputs):
+
+```sh
+aws lambda invoke --profile firedrift --region us-east-1 \
+  --function-name <UpdateWeightsTool function> --cli-binary-format raw-in-base64-out \
+  --payload file://packages/domain/fixtures/tools/update-weights.input.json /dev/stdout
+```
 
 ## AWS stack (CDK)
 
@@ -147,6 +181,7 @@ created from `FireDriftStack`:
 
 - `catalog-construct.ts` (P1): `GET /providers`, `GET /titles/{type}/{tmdbId}`.
 - `taste-construct.ts` (P2): profile, signals, pool and weights routes.
+- `tools-construct.ts` (P2): the weight tools for the agent, without routes.
 
 A construct gets a `BackendContext` (`table`, `tmdbSecret`, `addRoute`). Create
 each Lambda with `new BackendFunction(this, id, { handler: "<file in
