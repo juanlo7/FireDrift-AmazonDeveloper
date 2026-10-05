@@ -4,12 +4,10 @@ import type { PoolResponse, TitleCard } from '@firedrift/domain';
 import { api } from '../api';
 import { FocusableButton, Screen } from '../components';
 import { FocusGuideView } from '../focus';
+import { deviceProfile } from '../profile';
 import type { RootScreenProps } from '../navigation/RootNavigator';
 import { colors, spacing, typography } from '../theme';
 import { WatchNowSheet } from '../watchNow';
-
-// Until the device profile exists (#37), every call uses this ID.
-const PLACEHOLDER_PROFILE_ID = '00000000-0000-4000-8000-000000000000';
 
 /** Home. Shows one pool title at a time until the cover feed (#35). */
 export const FeedScreen = ({ navigation }: RootScreenProps<'Feed'>) => {
@@ -19,8 +17,9 @@ export const FeedScreen = ({ navigation }: RootScreenProps<'Feed'>) => {
   const [watchNow, setWatchNow] = useState<TitleCard | null>(null);
 
   useEffect(() => {
-    api
-      .getPool(PLACEHOLDER_PROFILE_ID)
+    deviceProfile
+      .getProfileId()
+      .then(profileId => api.getPool(profileId))
       .then(setPool)
       .catch((e: unknown) => setError(e instanceof Error ? e.message : String(e)));
   }, []);
