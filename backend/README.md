@@ -93,13 +93,16 @@ Requirements 4.1. Pure functions over the TMDB client and the stores.
   lowers a feature, titles with it keep only (1 + adjustment) of their score
   (`muteFactor`): −0.5 halves them, −1 removes them. Otherwise keywords and cast
   learned from the same likes would keep the lowered genre on top.
-- **Pool** (`buildPool.ts`): quotas 50 % favourites (TMDB recommendations of the
-  newest liked titles, one per seed per round), 30 % genre picks (discover with
-  the top 3 genres), 20 % discovery (popular outside known genres). Candidates
-  are pre-ranked with list data, then scored with full features (`score.ts`:
-  Σ weight × kind factor, plus a small popularity prior). A repeated main genre
-  costs 20 % per repeat. Titles with a signal or in the last 3 pools are left
-  out. Cards not on my services are dropped and the cold start fills any gap.
+- **Pool** (`buildPool.ts`): quotas 50 % favourites (two pages of TMDB
+  recommendations of the newest liked titles, one per seed per round), 30 %
+  genre picks (two pages of discover with the top 3 genres, without disliked
+  genres; later pools go deeper), 20 % discovery (popular outside known
+  genres). Candidates are pre-ranked with list data, then at least 8 per bucket
+  are scored with full features (`score.ts`: Σ weight × kind factor, plus a
+  small popularity prior). Only discovery may pick a title scoring 0 or less. A
+  repeated main genre costs 20 % per repeat. Titles with a signal or in the last
+  3 pools are left out. Cards are fetched in score order, in batches, until the
+  pool is full of titles on my services; the cold start fills any gap.
 - **Config** (`config.ts`): every number above lives in `DEFAULT_TASTE_CONFIG`.
   The item `CONFIG / ACTIVE` can override any field under `taste`, without a
   redeploy, for example `{"taste": {"quotas": {"discovery": 0.3}}}` or

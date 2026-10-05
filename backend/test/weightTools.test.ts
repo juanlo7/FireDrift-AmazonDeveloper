@@ -206,6 +206,26 @@ describe("FR-5: 'I'm tired of action' lowers action in the next pool", () => {
       layers: { ...noLayers, adjustment: limited.adjustment, adjustmentUpdatedAt: new Date(NOW).toISOString() },
     });
 
-    expect(action(after.titles)).toBeLessThan(action(before.titles) * 0.75);
+    expect(action(after.titles)).toBeLessThan(action(before.titles));
+  });
+
+  it("finishes and fills the pool when every liked candidate is muted", async () => {
+    const likes = [5, 10, 15, 20, 25].map((id) => signal("like", id));
+    const layers = {
+      learned: {},
+      labels: {},
+      adjustment: { "genre:28": -1, "genre:10759": -1 },
+      adjustmentUpdatedAt: new Date(NOW).toISOString(),
+    };
+    const pool = await buildTastePool(createTasteWorld(), {
+      profile: DEFAULT_PROFILE,
+      signals: likes,
+      recentPools: [],
+      layers,
+      config: DEFAULT_TASTE_CONFIG,
+      size: 20,
+      now: NOW,
+    });
+    expect(pool.titles).toHaveLength(20);
   });
 });

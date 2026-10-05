@@ -160,9 +160,9 @@ describe("buildTastePool", () => {
   it("asks TMDB for recommendations of the liked titles and discovery outside known genres", async () => {
     const world = createTasteWorld();
     await buildTastePool(world, input(actionLikesRomanceSkips()));
-    const seeds = world.recommendations.mock.calls.map(([, id]) => id).sort((a, b) => a - b);
+    const seeds = [...new Set(world.recommendations.mock.calls.map(([, id]) => id))].sort((a, b) => a - b);
     expect(seeds).toEqual([5, 10, 15, 20, 25]);
-    const discovery = world.discover.mock.calls.find(([type, params]) => type === "movie" && params.without_genres);
+    const discovery = world.discover.mock.calls.find(([type, params]) => type === "movie" && params.without_genres && !params.with_genres);
     expect(String(discovery?.[1].without_genres).split(",")).toEqual(expect.arrayContaining(["28", "10749"]));
   });
 
