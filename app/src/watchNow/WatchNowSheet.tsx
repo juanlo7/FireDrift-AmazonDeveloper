@@ -8,6 +8,9 @@ import { colors, focus, radius, spacing, typography } from '../theme';
 import { launchService as defaultLaunch, type LaunchResult } from './launchService';
 import { offerLabel, toServiceOptions, type ServiceOption } from './serviceOptions';
 
+/** Services shown in the sheet at most. */
+export const MAX_SHEET_OPTIONS = 4;
+
 export interface WatchNowSheetProps {
   /** The title to watch; `null` hides the sheet. */
   title: TitleCard | null;
@@ -37,7 +40,8 @@ export const WatchNowSheet = ({
   useEffect(() => setNotOpened(null), [title]);
 
   if (!title) return null;
-  const options = toServiceOptions(title.providers);
+  // The sheet must fit the 960×540 dp screen: the best few, included ones first.
+  const options = toServiceOptions(title.providers).slice(0, MAX_SHEET_OPTIONS);
 
   const choose = async (option: ServiceOption) => {
     signals.enqueue({ tmdbId: title.tmdbId, type: title.type, kind: 'watch_now', source });
@@ -145,21 +149,23 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   sheet: {
-    width: 900,
+    width: '70%',
+    maxHeight: '92%',
     backgroundColor: colors.surface,
     borderRadius: radius.md,
-    padding: spacing.lg,
-    gap: spacing.md,
+    padding: spacing.md,
+    gap: spacing.sm,
   },
-  title: { ...typography.title, color: colors.text },
+  title: { ...typography.subtitle, color: colors.text },
   message: { ...typography.body, color: colors.textMuted },
   row: { flexDirection: 'row', gap: spacing.md },
-  list: { gap: spacing.sm },
+  list: { gap: spacing.xs },
   service: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.md,
-    padding: spacing.sm,
+    gap: spacing.sm,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
     borderRadius: radius.md,
     backgroundColor: colors.surfaceRaised,
     borderWidth: focus.ringWidth,
@@ -169,8 +175,8 @@ const styles = StyleSheet.create({
     borderColor: focus.ringColor,
     transform: [{ scale: 1.03 }],
   },
-  logo: { width: 64, height: 64, borderRadius: radius.sm },
-  serviceName: { ...typography.subtitle, color: colors.text, flex: 1 },
+  logo: { width: 44, height: 44, borderRadius: radius.sm },
+  serviceName: { ...typography.body, fontWeight: '600', color: colors.text, flex: 1 },
   badge: { ...typography.caption, paddingHorizontal: spacing.sm, borderRadius: radius.pill },
   badgeIncluded: { color: colors.onPrimary, backgroundColor: colors.primary },
   badgePaid: { color: colors.text, backgroundColor: colors.background },

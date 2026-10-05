@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { BackHandler, StyleSheet, Text, View } from 'react-native';
+import { BackHandler, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useIsFocused } from '@amazon-devices/react-navigation__native';
 import type { TitleCard } from '@firedrift/domain';
 import { api } from '../api';
@@ -41,6 +41,15 @@ export const FeedScreen = ({ navigation }: RootScreenProps<'Feed'>) => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [watchNow, setWatchNow] = useState<TitleCard | null>(null);
   const active = isFocused && !menuOpen && !watchNow;
+  // The cover holds focus so OK reaches it from any remote: the on-screen remote of
+  // the VVD sends OK to the focused element, not to the key listener. Remounting it
+  // when an overlay closes gives focus back to the cover.
+  const [focusEpoch, setFocusEpoch] = useState(0);
+  const wasActive = useRef(active);
+  useEffect(() => {
+    if (active && !wasActive.current) setFocusEpoch(n => n + 1);
+    wasActive.current = active;
+  }, [active]);
   const settings = useSettings();
   const reloadKey = settings
     ? `${settings.country}|${[...settings.services].sort().join(',')}|${settings.showEverything}`
@@ -78,6 +87,15 @@ export const FeedScreen = ({ navigation }: RootScreenProps<'Feed'>) => {
       {feed.status === 'ready' && feed.title ? (
         <>
           <CoverView key={titleKey(feed.title)} title={feed.title} isLiked={feed.isLiked} />
+          <Pressable
+            key={`cover-focus-${focusEpoch}`}
+            accessibilityRole="button"
+            accessibilityLabel={`Watch ${feed.title.name}`}
+            hasTVPreferredFocus
+            onPress={() => active && feed.title && setWatchNow(feed.title)}
+            style={StyleSheet.absoluteFill}
+            testID="feed-cover-press"
+          />
           <View style={styles.hints} testID="feed-hints">
             {KEY_HINTS.map(([key, label]) => (
               <Text key={label} style={styles.hint}>
