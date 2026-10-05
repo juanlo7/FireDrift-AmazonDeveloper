@@ -5,6 +5,8 @@ import { createPutProfileHandler } from "../src/handlers/putProfile";
 import { createMemoryPoolStore } from "../src/pool/poolStore";
 import { createMemoryProfileStore } from "../src/profile/profileStore";
 import { createMemorySignalStore } from "../src/signals/signalStore";
+import { createMemoryConfigStore } from "../src/taste/configStore";
+import { createMemoryWeightStore } from "../src/weights/weightStore";
 import { body, createFakeCatalog, createFakeTmdb, domainFixture, event, PROFILE_ID } from "./profileFakes";
 
 const setup = () => {
@@ -16,6 +18,9 @@ const setup = () => {
     profiles: createMemoryProfileStore(),
     signals: createMemorySignalStore(),
     pools: createMemoryPoolStore(),
+    weights: createMemoryWeightStore(),
+    // These tests are about the routes; the taste algorithm has its own tests.
+    config: createMemoryConfigStore({ algorithmVersion: "cold-start-1" }),
   };
   const deps = () => runtime;
   return { runtime, discover, putProfile: createPutProfileHandler(deps), getPool: createGetPoolHandler(deps) };

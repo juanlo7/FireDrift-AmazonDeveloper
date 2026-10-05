@@ -2,7 +2,7 @@
  * Local API for development before the CDK stack (#43) exists.
  *
  * Every route runs its real Lambda handler. TMDB is real, with an in-memory
- * cache; profiles, signals, weights and pools live in memory instead of DynamoDB.
+ * cache; profiles, signals, weights, pools and config live in memory instead of DynamoDB.
  *
  * Run: `yarn workspace @firedrift/backend dev` (reads `backend/.env.local`).
  */
@@ -21,6 +21,7 @@ import { createMemoryPoolStore } from "../pool/poolStore";
 import { createMemoryProfileStore } from "../profile/profileStore";
 import { error, json, type HttpResult } from "../shared/http";
 import { createMemorySignalStore } from "../signals/signalStore";
+import { createMemoryConfigStore } from "../taste/configStore";
 import { createMemoryWeightStore } from "../weights/weightStore";
 
 const secret = process.env.TMDB_TOKEN ?? process.env.TMDB_API_KEY;
@@ -43,6 +44,7 @@ const runtime = {
   signals: createMemorySignalStore(),
   weights: createMemoryWeightStore(),
   pools: createMemoryPoolStore(),
+  config: createMemoryConfigStore(),
 };
 const deps = () => runtime;
 

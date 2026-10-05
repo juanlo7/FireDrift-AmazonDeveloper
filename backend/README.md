@@ -66,14 +66,41 @@ provider lists 7 days). Errors are never cached.
 - `profileId` must be a UUID. A profile that was never saved counts as country
   `ES` with all services, so the feed works before `PUT /profiles`.
 - Signals are idempotent by `signalId`: a resent batch comes back as `duplicates`.
-- The pool is a **cold start** (`algorithmVersion: "cold-start-1"`) until the
-  taste algorithm (#46): popular titles from TMDB `discover` for the country and
-  services, movies and series alternating, varied genres, without titles the
-  profile already reacted to. `size` goes from 1 to 40.
-- Weights: effective = clamp(learned + adjustment) in [-1, 1], top 5 likes and
-  dislikes. Undo reverts the newest change not undone; reset empties the
-  adjustment layer and marks pending changes undone. Labels are the feature
-  keys until #46 names them.
+- `size` goes from 1 to 40. The pool comes from the taste algorithm below; a
+  profile with no positive taste yet gets the **cold start**
+  (`algorithmVersion: "cold-start-1"`): popular titles from TMDB `discover` for
+  the country and services, movies and series alternating, varied genres.
+- Weights: effective = clamp(learned + decayed adjustment) in [-1, 1], top 5
+  likes and dislikes with TMDB names. Undo removes what is left of the newest
+  change not undone; reset empties the adjustment layer and marks pending
+  changes undone.
+
+### Taste algorithm (`taste-1`, `src/taste/`)
+
+Requirements 4.1. Pure functions over the TMDB client and the stores.
+
+- **Features** (`features.ts`): `genre`, `keyword` (10), `person` (5 main cast
+  and the director or series creators), `decade`, `type`, `runtime`
+  (short/medium/long per type). TV-only genres map to the movie genre they mean
+  (Action & Adventure → Action), so taste carries across movies and series. They
+  come from `tmdb.features()`: keywords and credits, trimmed and cached 30 days.
+- **Learned layer** (`learn.ts`), rebuilt on every pool from the newest 200
+  signals: each signal adds strength × recency (half-life 14 days) × the
+  feature kind's factor to every feature of its title, then weights are scaled
+  so the strongest is ±1. Strengths: Watch now 1, Like 0.6, long cover dwell
+  0.15, short cover dwell −0.1, Skip −0.6. Saved to `WEIGHTS#LEARNED` with labels.
+- **Butler adjustment** decays with a half-life of 7 days.
+- **Pool** (`buildPool.ts`): quotas 50 % favourites (TMDB recommendations of the
+  newest liked titles, one per seed per round), 30 % genre picks (discover with
+  the top 3 genres), 20 % discovery (popular outside known genres). Candidates
+  are pre-ranked with list data, then scored with full features (`score.ts`:
+  Σ weight × kind factor, plus a small popularity prior). A repeated main genre
+  costs 20 % per repeat. Titles with a signal or in the last 3 pools are left
+  out. Cards not on my services are dropped and the cold start fills any gap.
+- **Config** (`config.ts`): every number above lives in `DEFAULT_TASTE_CONFIG`.
+  The item `CONFIG / ACTIVE` can override any field under `taste`, without a
+  redeploy, for example `{"taste": {"quotas": {"discovery": 0.3}}}` or
+  `{"taste": {"algorithmVersion": "cold-start-1"}}` to roll back.
 
 ## AWS stack (CDK)
 
@@ -133,15 +160,14 @@ One table for everything. Profile items share the partition `PROFILE#<profileId>
 
 | Item | `pk` | `sk` | Attributes | TTL | Writer |
 |---|---|---|---|---|---|
-| TMDB cache | `TMDB#<path?query>` | `CACHE` | `body` (JSON string) | 6 h – 7 days | catalog (#39) |
+| TMDB cache | `TMDB#<path?query>` (taste features: `TMDB#features:<path?query>`) | `CACHE` | `body` (JSON string) | 6 h – 30 days | catalog (#39), taste (#46) |
 | Device profile | `PROFILE#<profileId>` | `PROFILE` | `country`, `services` (number list), `showEverything`, `updatedAt` | — | `PUT /profiles` (#44) |
 | Signal | `PROFILE#<profileId>` | `SIGNAL#<signalId>` | the `Signal` fields; put only if new (idempotent) | 30 days | `POST /signals` (#44) |
-| Learned weights | `PROFILE#<profileId>` | `WEIGHTS#LEARNED` | `weights` (feature → number), `updatedAt` | — | taste (#46) |
+| Learned weights | `PROFILE#<profileId>` | `WEIGHTS#LEARNED` | `weights` (feature → number), `labels` (feature → name), `updatedAt` | — | pool (#46) |
 | Butler adjustment | `PROFILE#<profileId>` | `WEIGHTS#ADJUST` | `weights`, `updatedAt` (decays on read) | — | `update_weights` (#47) |
 | Weight change | `PROFILE#<profileId>` | `CHANGE#<at>#<changeId>` | the `WeightChange` fields; last 20 kept | — | `update_weights` (#47) |
 | Pool | `PROFILE#<profileId>` | `POOL#<poolId>` | `algorithmVersion`, `titles` (`type` and `tmdbId` only), `createdAt` | 7 days | pool (#44, #46) |
-| Seen title | `PROFILE#<profileId>` | `SEEN#<type>#<tmdbId>` | `lastSeenAt` (recency cooldown) | 30 days | pool (#46) |
-| Config | `CONFIG` | `ACTIVE` | `algorithmVersion`, quotas, signal strengths, butler caps, kill switch, model ID | — | by hand; code has defaults (#46) |
+| Config | `CONFIG` | `ACTIVE` | `taste` (any `TasteConfig` field); later butler caps, kill switch, model ID | — | by hand; code has defaults |
 
-Seen title and config are the plan for #46; until then the pool takes seen
-titles from the signals. The learned layer is written by #46 and changes by #47.
+Seen titles come from the signals and the last pools, so they need no item of
+their own. Weight changes are written by `update_weights` (#47).

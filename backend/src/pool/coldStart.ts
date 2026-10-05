@@ -26,7 +26,7 @@ interface Candidate {
 
 export const seenKey = (type: TitleType, tmdbId: number) => `${type}:${tmdbId}`;
 
-const discoverParams = (profile: Profile, page: number) => ({
+export const discoverParams = (profile: Profile, page: number) => ({
   page,
   sort_by: "popularity.desc",
   watch_region: profile.country,

@@ -12,6 +12,7 @@ import {
 import { createDynamoDbPoolStore, type PoolStore } from "../pool/poolStore";
 import { createDynamoDbProfileStore, type ProfileRepository } from "../profile/profileStore";
 import { createDynamoDbSignalStore, type SignalStore } from "../signals/signalStore";
+import { createDynamoDbConfigStore, type ConfigStore } from "../taste/configStore";
 import { createDynamoDbWeightStore, type WeightStore } from "../weights/weightStore";
 
 /**
@@ -35,6 +36,7 @@ export interface ProfileRuntime extends CatalogRuntime {
   signals: SignalStore;
   weights: WeightStore;
   pools: PoolStore;
+  config: ConfigStore;
 }
 
 let runtime: CatalogRuntime | undefined;
@@ -80,7 +82,7 @@ export const getCatalogRuntime = (): CatalogRuntime => {
   return runtime;
 };
 
-/** Catalog runtime plus the profile, signal, weight and pool stores (#44). */
+/** Catalog runtime plus the profile, signal, weight, pool and config stores. */
 export const getProfileRuntime = (): ProfileRuntime => {
   if (profileRuntime) return profileRuntime;
   const tableName = requireEnv("TABLE_NAME");
@@ -90,6 +92,7 @@ export const getProfileRuntime = (): ProfileRuntime => {
     signals: createDynamoDbSignalStore(doc, tableName),
     weights: createDynamoDbWeightStore(doc, tableName),
     pools: createDynamoDbPoolStore(doc, tableName),
+    config: createDynamoDbConfigStore(doc, tableName),
   };
   return profileRuntime;
 };

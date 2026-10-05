@@ -85,3 +85,80 @@ describe("parseTmdbSecret", () => {
     });
   });
 });
+
+describe("tmdb client features", () => {
+  const raw = {
+    genres: [{ id: 28, name: "Action" }],
+    release_date: "2010-07-15",
+    runtime: 148,
+    keywords: { keywords: Array.from({ length: 12 }, (_, i) => ({ id: i + 1, name: `k${i + 1}` })) },
+    credits: {
+      cast: Array.from({ length: 8 }, (_, i) => ({ id: 100 + i, name: `actor ${i}`, order: 7 - i, character: "x" })),
+      crew: [
+        { id: 525, name: "Christopher Nolan", job: "Director" },
+        { id: 1, name: "Someone", job: "Editor" },
+      ],
+    },
+  };
+
+  const setup = (body: unknown) => {
+    const fetch = vi.fn(async (_input: string | URL | Request, _init?: RequestInit) => new Response(JSON.stringify(body), { status: 200 }));
+    const cache = createMemoryCache();
+    const setSpy = vi.spyOn(cache, "set");
+    const tmdb = createTmdbClient({
+      credentials: async () => ({ kind: "bearer", token: "t" }),
+      cache,
+      fetch: fetch as unknown as typeof globalThis.fetch,
+    });
+    return { tmdb, fetch, setSpy };
+  };
+
+  it("asks for keywords and credits and keeps only what taste needs", async () => {
+    const { tmdb, fetch } = setup(raw);
+    const features = await tmdb.features("movie", 27205);
+
+    const url = new URL(String(fetch.mock.calls[0]?.[0]));
+    expect(url.pathname).toBe("/3/movie/27205");
+    expect(url.searchParams.get("append_to_response")).toBe("keywords,credits");
+    expect(features.keywords).toHaveLength(10);
+    expect(features.people.map((p) => p.name)).toEqual([
+      "actor 7",
+      "actor 6",
+      "actor 5",
+      "actor 4",
+      "actor 3",
+      "Christopher Nolan",
+    ]);
+    expect(features).toMatchObject({ year: 2010, runtimeMinutes: 148, genres: [{ id: 28, name: "Action" }] });
+  });
+
+  it("caches the trimmed value under its own key for 30 days", async () => {
+    const { tmdb, fetch, setSpy } = setup(raw);
+    await tmdb.features("movie", 27205);
+    await tmdb.features("movie", 27205);
+
+    expect(fetch).toHaveBeenCalledTimes(1);
+    const [key, value, ttl] = setSpy.mock.calls[0]!;
+    expect(key.startsWith("features:/movie/27205?")).toBe(true);
+    expect(value).not.toContain("character");
+    expect(ttl).toBe(30 * 24 * 3600);
+  });
+
+  it("reads series keywords and creators", async () => {
+    const { tmdb } = setup({
+      genres: [{ id: 18, name: "Drama" }],
+      first_air_date: "2017-12-01",
+      episode_run_time: [60],
+      created_by: [{ id: 9, name: "Baran bo Odar" }],
+      keywords: { results: [{ id: 5, name: "time travel" }] },
+      credits: { cast: [{ id: 1, name: "Louis", order: 0 }], crew: [] },
+    });
+    const features = await tmdb.features("tv", 70523);
+    expect(features).toMatchObject({
+      year: 2017,
+      runtimeMinutes: 60,
+      keywords: [{ id: 5, name: "time travel" }],
+      people: [{ id: 1, name: "Louis" }, { id: 9, name: "Baran bo Odar" }],
+    });
+  });
+});

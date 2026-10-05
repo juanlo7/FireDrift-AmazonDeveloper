@@ -24,13 +24,30 @@ export const applyDeltas = (adjustment: WeightMap, deltas: WeightDelta[], sign: 
   const next = { ...adjustment };
   for (const { feature, delta } of deltas) {
     const weight = (next[feature] ?? 0) + sign * delta;
-    if (Math.abs(weight) < 1e-9) delete next[feature];
+    if (Math.abs(weight) < 1e-6) delete next[feature];
     else next[feature] = weight;
   }
   return next;
 };
 
-/** Until #46 names features, the label is the key itself. */
+const DAY_MS = 24 * 3600 * 1000;
+
+/** Share of a weight left after the time from `since` to `now`, with exponential decay. */
+export const decayFactor = (since: string | null, now: number, halfLifeDays: number): number =>
+  since ? 0.5 ** (Math.max(0, now - Date.parse(since)) / DAY_MS / halfLifeDays) : 1;
+
+/** The adjustment layer as it weighs at `now`: every value decays from `updatedAt`. */
+export const decayAdjustment = (
+  adjustment: WeightMap,
+  updatedAt: string | null,
+  now: number,
+  halfLifeDays: number,
+): WeightMap => {
+  const factor = decayFactor(updatedAt, now, halfLifeDays);
+  return Object.fromEntries(Object.entries(adjustment).map(([feature, weight]) => [feature, weight * factor]));
+};
+
+/** Label of a feature: the learned name when known, else the key itself. */
 export type LabelFeature = (feature: FeatureKey) => string;
 const keyAsLabel: LabelFeature = (feature) => feature;
 
