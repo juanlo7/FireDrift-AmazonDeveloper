@@ -7,10 +7,12 @@ import { AboutScreen } from '../screens/AboutScreen';
 import { ButlerScreen } from '../screens/ButlerScreen';
 import { FeedScreen } from '../screens/FeedScreen';
 import { SettingsScreen } from '../screens/SettingsScreen';
+import { SetupScreen } from '../screens/SetupScreen';
 import { colors } from '../theme';
 
 /** Every screen and its params. Add new screens here first. */
 export type RootStackParamList = {
+  Setup: undefined;
   Feed: undefined;
   Butler: undefined;
   Settings: undefined;
@@ -42,13 +44,17 @@ const navigationTheme: Theme = {
   },
 };
 
-/** Feed is home. The remote's Back key pops the stack; on Feed it leaves the app. */
-export const RootNavigator = () => (
+/**
+ * Feed is home; the first run starts on Setup (FR-4). The remote's Back key
+ * pops the stack; on Feed it opens the menu.
+ */
+export const RootNavigator = ({ firstRun = false }: { firstRun?: boolean }) => (
   <NavigationContainer theme={navigationTheme}>
     <Stack.Navigator
-      initialRouteName="Feed"
+      initialRouteName={firstRun ? 'Setup' : 'Feed'}
       screenOptions={{ headerShown: false, animation: 'none' }}
     >
+      <Stack.Screen name="Setup" component={SetupScreen} />
       <Stack.Screen name="Feed" component={FeedScreen} />
       <Stack.Screen name="Butler" component={ButlerScreen} />
       <Stack.Screen name="Settings" component={SettingsScreen} />

@@ -1,5 +1,4 @@
-import React from 'react';
-import { act, render, renderHook, screen, waitFor } from '@testing-library/react-native';
+import { act, renderHook, screen, waitFor } from '@testing-library/react-native';
 import type { PoolResponse, TitleCard } from '@firedrift/domain';
 import { createMockClient, type ApiClient } from '../src/api';
 import {
@@ -253,11 +252,11 @@ describe('useFeed', () => {
 
 describe('FeedScreen with the remote', () => {
   // eslint-disable-next-line @typescript-eslint/no-var-requires
-  const { App } = require('../src/App');
+  const { renderApp } = require('./renderApp');
   const press = (eventType: string) => act(() => mockRemote?.({ eventType, eventKeyAction: 0 }));
 
   it('browses covers with Up and Down and opens Watch now with OK', async () => {
-    render(<App />);
+    await renderApp();
     await waitFor(() => expect(screen.getByTestId('feed-title')).toHaveTextContent('Dark'));
     expect(screen.getByTestId('feed-hints')).toBeTruthy();
 
@@ -278,7 +277,7 @@ describe('FeedScreen with the remote', () => {
   });
 
   it('skips with Left', async () => {
-    render(<App />);
+    await renderApp();
     await waitFor(() => expect(screen.getByTestId('feed-title')).toHaveTextContent('Dark'));
     press('left');
     expect(screen.getByTestId('feed-title')).toHaveTextContent('Arrival');
