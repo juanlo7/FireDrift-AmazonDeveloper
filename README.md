@@ -61,6 +61,16 @@ vega virtual-device stop && vega virtual-device start
 
 Keys in the virtual device window: arrows (D-pad), Enter (OK), Esc (Back), F1 (Home).
 
+To drive and check the VVD from a terminal (`screenshooter` on the device
+breaks the dev shell, see `docs/feedback.md`):
+
+```sh
+# press a key: KEY_UP / KEY_DOWN / KEY_LEFT / KEY_RIGHT / KEY_ENTER / KEY_BACK
+~/vega/sdk/vega-sdk/main/*/bin/tools/vda -s emulator-5554 shell 'inputd-cli button_press KEY_DOWN'
+# screenshot to <dir> through the emulator console (token in ~/.emulator_console_auth_token)
+{ echo "auth $(cat ~/.emulator_console_auth_token)"; echo "screenrecord screenshot $PWD"; sleep 2; } | nc localhost 5554
+```
+
 The app starts in mock mode: it reads the fixtures in `packages/domain/fixtures/`
 and needs no backend. See `app/README.md` to switch to the real API.
 
