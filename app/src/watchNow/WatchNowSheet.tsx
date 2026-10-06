@@ -132,7 +132,14 @@ const ServiceRow = ({
       style={[styles.service, isFocused && styles.serviceFocused]}
       testID={`watch-now-service-${option.providerId}`}
     >
-      <Image source={{ uri: option.logoUrl }} style={styles.logo} />
+      {option.logoUrl ? (
+        <Image source={{ uri: option.logoUrl }} style={styles.logo} />
+      ) : (
+        // No logo from TMDB: the service's initial in a disc, so every row keeps its mark.
+        <View style={[styles.logo, styles.logoFallback]}>
+          <Text style={styles.logoInitial}>{option.name.charAt(0)}</Text>
+        </View>
+      )}
       <Text style={[styles.serviceName, isFocused && styles.onAmber]} numberOfLines={1}>
         {option.name}
       </Text>
@@ -181,6 +188,8 @@ const styles = StyleSheet.create({
     ...focus.shadow,
   },
   logo: { width: 36, height: 36, borderRadius: 18 },
+  logoFallback: { backgroundColor: colors.background, alignItems: 'center', justifyContent: 'center' },
+  logoInitial: { ...typography.label, fontSize: 18, color: colors.text },
   serviceName: { ...typography.subtitle, color: colors.text, flex: 1 },
   badge: { ...typography.label, color: colors.textMuted },
   onAmber: { color: colors.onPrimary },

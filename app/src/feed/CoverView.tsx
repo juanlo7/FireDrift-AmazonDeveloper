@@ -13,6 +13,8 @@ export const MAX_COVER_SERVICES = 3;
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const caseGlow = require('../../assets/images/case-glow.png');
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const textScrim = require('../../assets/images/text-scrim.png');
 
 export interface CoverViewProps {
   title: TitleCard;
@@ -138,9 +140,7 @@ export const CoverView = ({
       ) : null}
       {/* Keeps the wall dark on bright backdrops; the text side gets one more layer. */}
       <View style={[StyleSheet.absoluteFill, styles.dim]} />
-      {SCRIM_STEPS.map((left) => (
-        <View key={left} style={[styles.textScrim, {left}]} />
-      ))}
+      <Image source={textScrim} resizeMode="stretch" style={styles.textScrim} />
 
       <Image source={caseGlow} resizeMode="stretch" style={styles.glow} />
 
@@ -253,9 +253,6 @@ export const CoverView = ({
   );
 };
 
-/** Overlapping layers from these x positions: darker towards the text, with no hard edge. */
-const SCRIM_STEPS = [360, 420, 480, 540];
-
 const CASE_LEFT = 75;
 const CASE_TOP = 50;
 const CASE_HEIGHT = 430;
@@ -267,13 +264,9 @@ const GLOW_SPREAD = 90;
 const styles = StyleSheet.create({
   ambient: {transform: [{scale: 1.1}]},
   dim: {backgroundColor: 'rgba(13, 12, 11, 0.72)'},
-  textScrim: {
-    position: 'absolute',
-    top: 0,
-    bottom: 0,
-    right: 0,
-    backgroundColor: 'rgba(13, 12, 11, 0.1)',
-  },
+  // One smooth alpha gradient towards the text column: stepped layers banded on a TV.
+  // Vega does not stretch an Image from top/bottom alone: give it its size.
+  textScrim: {position: 'absolute', top: 0, left: 340, width: 620, height: 540},
   glow: {
     position: 'absolute',
     left: CASE_LEFT - GLOW_SPREAD,
