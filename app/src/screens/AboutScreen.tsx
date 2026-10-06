@@ -3,7 +3,7 @@ import { Image, StyleSheet, Text, View } from 'react-native';
 import { BUTLER_CREDITS, JUSTWATCH_CREDIT, OPEN_SOURCE, TMDB_NOTICE } from '../about/credits';
 import { FocusableButton, Screen } from '../components';
 import type { RootScreenProps } from '../navigation/RootNavigator';
-import { colors, spacing, typography } from '../theme';
+import { colors, fonts, spacing, typography } from '../theme';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const tmdbLogo = require('../../assets/images/tmdb-logo.png');
@@ -47,11 +47,11 @@ const styles = StyleSheet.create({
   columns: { flex: 1, flexDirection: 'row', gap: spacing.lg },
   column: { flex: 1, gap: spacing.xs },
   body: { ...typography.body, color: colors.textMuted },
-  tmdbLogo: { width: 185, height: 24, marginTop: spacing.sm },
-  notice: { fontSize: 16, color: colors.text },
-  heading: { fontSize: 18, fontWeight: '700', color: colors.primary },
+  tmdbLogo: { width: 185, height: 24, marginTop: spacing.sm, marginBottom: spacing.sm },
+  notice: { fontFamily: fonts.body, fontSize: 16, lineHeight: 22, color: colors.text },
+  heading: { ...typography.label, fontSize: 16, color: colors.text },
   gap: { marginTop: spacing.sm },
-  line: { fontSize: 14, color: colors.text },
-  strong: { fontWeight: '700' },
+  line: { fontFamily: fonts.body, fontSize: 14, lineHeight: 20, color: colors.text },
+  strong: { fontFamily: fonts.bodyBold },
   back: { alignSelf: 'flex-start', marginTop: spacing.md },
 });

@@ -107,15 +107,15 @@ describe('feedCommandFor', () => {
 });
 
 describe('createImagePrefetcher', () => {
-  it('fetches each cover image once, the poster when there is no backdrop', async () => {
+  it('fetches each cover image once: the poster and the backdrop', async () => {
     const prefetch = jest.fn().mockResolvedValue(true);
     const warm = createImagePrefetcher(prefetch);
-    warm([card(1), card(2, { backdropUrl: null, posterUrl: 'https://image.tmdb.org/p.jpg' })]);
-    warm([card(1), card(3, { backdropUrl: null, posterUrl: null })]);
+    warm([card(1, { posterUrl: 'https://image.tmdb.org/p1.jpg' }), card(2, { backdropUrl: null, posterUrl: null })]);
+    warm([card(1, { posterUrl: 'https://image.tmdb.org/p1.jpg' })]);
     await act(async () => {});
     expect(prefetch.mock.calls.map(c => c[0])).toEqual([
+      'https://image.tmdb.org/p1.jpg',
       'https://image.tmdb.org/t/p/w1280/1.jpg',
-      'https://image.tmdb.org/p.jpg',
     ]);
   });
 
@@ -129,9 +129,15 @@ describe('createImagePrefetcher', () => {
 });
 
 describe('coverMeta', () => {
-  it('joins year, type, runtime and rating', () => {
-    expect(coverMeta(card(1, { year: 2017, type: 'series', runtimeMinutes: null, rating: 8.4 }))).toBe(
-      '2017  ·  Series  ·  ★ 8.4',
+  it('joins year, first genre, runtime and rating', () => {
+    expect(coverMeta(card(1, { year: 2017, genres: ['Crime', 'Drama'], runtimeMinutes: 164, rating: 8.4 }))).toBe(
+      '2017  ·  Crime  ·  2 h 44 min  ·  Rated 8.4',
+    );
+  });
+
+  it('falls back to the type when there is no genre', () => {
+    expect(coverMeta(card(1, { year: 2017, genres: [], type: 'series', runtimeMinutes: 45, rating: null }))).toBe(
+      '2017  ·  Series  ·  45 min',
     );
   });
 });
@@ -271,9 +277,10 @@ describe('FeedScreen with the remote', () => {
     press('select');
     await waitFor(() => expect(screen.getByTestId('watch-now-title')).toHaveTextContent('Watch Dark'));
 
-    // While the sheet is open, the feed ignores the D-pad.
+    // While the sheet is open, the feed ignores the D-pad and its text column steps out.
     press('down');
-    expect(screen.getByTestId('feed-title')).toHaveTextContent('Dark');
+    expect(screen.queryByTestId('feed-title')).toBeNull();
+    expect(screen.getByTestId('watch-now-title')).toHaveTextContent('Watch Dark');
   });
 
   it('skips with Left', async () => {

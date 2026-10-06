@@ -61,5 +61,5 @@ const styles = StyleSheet.create({
     gap: spacing.xs,
     justifyContent: 'center',
   },
-  title: { ...typography.subtitle, color: colors.text, marginBottom: spacing.xs },
+  title: { ...typography.title, color: colors.text, marginBottom: spacing.md },
 });

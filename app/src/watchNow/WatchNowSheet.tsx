@@ -4,9 +4,12 @@ import type { SignalSource, TitleCard } from '@firedrift/domain';
 import { FocusableButton } from '../components';
 import { FocusGuideView, useFocusState } from '../focus';
 import { signalQueue as defaultQueue, type SignalQueue } from '../signals';
-import { colors, focus, radius, spacing, typography } from '../theme';
+import { colors, focus, radius, safeArea, spacing, typography } from '../theme';
 import { launchService as defaultLaunch, type LaunchResult } from './launchService';
 import { offerLabel, toServiceOptions, type ServiceOption } from './serviceOptions';
+
+/** Services shown in the sheet at most. */
+export const MAX_SHEET_OPTIONS = 4;
 
 export interface WatchNowSheetProps {
   /** The title to watch; `null` hides the sheet. */
@@ -37,7 +40,8 @@ export const WatchNowSheet = ({
   useEffect(() => setNotOpened(null), [title]);
 
   if (!title) return null;
-  const options = toServiceOptions(title.providers);
+  // The sheet must fit the 960×540 dp screen: the best few, included ones first.
+  const options = toServiceOptions(title.providers).slice(0, MAX_SHEET_OPTIONS);
 
   const choose = async (option: ServiceOption) => {
     signals.enqueue({ tmdbId: title.tmdbId, type: title.type, kind: 'watch_now', source });
@@ -56,7 +60,7 @@ export const WatchNowSheet = ({
           trapFocusRight
           style={styles.sheet}
         >
-          <Text style={styles.title} testID="watch-now-title">
+          <Text style={styles.title} numberOfLines={2} testID="watch-now-title">
             {notOpened ? `Watch on ${notOpened.name}` : `Watch ${title.name}`}
           </Text>
 
@@ -117,6 +121,7 @@ const ServiceRow = ({
   onPress: () => void;
 }) => {
   const { isFocused, handleFocus, handleBlur } = useFocusState();
+  const [logoFailed, setLogoFailed] = useState(false);
   return (
     <Pressable
       accessibilityRole="button"
@@ -128,30 +133,42 @@ const ServiceRow = ({
       style={[styles.service, isFocused && styles.serviceFocused]}
       testID={`watch-now-service-${option.providerId}`}
     >
-      <Image source={{ uri: option.logoUrl }} style={styles.logo} />
-      <Text style={styles.serviceName}>{option.name}</Text>
-      <Text style={[styles.badge, option.included ? styles.badgeIncluded : styles.badgePaid]}>
-        {offerLabel(option)}
+      {option.logoUrl && !logoFailed ? (
+        <Image source={{ uri: option.logoUrl }} style={styles.logo} onError={() => setLogoFailed(true)} />
+      ) : (
+        // No logo, or it did not load: the service's initial in a disc, so every row keeps its mark.
+        <View style={[styles.logo, styles.logoFallback]}>
+          <Text style={styles.logoInitial}>{option.name.charAt(0)}</Text>
+        </View>
+      )}
+      <Text style={[styles.serviceName, isFocused && styles.onAmber]} numberOfLines={1}>
+        {option.name}
       </Text>
+      <Text style={[styles.badge, isFocused && styles.onAmber]}>{offerLabel(option)}</Text>
     </Pressable>
   );
 };
 
 const styles = StyleSheet.create({
+  // The panel slides over the right of the feed; the lit case stays in view.
   backdrop: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.7)',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: 'rgba(13, 12, 11, 0.55)',
+    alignItems: 'flex-end',
   },
   sheet: {
-    width: 900,
+    height: '100%',
+    width: '46%',
+    justifyContent: 'center',
     backgroundColor: colors.surface,
-    borderRadius: radius.md,
-    padding: spacing.lg,
+    borderLeftWidth: 1,
+    borderLeftColor: 'rgba(255, 217, 160, 0.18)',
+    paddingLeft: spacing.xl,
+    paddingRight: safeArea.horizontal + spacing.sm,
+    paddingVertical: safeArea.vertical,
     gap: spacing.md,
   },
-  title: { ...typography.title, color: colors.text },
+  title: { ...typography.title, color: colors.text, marginBottom: spacing.sm },
   message: { ...typography.body, color: colors.textMuted },
   row: { flexDirection: 'row', gap: spacing.md },
   list: { gap: spacing.sm },
@@ -159,19 +176,22 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.md,
-    padding: spacing.sm,
-    borderRadius: radius.md,
+    paddingVertical: spacing.sm,
+    paddingLeft: spacing.sm,
+    paddingRight: spacing.lg,
+    borderRadius: radius.pill,
     backgroundColor: colors.surfaceRaised,
-    borderWidth: focus.ringWidth,
-    borderColor: 'transparent',
   },
+  // A small lift: the panel's rows stay inside the title-safe edge.
   serviceFocused: {
-    borderColor: focus.ringColor,
-    transform: [{ scale: 1.03 }],
+    backgroundColor: colors.primary,
+    transform: [{ scale: 1.02 }],
+    ...focus.shadow,
   },
-  logo: { width: 64, height: 64, borderRadius: radius.sm },
+  logo: { width: 36, height: 36, borderRadius: 18 },
+  logoFallback: { backgroundColor: colors.background, alignItems: 'center', justifyContent: 'center' },
+  logoInitial: { ...typography.label, fontSize: 18, color: colors.text },
   serviceName: { ...typography.subtitle, color: colors.text, flex: 1 },
-  badge: { ...typography.caption, paddingHorizontal: spacing.sm, borderRadius: radius.pill },
-  badgeIncluded: { color: colors.onPrimary, backgroundColor: colors.primary },
-  badgePaid: { color: colors.text, backgroundColor: colors.background },
+  badge: { ...typography.label, color: colors.textMuted },
+  onAmber: { color: colors.onPrimary },
 });

@@ -33,9 +33,22 @@ export const toServiceOptions = (providers: ProviderOffer[]): ServiceOption[] =>
       });
     }
   }
-  const options = [...byId.values()];
+  const options = withoutPlanVariants([...byId.values()]);
   return [...options.filter(o => o.included), ...options.filter(o => !o.included)];
 };
+
+/**
+ * TMDB lists plans of one service as separate providers ("Netflix" and "Netflix
+ * Standard with Ads"). Keep the first-listed one and drop names that only add a
+ * plan to it, so each service shows once.
+ */
+const withoutPlanVariants = (options: ServiceOption[]): ServiceOption[] =>
+  options.filter(
+    option =>
+      !options.some(
+        other => other !== option && option.name.startsWith(`${other.name} `) && other.included === option.included,
+      ),
+  );
 
 const OFFER_LABELS: Record<Offer, string> = {
   subscription: 'Included',
