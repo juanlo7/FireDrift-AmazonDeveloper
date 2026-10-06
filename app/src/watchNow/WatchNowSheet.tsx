@@ -121,6 +121,7 @@ const ServiceRow = ({
   onPress: () => void;
 }) => {
   const { isFocused, handleFocus, handleBlur } = useFocusState();
+  const [logoFailed, setLogoFailed] = useState(false);
   return (
     <Pressable
       accessibilityRole="button"
@@ -132,10 +133,10 @@ const ServiceRow = ({
       style={[styles.service, isFocused && styles.serviceFocused]}
       testID={`watch-now-service-${option.providerId}`}
     >
-      {option.logoUrl ? (
-        <Image source={{ uri: option.logoUrl }} style={styles.logo} />
+      {option.logoUrl && !logoFailed ? (
+        <Image source={{ uri: option.logoUrl }} style={styles.logo} onError={() => setLogoFailed(true)} />
       ) : (
-        // No logo from TMDB: the service's initial in a disc, so every row keeps its mark.
+        // No logo, or it did not load: the service's initial in a disc, so every row keeps its mark.
         <View style={[styles.logo, styles.logoFallback]}>
           <Text style={styles.logoInitial}>{option.name.charAt(0)}</Text>
         </View>

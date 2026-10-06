@@ -107,15 +107,15 @@ describe('feedCommandFor', () => {
 });
 
 describe('createImagePrefetcher', () => {
-  it('fetches each cover image once, the poster when there is no backdrop', async () => {
+  it('fetches each cover image once: the poster and the backdrop', async () => {
     const prefetch = jest.fn().mockResolvedValue(true);
     const warm = createImagePrefetcher(prefetch);
-    warm([card(1), card(2, { backdropUrl: null, posterUrl: 'https://image.tmdb.org/p.jpg' })]);
-    warm([card(1), card(3, { backdropUrl: null, posterUrl: null })]);
+    warm([card(1, { posterUrl: 'https://image.tmdb.org/p1.jpg' }), card(2, { backdropUrl: null, posterUrl: null })]);
+    warm([card(1, { posterUrl: 'https://image.tmdb.org/p1.jpg' })]);
     await act(async () => {});
     expect(prefetch.mock.calls.map(c => c[0])).toEqual([
+      'https://image.tmdb.org/p1.jpg',
       'https://image.tmdb.org/t/p/w1280/1.jpg',
-      'https://image.tmdb.org/p.jpg',
     ]);
   });
 

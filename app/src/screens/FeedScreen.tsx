@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { BackHandler, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useIsFocused } from '@amazon-devices/react-navigation__native';
 import type { TitleCard } from '@firedrift/domain';
@@ -6,6 +6,7 @@ import { api } from '../api';
 import { FocusableButton, Screen } from '../components';
 import {
   CoverView,
+  createUrlPrefetcher,
   FeedMenu,
   feedCommandFor,
   titleKey,
@@ -19,7 +20,7 @@ import type { RootScreenProps } from '../navigation/RootNavigator';
 import { useSettings } from '../settings';
 import { signalQueue } from '../signals';
 import { colors, fonts, spacing, typography } from '../theme';
-import { WatchNowSheet } from '../watchNow';
+import { MAX_SHEET_OPTIONS, toServiceOptions, WatchNowSheet } from '../watchNow';
 
 const feedDeps: FeedDeps = { api, getProfileId: deviceProfile.getProfileId, signals: signalQueue };
 
@@ -55,6 +56,18 @@ export const FeedScreen = ({ navigation }: RootScreenProps<'Feed'>) => {
     ? `${settings.country}|${[...settings.services].sort().join(',')}|${settings.showEverything}`
     : '';
   const feed = useFeed(feedDeps, active, reloadKey);
+
+  // Images that finish loading while a Modal is open never paint on Vega, so the
+  // Watch now logos are fetched as soon as the cover shows, before OK opens the sheet.
+  const prefetchLogos = useMemo(() => createUrlPrefetcher(), []);
+  useEffect(() => {
+    if (!feed.title) return;
+    prefetchLogos(
+      toServiceOptions(feed.title.providers)
+        .slice(0, MAX_SHEET_OPTIONS)
+        .map(option => option.logoUrl),
+    );
+  }, [feed.title, prefetchLogos]);
 
   // The title shown before the current one, so its case can slide out and its light fade under.
   const shown = useRef<{ current: TitleCard | null; previous: TitleCard | null }>({ current: null, previous: null });
