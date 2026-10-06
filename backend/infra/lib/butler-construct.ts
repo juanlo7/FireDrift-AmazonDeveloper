@@ -58,6 +58,39 @@ const TOOL_SCHEMAS: Record<string, { tool: string; description: string; inputSch
       required: ["profileId", "changes", "reason"],
     },
   },
+  "resolve-titles": {
+    tool: "resolve_titles",
+    description: "Check proposed titles against TMDB; only resolved titles can be shown",
+    inputSchema: {
+      type: SchemaDefinitionType.OBJECT,
+      properties: {
+        profileId,
+        proposals: {
+          type: SchemaDefinitionType.ARRAY,
+          description: "Up to 5",
+          items: {
+            type: SchemaDefinitionType.OBJECT,
+            properties: {
+              title: str("Title as the user would know it"),
+              year: int("Release year; leave out if unsure"),
+              type: str("movie or series"),
+            },
+            required: ["title", "type"],
+          },
+        },
+      },
+      required: ["profileId", "proposals"],
+    },
+  },
+  similar: {
+    tool: "similar",
+    description: "Titles similar to one TMDB title, on the user's services",
+    inputSchema: {
+      type: SchemaDefinitionType.OBJECT,
+      properties: { profileId, type: str("movie or series"), tmdbId: int("TMDB ID"), count: int("Up to 10") },
+      required: ["profileId", "type", "tmdbId", "count"],
+    },
+  },
   "ranked-picks": {
     tool: "ranked_picks",
     description: "Best titles for the user from the taste algorithm",

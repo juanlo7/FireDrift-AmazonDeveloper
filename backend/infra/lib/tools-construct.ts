@@ -15,6 +15,8 @@ interface Tool {
 }
 
 const READ_WEIGHTS = ["dynamodb:BatchGetItem", "dynamodb:Query", "dynamodb:GetItem"];
+/** The profile and the TMDB cache (read and write). */
+const CATALOG_ACCESS = ["dynamodb:GetItem", "dynamodb:PutItem"];
 
 const TOOLS: Tool[] = [
   { id: "GetWeightsTool", name: "get_weights", handler: "tools/getWeights", tableActions: READ_WEIGHTS },
@@ -33,10 +35,25 @@ const TOOLS: Tool[] = [
     readsTmdb: true,
     timeout: Duration.seconds(20),
   },
+  {
+    id: "ResolveTitlesTool",
+    name: "resolve_titles",
+    handler: "tools/resolveTitles",
+    tableActions: CATALOG_ACCESS,
+    readsTmdb: true,
+  },
+  {
+    id: "SimilarTool",
+    name: "similar",
+    handler: "tools/similar",
+    tableActions: CATALOG_ACCESS,
+    readsTmdb: true,
+  },
 ];
 
 /**
- * Weight tools for the butler agent (#47). Owner: P2. No HTTP route: AgentCore
+ * Tools for the butler agent: weights and ranked picks (#47, owner P2) and the
+ * grounding tools `resolve_titles` and `similar` (#40, owner P1). No HTTP route: AgentCore
  * Gateway (#48) invokes them, using the ARNs in the stack outputs.
  */
 export class ToolsConstruct extends Construct {

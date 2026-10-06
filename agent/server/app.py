@@ -48,20 +48,23 @@ class StarletteTransport:
 
 
 def default_tool_client(config: BrainConfig) -> ToolClient:
-    """P2's weight tools through AgentCore Gateway (`FIREDRIFT_TOOLS=gateway`, the Runtime default)
-    or by Lambda (`lambda`, local runs); `resolve_titles` and `similar` from fixtures until #40 ships."""
+    """Every tool through AgentCore Gateway (`FIREDRIFT_TOOLS=gateway`, the Runtime default)
+    or by Lambda (`lambda`, local runs). By Lambda, `resolve_titles` and `similar` answer
+    from fixtures while their functions are not configured."""
     if os.environ.get("FIREDRIFT_TOOLS", "lambda") == "gateway":
         from brain.mcp_tool_client import McpToolClient, gateway_mcp_client
 
-        weights: ToolClient = McpToolClient(gateway_mcp_client(os.environ["FIREDRIFT_GATEWAY_URL"], config.region))
-    else:
-        functions = {
-            "get_weights": config.tools.get_weights,
-            "update_weights": config.tools.update_weights,
-            "ranked_picks": config.tools.ranked_picks,
-        }
-        weights = LambdaToolClient(functions, boto3.client("lambda", region_name=config.region))
-    return CompositeToolClient(weights=weights, grounding=FixtureToolClient())
+        return McpToolClient(gateway_mcp_client(os.environ["FIREDRIFT_GATEWAY_URL"], config.region))
+    functions = {
+        "get_weights": config.tools.get_weights,
+        "update_weights": config.tools.update_weights,
+        "ranked_picks": config.tools.ranked_picks,
+        "resolve_titles": config.tools.resolve_titles,
+        "similar": config.tools.similar,
+    }
+    client = LambdaToolClient(functions, boto3.client("lambda", region_name=config.region))
+    grounding: ToolClient = client if config.tools.resolve_titles and config.tools.similar else FixtureToolClient()
+    return CompositeToolClient(weights=client, grounding=grounding)
 
 
 def default_config_reader(config: BrainConfig) -> ConfigReader:
