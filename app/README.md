@@ -86,7 +86,7 @@ images.
 | Key | Action |
 |---|---|
 | Down / Up | Next / previous title (the last 20 stay for Up) |
-| Right | Like (once per title, shows "♥ Liked") |
+| Right | Like (once per title): a heart pops over the poster, the case light flashes, and a heart mark stays on the case |
 | Left | Skip and go to the next title |
 | OK | Watch now sheet |
 | Back | Menu: Butler, Settings, About, Exit. Back again closes it |

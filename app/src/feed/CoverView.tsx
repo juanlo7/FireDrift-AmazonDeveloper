@@ -1,8 +1,9 @@
-import React, {useEffect, useRef} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {Animated, Easing, Image, StyleSheet, Text, View} from 'react-native';
 import type {TitleCard} from '@firedrift/domain';
 import {colors, fonts, radius, spacing, typography} from '../theme';
 import {toServiceOptions} from '../watchNow/serviceOptions';
+import {Heart, LikeBurst} from './LikeHeart';
 
 /** How long the case change takes. Short, so the cover shows in < 500 ms (NFR-3). */
 export const CASE_IN_MS = 280;
@@ -79,6 +80,41 @@ export const CoverView = ({
   const change = useRef(new Animated.Value(previous ? 0 : 1)).current;
   const ambientIn = useRef(new Animated.Value(0)).current;
   const sideOpacity = useRef(new Animated.Value(1)).current;
+  // The like moment: a burst over the case and a flash of its light, only when
+  // the viewer likes it now (a title that comes back already liked just wears the mark).
+  const [burst, setBurst] = useState(false);
+  const glowFlash = useRef(new Animated.Value(0)).current;
+  const markIn = useRef(new Animated.Value(isLiked ? 1 : 0)).current;
+  const wasLiked = useRef(isLiked);
+  useEffect(() => {
+    if (!isLiked || wasLiked.current) return;
+    wasLiked.current = true;
+    setBurst(true);
+    Animated.parallel([
+      Animated.sequence([
+        Animated.timing(glowFlash, {
+          toValue: 1,
+          duration: 160,
+          useNativeDriver: true,
+        }),
+        Animated.timing(glowFlash, {
+          toValue: 0,
+          duration: 620,
+          easing: Easing.out(Easing.quad),
+          useNativeDriver: true,
+        }),
+      ]),
+      Animated.sequence([
+        Animated.delay(520),
+        Animated.spring(markIn, {
+          toValue: 1,
+          friction: 5,
+          tension: 160,
+          useNativeDriver: true,
+        }),
+      ]),
+    ]).start();
+  }, [isLiked, glowFlash, markIn]);
 
   useEffect(() => {
     const animation = Animated.parallel([
@@ -143,6 +179,11 @@ export const CoverView = ({
       <Image source={textScrim} resizeMode="stretch" style={styles.textScrim} />
 
       <Image source={caseGlow} resizeMode="stretch" style={styles.glow} />
+      <Animated.Image
+        source={caseGlow}
+        resizeMode="stretch"
+        style={[styles.glow, styles.glowFlash, {opacity: glowFlash}]}
+      />
 
       {previous ? (
         <Animated.View
@@ -184,6 +225,24 @@ export const CoverView = ({
         <Poster title={title} />
       </Animated.View>
 
+      {isLiked ? (
+        <Animated.View
+          style={[
+            styles.likeMark,
+            {opacity: markIn, transform: [{scale: markIn}]},
+          ]}
+          testID="feed-liked">
+          <Heart size={11} color={colors.onPrimary} />
+        </Animated.View>
+      ) : null}
+      {burst ? (
+        <LikeBurst
+          x={CASE_LEFT + CASE_WIDTH / 2}
+          y={CASE_TOP + CASE_HEIGHT / 2}
+          onDone={() => setBurst(false)}
+        />
+      ) : null}
+
       {position ? (
         <Text style={styles.plate} testID="feed-position">
           {position.index} / {position.total}
@@ -196,11 +255,6 @@ export const CoverView = ({
             {title.name}
           </Text>
           <View style={styles.metaRow}>
-            {isLiked ? (
-              <Text style={styles.liked} testID="feed-liked">
-                Liked
-              </Text>
-            ) : null}
             <Text style={styles.meta} numberOfLines={1} testID="feed-meta">
               {coverMeta(title)}
             </Text>
@@ -275,6 +329,8 @@ const styles = StyleSheet.create({
     height: CASE_HEIGHT + GLOW_SPREAD * 2,
     opacity: 0.22,
   },
+  // The same halo, tinted amber and a little wider, flashed when the viewer likes the title.
+  glowFlash: {tintColor: colors.primary, transform: [{scale: 1.15}]},
   case: {
     position: 'absolute',
     left: CASE_LEFT,
@@ -319,14 +375,24 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: spacing.sm,
   },
-  liked: {
-    ...typography.label,
-    color: colors.onPrimary,
+  // The liked mark, stamped on the case's top-right corner.
+  likeMark: {
+    position: 'absolute',
+    left: CASE_LEFT + CASE_WIDTH - 22,
+    top: CASE_TOP - 14,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     backgroundColor: colors.primary,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: 2,
-    borderRadius: radius.sm,
-    overflow: 'hidden',
+    borderWidth: 3,
+    borderColor: colors.background,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingTop: 2,
+    shadowColor: colors.primary,
+    shadowOffset: {width: 0, height: 4},
+    shadowOpacity: 0.5,
+    shadowRadius: 12,
   },
   name: {...typography.display, color: colors.text},
   meta: {fontFamily: fonts.bodyMedium, fontSize: 16, color: colors.text},
