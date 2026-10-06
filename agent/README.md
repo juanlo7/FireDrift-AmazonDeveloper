@@ -104,6 +104,21 @@ uv run python -m server.fake_client ws://localhost:8080/ws
 agent event against the contract; the app client (#61) can follow the same order.
 From the VVD, forward the port: `vega device start-port-forwarding -p 8080 --forward false`.
 
+## Voice (`voice/`, #41)
+
+- **Polly out** (`voice/polly.py`, `PollyVoiceOut`): each clean sentence from
+  the gesture parser becomes an MP3 (neural voice, `Brian` by default,
+  `FIREDRIFT_POLLY_VOICE`) and its speech marks (sentence, word, viseme) from a
+  second Polly call, both in parallel. Each gesture cue gets the `timeMs` of the
+  word it sits before (Polly word offsets are UTF-8 bytes). If Polly fails the
+  sentence is shown without audio.
+- **Where the MP3 goes** is an `AudioPublisher`. `s3_publisher` puts it in a
+  bucket and returns a presigned URL for `speech.audioUrl`. The server uses
+  Polly only when `FIREDRIFT_SPEECH_BUCKET` is set; otherwise it stays silent
+  (text only). Only the butler's answers are stored there, never the user's
+  voice (NFR-6).
+- **Transcribe in:** not yet; waits for spike V2 (microphone on Vega).
+
 ## On AWS (`backend/infra/lib/butler-construct.ts`, #48)
 
 `cdk deploy` (see `backend/README.md`) builds the agent package for linux/arm64

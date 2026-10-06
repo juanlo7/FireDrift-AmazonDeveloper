@@ -19,7 +19,7 @@ from brain.runtime_config import ConfigReader
 from brain.tool_client import CompositeToolClient, LambdaToolClient, ToolClient
 
 from .connection import ButlerConnection
-from .pipeline import NoVoiceIn, SentenceSplitter, SilentVoiceOut
+from .pipeline import NoVoiceIn, SentenceSplitter, SilentVoiceOut, VoiceOut
 
 IDLE_TIMEOUT_S = float(os.environ.get("FIREDRIFT_IDLE_TIMEOUT_S", "600"))
 
@@ -67,6 +67,20 @@ def default_tool_client(config: BrainConfig) -> ToolClient:
     return CompositeToolClient(weights=client, grounding=grounding)
 
 
+def default_voice_out(config: BrainConfig) -> VoiceOut:
+    """Polly (#41) once a bucket for the answer audio is set (`FIREDRIFT_SPEECH_BUCKET`);
+    until then the butler answers in text only."""
+    bucket = os.environ.get("FIREDRIFT_SPEECH_BUCKET")
+    if not bucket:
+        return SilentVoiceOut()
+    from voice.polly import PollyVoiceOut, s3_publisher
+
+    return PollyVoiceOut(
+        boto3.client("polly", region_name=config.region),
+        s3_publisher(boto3.client("s3", region_name=config.region), bucket),
+    )
+
+
 def default_config_reader(config: BrainConfig) -> ConfigReader:
     table = os.environ.get("TABLE_NAME")
     return ConfigReader(boto3.resource("dynamodb", region_name=config.region).Table(table) if table else None)
@@ -80,6 +94,7 @@ def create_app(
     config = BrainConfig()
     brain = brain or Brain(default_tool_client(config), config)
     reader = config_reader or default_config_reader(config)
+    voice_out = default_voice_out(config)
     app = BedrockAgentCoreApp()
 
     @app.entrypoint
@@ -96,7 +111,7 @@ def create_app(
                 StarletteTransport(websocket),
                 brain,
                 parser_factory=SentenceSplitter,
-                voice_out=SilentVoiceOut(),
+                voice_out=voice_out,
                 voice_in_factory=NoVoiceIn,
                 idle_timeout_s=idle_timeout_s,
                 butler_config=reader.butler,
