@@ -21,12 +21,15 @@
     "vvd": "vega run-app build/x86_64-debug/app_x86_64.vpkg"
   },
   "dependencies": {
+    "@amazon-devices/keplerscript-audio-lib": "2.0.18-rn-83",
     "@amazon-devices/react-native-async-storage__async-storage": "2.1.9000000001",
     "@amazon-devices/react-native-kepler": "~4.0.0",
     "@amazon-devices/react-native-safe-area-context": "~8.0.9000000000+5.2.0",
     "@amazon-devices/react-native-screens": "~3.0.0",
+    "@amazon-devices/react-native-w3cmedia": "2.3.2-rn-83",
     "@amazon-devices/react-navigation__native": "~8.0.9000000000+7.1.22",
     "@amazon-devices/react-navigation__native-stack": "~8.0.9000000001",
+    "@amazon-devices/security-manager-lib": "1.0.1767254405-rn-83",
     "@firedrift/domain": "workspace:*",
     "react": "19.2.0",
     "react-native": "0.83.0"
