@@ -10,7 +10,7 @@ FireDrift. When in doubt, the official rules win.
 |---|---|
 | Primary track | **Fire TV** |
 | Platform | **Vega OS** (see `docs/requirements.md`, D1) |
-| Mini challenges (targets) | AWS Builder, Open Source |
+| Mini challenges (targets) | AWS Builder |
 | Repository | `juanlo7/FireDrift-AmazonDeveloper` (public at submission, MIT) |
 
 A project can win **one** track prize and **one** mini challenge prize.
@@ -58,10 +58,8 @@ After the deadline, the submission cannot change.
   3. What needs work?
   4. How was onboarding (zero to hello world)?
   5. Would you build with them again? Yes/No and why.
-- [ ] Primary track and mini challenges named on the form.
+- [ ] Primary track and mini challenge named on the form.
 - [ ] AWS Builder: describe each AWS service and how we use it (in the product feedback).
-- [ ] Open Source: contribution URL, project repository URL, GitHub username,
-      and a description (what, how it works, why it matters).
 - [ ] Optional: feature requests (description, why it matters, priority:
       Critical / Important / Nice-to-have).
 - [ ] Optional but **recommended**: friction log entries. They give up to a
