@@ -369,6 +369,14 @@ Results (details in `docs/spikes.md`):
   Terms of Use also forbids using TMDB content "in connection with" an AI-based
   application, which can cover the butler. The team accepts this risk for the
   hackathon; a store release would need a written agreement with TMDB.
+- **V2 (Oct 10): not testable on the VVD.** The microphone privilege is
+  granted and the record stream builds, but the VVD has no audio input
+  (`STATUS_NO_INIT`, read fails). Push to talk by holding OK (`select`) is
+  possible: the remote sends key down and up. Needs a Vega device. D13 stays
+  the base design.
+- **V5 (Oct 10): not testable on the VVD.** `VideoPlayer` starts but the VVD
+  decodes no video (`MediaError` code 4 for a local MP4, 3 for `https`). Memory
+  not measured. Needs a Vega device. The sprite-sheet plan B stays as fallback.
 
 **Risks**
 - **Butler is large for the time left.** Cut order if late: conversation polish
