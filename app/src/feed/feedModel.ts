@@ -3,7 +3,7 @@ import type { PoolResponse, TitleCard } from '@firedrift/domain';
 /** FR-1: metadata and images of the next titles are fetched before they show. Never video. */
 export const PREFETCH_AHEAD = 3;
 /** Ask for a new pool when this many titles or fewer are left after the current one. */
-export const REFILL_WHEN_LEFT = 5;
+export const REFILL_WHEN_LEFT = 10;
 /** Titles kept behind the current one for Up. Older ones are dropped so memory stays flat. */
 export const MAX_BEHIND = 20;
 

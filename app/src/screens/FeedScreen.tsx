@@ -112,7 +112,6 @@ export const FeedScreen = ({ navigation }: RootScreenProps<'Feed'>) => {
             title={feed.title}
             previous={shown.current.previous}
             isLiked={feed.isLiked}
-            position={feed.position}
             dimmed={menuOpen || watchNow !== null}
           />
           <Pressable
