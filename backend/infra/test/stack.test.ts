@@ -182,6 +182,19 @@ describe("butler on AgentCore (#48)", () => {
     expect(resources).not.toMatch(/foundation-model\/\*"/);
   });
 
+  it("gives the butler a private speech bucket that forgets the audio after a day", () => {
+    template.hasResourceProperties("AWS::S3::Bucket", {
+      PublicAccessBlockConfiguration: { BlockPublicAcls: true, RestrictPublicBuckets: true },
+      LifecycleConfiguration: { Rules: [Match.objectLike({ ExpirationInDays: 1, Status: "Enabled" })] },
+    });
+    const runtimes = Object.values(template.findResources("AWS::BedrockAgentCore::Runtime"));
+    expect(runtimes[0]!.Properties.EnvironmentVariables).toHaveProperty("FIREDRIFT_SPEECH_BUCKET");
+    const statements = Object.values(template.findResources("AWS::IAM::Policy")).flatMap(
+      ({ Properties }) => Properties.PolicyDocument.Statement as { Action: string | string[] }[],
+    );
+    expect(statements.some((st) => [st.Action].flat().includes("polly:SynthesizeSpeech"))).toBe(true);
+  });
+
   it("outputs what the app needs to connect", () => {
     const outputs = Object.keys(template.findOutputs("*"));
     for (const name of ["RuntimeArn", "ButlerWebSocketUrl", "UserPoolId", "UserPoolClientId", "GatewayUrl"]) {
