@@ -21,7 +21,7 @@ uv run pytest
 | `server/` | WebSocket server end: session, routing, event order | P2 |
 | `brain/` | Strands agent core: tool loop, resolve-then-show, weight changes | P2 |
 | `brain/` (persona, caps) | Persona prompt, caps, short context, fallback | P3 |
-| `character/` | Gesture parser and gesture timing | P3 |
+| `character/` | Gesture parser and gesture timing | P1 (#94) |
 | `voice/` | Transcribe streaming in, Polly with speech marks out | P1 |
 | `tests/` | Tests for every folder; fixtures come from `packages/domain/fixtures` | All |
 
@@ -86,9 +86,15 @@ One `ButlerConnection` per socket (contracts section 3):
   10 minutes (`FIREDRIFT_IDLE_TIMEOUT_S`).
 
 **Interfaces for P1 and P3** (`server/pipeline.py`, contracts section 7):
-`GestureParser` (#56, placeholder `SentenceSplitter`), `VoiceOut` and `VoiceIn`
-(#41, placeholders: no `speech` yet, and push to talk answers with a chips
-fallback). Swap them in `server/app.py`.
+`GestureParser` (`character/cues.py`, `CueParser`, #94), `VoiceOut` and
+`VoiceIn` (#41, placeholders: no `speech` yet, and push to talk answers with a
+chips fallback). Swap them in `server/app.py`.
+
+**Gesture cues** (`CueParser`, contracts section 6): splits the streamed answer
+into sentences, strips every `{{...}}` marker, and keeps the first known
+gesture of each sentence, up to two per answer, as a cue at the character
+offset of the word after the marker. Unknown and extra markers are dropped.
+Polly then gives each cue the `timeMs` of that word.
 
 **Run it locally** against AWS (Nova 2 Lite while Claude is blocked, #76):
 

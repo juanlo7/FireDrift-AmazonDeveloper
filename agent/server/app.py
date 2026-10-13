@@ -17,9 +17,10 @@ from brain.config import BrainConfig
 from brain.fixture_tools import FixtureToolClient
 from brain.runtime_config import ConfigReader
 from brain.tool_client import CompositeToolClient, LambdaToolClient, ToolClient
+from character.cues import CueParser
 
 from .connection import ButlerConnection
-from .pipeline import NoVoiceIn, SentenceSplitter, SilentVoiceOut, VoiceOut
+from .pipeline import NoVoiceIn, SilentVoiceOut, VoiceOut
 
 IDLE_TIMEOUT_S = float(os.environ.get("FIREDRIFT_IDLE_TIMEOUT_S", "600"))
 
@@ -110,7 +111,7 @@ def create_app(
             connection = ButlerConnection(
                 StarletteTransport(websocket),
                 brain,
-                parser_factory=SentenceSplitter,
+                parser_factory=CueParser,
                 voice_out=voice_out,
                 voice_in_factory=NoVoiceIn,
                 idle_timeout_s=idle_timeout_s,
