@@ -172,7 +172,7 @@ def test_ignores_gesture_markers_in_the_fact_check():
 
 
 def test_over_a_cap_falls_back_with_chips(monkeypatch):
-    monkeypatch.setattr(caps, "check_caps", lambda session: "That's enough for today.")
+    monkeypatch.setattr(caps.Caps, "check", lambda self, session: "That's enough for today.")
     session, model, _ = start([Step(text=["never said"])])
     events = run(session, TextInput(kind="text", text="hi"))
 

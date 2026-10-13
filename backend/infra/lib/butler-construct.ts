@@ -195,7 +195,10 @@ export class ButlerConstruct extends Construct {
         ]),
       }),
     );
-    runtime.addToRolePolicy(new PolicyStatement({ actions: ["dynamodb:GetItem"], resources: [ctx.table.tableArn] }));
+    // GetItem reads the runtime config; UpdateItem counts turns for the daily caps (#55).
+    runtime.addToRolePolicy(
+      new PolicyStatement({ actions: ["dynamodb:GetItem", "dynamodb:UpdateItem"], resources: [ctx.table.tableArn] }),
+    );
     runtime.addToRolePolicy(new PolicyStatement({ actions: ["polly:SynthesizeSpeech"], resources: ["*"] }));
     // Put the MP3, and get it so the presigned URL the Runtime signs works.
     runtime.addToRolePolicy(

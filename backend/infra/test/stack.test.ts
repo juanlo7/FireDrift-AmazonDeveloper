@@ -195,6 +195,15 @@ describe("butler on AgentCore (#48)", () => {
     expect(statements.some((st) => [st.Action].flat().includes("polly:SynthesizeSpeech"))).toBe(true);
   });
 
+  it("lets the butler count turns for its daily caps, and nothing more on the table", () => {
+    const runtimePolicy = Object.entries(template.findResources("AWS::IAM::Policy")).find(([id]) =>
+      id.startsWith("ButlerAgentRuntimeExecutionRole"),
+    )![1];
+    const statements = runtimePolicy.Properties.PolicyDocument.Statement as { Action: string | string[] }[];
+    const dynamo = statements.flatMap((st) => [st.Action].flat()).filter((a) => a.startsWith("dynamodb:"));
+    expect(dynamo.sort()).toEqual(["dynamodb:GetItem", "dynamodb:UpdateItem"]);
+  });
+
   it("outputs what the app needs to connect", () => {
     const outputs = Object.keys(template.findOutputs("*"));
     for (const name of ["RuntimeArn", "ButlerWebSocketUrl", "UserPoolId", "UserPoolClientId", "GatewayUrl"]) {
