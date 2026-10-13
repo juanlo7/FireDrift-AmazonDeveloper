@@ -1,7 +1,7 @@
 """The steps between the brain and the app that P1 and P3 own (contracts.md section 7).
 
 The server only depends on these interfaces. The placeholders keep the butler
-working before the voice (#41, P1) and the gesture parser (#56, P3) land.
+working before the voice (#41) lands; the gesture parser is `character.cues`.
 """
 
 import re
@@ -18,7 +18,7 @@ ABBREVIATIONS = ("Dr.", "Mr.", "Mrs.", "Ms.", "St.", "Jr.", "Sr.", "vs.", "Vol."
 
 
 class GestureParser(Protocol):
-    """P3 (#56): turns the brain's raw answer text into clean sentences with gesture cues."""
+    """Turns the brain's raw answer text into clean sentences with gesture cues (#94)."""
 
     def feed(self, raw_text: str) -> list[CuedSentence]:
         """Sentences completed by this chunk."""
@@ -52,7 +52,7 @@ class VoiceUnavailable(Exception):
 
 
 class SentenceSplitter:
-    """Placeholder parser: splits sentences on punctuation and drops the markers, without cues."""
+    """Splits sentences on punctuation and drops the markers, without cues. `CueParser` builds on it."""
 
     def __init__(self) -> None:
         self._buffer = ""

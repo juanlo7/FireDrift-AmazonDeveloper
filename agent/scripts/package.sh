@@ -14,7 +14,7 @@ uv export --no-dev --no-hashes --no-emit-project --format requirements-txt -o "$
 uv pip install --quiet --python-platform aarch64-manylinux2014 --python-version 3.12 \
   --only-binary=:all: --target "$OUT" -r "$OUT/requirements.txt"
 rm "$OUT/requirements.txt"
-cp -r domain brain server voice main.py "$OUT/"
+cp -r domain brain character server voice main.py "$OUT/"
 # FixtureToolClient answers resolve_titles and similar until #40 ships.
 mkdir -p "$OUT/fixtures"
 cp -r ../packages/domain/fixtures/tools "$OUT/fixtures/"
