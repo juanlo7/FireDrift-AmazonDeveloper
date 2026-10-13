@@ -56,9 +56,12 @@ def bedrock_model(config: BrainConfig) -> Model:
 class BrainSession:
     """One butler session: its agent keeps the conversation, `run_turn` answers one input."""
 
-    def __init__(self, session: Session, client: ToolClient, model: Model, config: BrainConfig):
+    def __init__(
+        self, session: Session, client: ToolClient, model: Model, config: BrainConfig, limits: caps.Caps | None = None
+    ):
         self.session = session
         self._config = config
+        self._caps = limits or caps.Caps()
         self._pending: list[BaseModel] = []
         self._agent = Agent(
             model=model,
@@ -79,7 +82,7 @@ class BrainSession:
         """Brain events for one input: answer text with gesture markers, suggestion,
         weights.changed, then chips and answer.done; or a single fallback."""
         session = self.session
-        cap_message = caps.check_caps(session)
+        cap_message = self._caps.check(session)
         if cap_message:
             yield FallbackEvent(t="fallback", reason="cap", message=cap_message, chips=fallback_chips())
             return
@@ -124,12 +127,14 @@ class Brain:
         client: ToolClient,
         config: BrainConfig | None = None,
         model_factory: Callable[[BrainConfig], Model] = bedrock_model,
+        limits: caps.Caps | None = None,
     ):
         self._client = client
         self._config = config or BrainConfig()
         self._model_factory = model_factory
+        self._caps = limits or caps.Caps()
 
     def start(self, session: Session, model_id: str | None = None) -> BrainSession:
         """`model_id` (from the runtime config) overrides the configured model for this session."""
         config = replace(self._config, model_id=model_id) if model_id else self._config
-        return BrainSession(session, self._client, self._model_factory(config), config)
+        return BrainSession(session, self._client, self._model_factory(config), config, self._caps)

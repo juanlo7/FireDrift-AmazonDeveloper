@@ -55,8 +55,12 @@ events of `docs/contracts.md` section 7.
   `FIREDRIFT_TEMPERATURE`, `FIREDRIFT_TURN_TIMEOUT_S`, `FIREDRIFT_MAX_MODEL_CALLS`
   and the `FIREDRIFT_*_FN` Lambda names.
 
-**Hooks for P3:** `brain/persona.md` is the start of the system prompt (#54);
-`brain/caps.py` has `check_caps(session)` and `trim_history(messages)` (#55).
+**Persona and caps:** `brain/persona.md` is the start of the system prompt (#54).
+`brain/caps.py` (#55): before each turn `Caps.check` applies the turn caps per
+session, per profile per day and for everyone per day (limits from the runtime
+config; daily counters are `CAPS#<day>` items in the table, removed by its TTL).
+Over a cap the turn is a `fallback` with `reason: "cap"`, and the app plays
+`shrug`. `trim_history` sends the model only the last turns.
 `brain/prompts/grounding.md` holds the tool rules (P2).
 
 **Try it against AWS** (Bedrock and the weight tools are real; about $0.01 per turn):
@@ -154,7 +158,7 @@ From the VVD, forward the port: `vega device start-port-forwarding -p 8080 --for
     --expression-attribute-values '{":b":{"M":{"enabled":{"BOOL":false}}}}'
   ```
 
-  `modelId` picks the model for new sessions; the limits are for `check_caps` (#55).
+  `modelId` picks the model for new sessions; the limits are for `Caps` (#55).
 
 Try the deployed butler like the TV app does:
 

@@ -7,12 +7,14 @@ Run locally (credentials from the environment, see agent/README.md):
 
 import logging
 import os
+from typing import Any
 
 import boto3
 from starlette.websockets import WebSocket, WebSocketDisconnect
 
 from bedrock_agentcore.runtime import BedrockAgentCoreApp
 from brain.brain import Brain
+from brain.caps import Caps, DynamoTurnCounter
 from brain.config import BrainConfig
 from brain.fixture_tools import FixtureToolClient
 from brain.runtime_config import ConfigReader
@@ -81,9 +83,13 @@ def default_voice_out(config: BrainConfig) -> VoiceOut:
     )
 
 
+def backend_table(config: BrainConfig) -> Any | None:
+    name = os.environ.get("TABLE_NAME")
+    return boto3.resource("dynamodb", region_name=config.region).Table(name) if name else None
+
+
 def default_config_reader(config: BrainConfig) -> ConfigReader:
-    table = os.environ.get("TABLE_NAME")
-    return ConfigReader(boto3.resource("dynamodb", region_name=config.region).Table(table) if table else None)
+    return ConfigReader(backend_table(config))
 
 
 def create_app(
@@ -92,8 +98,11 @@ def create_app(
     config_reader: ConfigReader | None = None,
 ) -> BedrockAgentCoreApp:
     config = BrainConfig()
-    brain = brain or Brain(default_tool_client(config), config)
     reader = config_reader or default_config_reader(config)
+    if brain is None:
+        table = backend_table(config)
+        limits = Caps(reader.butler, DynamoTurnCounter(table) if table is not None else None)
+        brain = Brain(default_tool_client(config), config, limits=limits)
     voice_out = default_voice_out(config)
     app = BedrockAgentCoreApp()
 
