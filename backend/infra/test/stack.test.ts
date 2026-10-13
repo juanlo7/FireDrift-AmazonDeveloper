@@ -193,6 +193,8 @@ describe("butler on AgentCore (#48)", () => {
       ({ Properties }) => Properties.PolicyDocument.Statement as { Action: string | string[] }[],
     );
     expect(statements.some((st) => [st.Action].flat().includes("polly:SynthesizeSpeech"))).toBe(true);
+    expect(statements.some((st) => [st.Action].flat().includes("transcribe:StartStreamTranscriptionWebSocket"))).toBe(true);
+    expect(runtimes[0]!.Properties.EnvironmentVariables).toMatchObject({ FIREDRIFT_TRANSCRIBE: "on" });
   });
 
   it("lets the butler count turns for its daily caps, and nothing more on the table", () => {

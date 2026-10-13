@@ -7,6 +7,7 @@ Run locally (credentials from the environment, see agent/README.md):
 
 import logging
 import os
+from collections.abc import Callable
 from typing import Any
 
 import boto3
@@ -22,7 +23,7 @@ from brain.tool_client import CompositeToolClient, LambdaToolClient, ToolClient
 from character.cues import CueParser
 
 from .connection import ButlerConnection
-from .pipeline import NoVoiceIn, SilentVoiceOut, VoiceOut
+from .pipeline import NoVoiceIn, SilentVoiceOut, VoiceIn, VoiceOut
 
 IDLE_TIMEOUT_S = float(os.environ.get("FIREDRIFT_IDLE_TIMEOUT_S", "600"))
 
@@ -84,6 +85,22 @@ def default_voice_out(config: BrainConfig) -> VoiceOut:
     )
 
 
+def default_voice_in(config: BrainConfig) -> Callable[[], VoiceIn]:
+    """Transcribe streaming (#41) when `FIREDRIFT_TRANSCRIBE=on` (set by the stack);
+    otherwise push to talk answers with a chips fallback."""
+    if os.environ.get("FIREDRIFT_TRANSCRIBE") != "on":
+        return NoVoiceIn
+    from voice.transcribe import TranscribeVoiceIn
+
+    session = boto3.Session()
+
+    def credentials() -> Any:
+        # Read per press: the Runtime role's credentials rotate.
+        return session.get_credentials().get_frozen_credentials()
+
+    return lambda: TranscribeVoiceIn(credentials, config.region)
+
+
 def backend_table(config: BrainConfig) -> Any | None:
     name = os.environ.get("TABLE_NAME")
     return boto3.resource("dynamodb", region_name=config.region).Table(name) if name else None
@@ -105,6 +122,7 @@ def create_app(
         limits = Caps(reader.butler, DynamoTurnCounter(table) if table is not None else None)
         brain = Brain(default_tool_client(config), config, limits=limits)
     voice_out = default_voice_out(config)
+    voice_in_factory = default_voice_in(config)
     app = BedrockAgentCoreApp()
 
     @app.entrypoint
@@ -122,7 +140,7 @@ def create_app(
                 brain,
                 parser_factory=CueParser,
                 voice_out=voice_out,
-                voice_in_factory=NoVoiceIn,
+                voice_in_factory=voice_in_factory,
                 idle_timeout_s=idle_timeout_s,
                 butler_config=reader.butler,
             )

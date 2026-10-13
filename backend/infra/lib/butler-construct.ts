@@ -183,6 +183,7 @@ export class ButlerConstruct extends Construct {
         FIREDRIFT_GATEWAY_URL: gateway.gatewayUrl ?? "",
         TABLE_NAME: ctx.table.tableName,
         FIREDRIFT_SPEECH_BUCKET: speechBucket.bucketName,
+        FIREDRIFT_TRANSCRIBE: "on",
       },
     });
     runtime.addToRolePolicy(
@@ -200,6 +201,10 @@ export class ButlerConstruct extends Construct {
       new PolicyStatement({ actions: ["dynamodb:GetItem", "dynamodb:UpdateItem"], resources: [ctx.table.tableArn] }),
     );
     runtime.addToRolePolicy(new PolicyStatement({ actions: ["polly:SynthesizeSpeech"], resources: ["*"] }));
+    // Push to talk (#41): streaming speech to text; the audio is never stored.
+    runtime.addToRolePolicy(
+      new PolicyStatement({ actions: ["transcribe:StartStreamTranscriptionWebSocket"], resources: ["*"] }),
+    );
     // Put the MP3, and get it so the presigned URL the Runtime signs works.
     runtime.addToRolePolicy(
       new PolicyStatement({

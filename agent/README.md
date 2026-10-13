@@ -127,7 +127,14 @@ From the VVD, forward the port: `vega device start-port-forwarding -p 8080 --for
   Polly only when `FIREDRIFT_SPEECH_BUCKET` is set; otherwise it stays silent
   (text only). Only the butler's answers are stored there, never the user's
   voice (NFR-6).
-- **Transcribe in:** not yet; waits for spike V2 (microphone on Vega).
+- **Transcribe in** (`voice/transcribe.py`, `TranscribeVoiceIn`): one streaming
+  session per push-to-talk press over the Transcribe WebSocket API (boto3 has no
+  streaming client): a SigV4-signed `wss://` URL, the PCM sent as event-stream
+  `AudioEvent` messages in 100 ms chunks, and only final results kept. The
+  server uses it when `FIREDRIFT_TRANSCRIBE=on` (set by the stack); otherwise,
+  or if Transcribe fails, push to talk answers with a chips fallback. The
+  transcript comes back about 0.3 s after the button is released. The user's
+  audio is never stored (NFR-6).
 
 ## On AWS (`backend/infra/lib/butler-construct.ts`, #48)
 
