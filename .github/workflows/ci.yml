@@ -1,0 +1,85 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [development, main]
+  push:
+    branches: [development]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  typescript:
+    name: TypeScript (typecheck, lint, tests)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Enable Corepack
+        run: corepack enable
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: yarn
+      - run: yarn install --immutable
+      - name: Typecheck every workspace
+        run: yarn typecheck
+      - name: Lint the app
+        run: yarn workspace @firedrift/app lint
+      - name: Test every workspace
+        run: yarn test
+
+  agent:
+    name: Agent (pytest)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: agent
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+          cache-dependency-glob: agent/uv.lock
+      - run: uv sync --frozen
+      - run: uv run --frozen pytest -q
+
+  tv-ui-audit:
+    name: TV UI audit (focus, input)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    # Regex-based and with known false positives (several hasTVPreferredFocus in
+    # exclusive branches, no TextInput in the app): it reports, it does not block.
+    continue-on-error: true
+    env:
+      # AmazonAppDev/devices-agent-skills, rn-tv-ui-best-practices skill (MIT).
+      AUDIT_COMMIT: c20559126efe35ae46c7625262751173732810a2
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Fetch audit.js
+        run: >
+          curl -sfL -o "$RUNNER_TEMP/audit.js"
+          "https://raw.githubusercontent.com/AmazonAppDev/devices-agent-skills/$AUDIT_COMMIT/skills/rn-tv-ui-best-practices/references/scripts/audit.js"
+      - name: Audit the app
+        working-directory: app
+        run: |
+          set -o pipefail
+          node "$RUNNER_TEMP/audit.js" src --only focus,input | tee "$RUNNER_TEMP/audit.txt"
+      - name: Add the findings to the job summary
+        if: always()
+        run: |
+          {
+            echo '### TV UI audit (focus, input)'
+            echo '```'
+            cat "$RUNNER_TEMP/audit.txt" 2>/dev/null | grep -E '^(✗|Total)' || echo 'No findings.'
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
