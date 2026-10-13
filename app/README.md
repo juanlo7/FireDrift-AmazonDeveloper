@@ -43,12 +43,44 @@ export const config: AppConfig = {
   apiMode: 'mock',   // 'real' calls apiBaseUrl
   apiBaseUrl: '',    // HTTP API URL from the CDK stack output
   apiTimeoutMs: 8000,
+  butlerMode: 'fake', // 'real' connects to butlerSocketUrl
+  butlerSocketUrl: '', // ButlerWebSocketUrl from the CDK stack output
+  cognitoClientId: '', // UserPoolClientId from the CDK stack output
+  awsRegion: 'us-east-1',
 };
 ```
 
 In `mock` mode every call returns the fixtures in `packages/domain/fixtures/rest/`.
 Import the client with `import { api } from '../api'`; screens never call
 `fetch` directly.
+
+## Butler socket
+
+`src/butler/` is the app end of the butler socket (`docs/contracts.md`,
+section 3). The butler screen opens one session per visit:
+
+```ts
+import { openButlerSession } from '../butler';
+
+const session = openButlerSession(
+  { profileId, country, services, hasMic },
+  { onEvent: event => { /* every agent → app event */ }, onAudio: chunk => { /* binary speech audio */ } },
+);
+session.send({ t: 'chip.select', chipId: 'surprise_me' });
+session.sendAudio(pcm); // between audio.start and audio.end, split into 32 KB frames
+session.end();          // on leaving the screen
+```
+
+- `butlerMode: 'fake'` replays the agent → app fixtures in
+  `packages/domain/fixtures/socket/`, so the screen works without the agent.
+  Each `chip.select` or `audio.end` plays one turn.
+- `butlerMode: 'real'` connects to `butlerSocketUrl` (`ButlerWebSocketUrl`
+  output). The device signs up in Cognito with its profile ID and a random
+  password on first use (`cognitoClientId` is the `UserPoolClientId` output),
+  then sends the access token as WebSocket subprotocols.
+- If sign-in fails, the socket errors or it closes before `end()`, the screen
+  gets one `fallback` event with the fallback chips, served by the taste
+  algorithm.
 
 ## Signals and device profile
 

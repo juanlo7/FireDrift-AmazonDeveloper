@@ -3,6 +3,7 @@
  * fixtures in `packages/domain/fixtures/` to the real backend.
  */
 export type ApiMode = 'mock' | 'real';
+export type ButlerMode = 'fake' | 'real';
 
 export interface AppConfig {
   /** `mock` reads fixtures; `real` calls `apiBaseUrl`. */
@@ -16,6 +17,13 @@ export interface AppConfig {
    * with `tools/fake-streaming-app` only, e.g. `{ 8: 'com.firedrift.fakestreaming.main' }`.
    */
   serviceAppOverrides: Record<number, string>;
+  /** `fake` replays the socket fixtures; `real` connects to `butlerSocketUrl`. */
+  butlerMode: ButlerMode;
+  /** `ButlerWebSocketUrl` from the CDK stack output. */
+  butlerSocketUrl: string;
+  /** `UserPoolClientId` from the CDK stack output: device sign-in for the butler. */
+  cognitoClientId: string;
+  awsRegion: string;
 }
 
 export const config: AppConfig = {
@@ -23,4 +31,8 @@ export const config: AppConfig = {
   apiBaseUrl: '',
   apiTimeoutMs: 8000,
   serviceAppOverrides: {},
+  butlerMode: 'fake',
+  butlerSocketUrl: '',
+  cognitoClientId: '',
+  awsRegion: 'us-east-1',
 };
