@@ -81,10 +81,10 @@ describe('feed model', () => {
     expect(state.titles).toHaveLength(60 - 50 + MAX_BEHIND);
   });
 
-  it('prefetches the next 3 titles and refills when 5 or fewer are left', () => {
+  it('prefetches the next 3 titles and refills when 10 or fewer are left', () => {
     expect(upcomingTitles(feedOf(10, 2)).map(t => t.tmdbId)).toEqual([4, 5, 6]);
-    expect(needsRefill(feedOf(10, 3))).toBe(false);
-    expect(needsRefill(feedOf(10, 4))).toBe(true);
+    expect(needsRefill(feedOf(20, 8))).toBe(false);
+    expect(needsRefill(feedOf(20, 9))).toBe(true);
   });
 });
 
@@ -202,15 +202,15 @@ describe('useFeed', () => {
   it('asks for a new pool only when the current one is nearly used', async () => {
     const getPool = jest
       .fn()
-      .mockResolvedValueOnce(pool(1, 2, 3, 4, 5, 6, 7, 8))
-      .mockResolvedValue(pool(9, 10, 11, 12, 13, 14, 15, 16));
+      .mockResolvedValueOnce(pool(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13))
+      .mockResolvedValue(pool(14, 15, 16, 17, 18, 19, 20, 21));
     const { result } = setup({ getPool });
     await waitFor(() => expect(result.current.status).toBe('ready'));
     expect(getPool).toHaveBeenCalledTimes(1);
 
-    act(() => result.current.next()); // 6 left
+    act(() => result.current.next()); // 11 left
     expect(getPool).toHaveBeenCalledTimes(1);
-    act(() => result.current.next()); // 5 left → refill
+    act(() => result.current.next()); // 10 left → refill
     await waitFor(() => expect(getPool).toHaveBeenCalledTimes(2));
     await waitFor(() => expect(result.current.hasNext).toBe(true));
   });
