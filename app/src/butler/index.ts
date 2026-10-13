@@ -8,9 +8,12 @@ import { createDeviceAuth } from './deviceAuth';
 import { createFakeButlerSocket } from './fakeButlerSocket';
 import { createWarmButler } from './warmButler';
 
+export * from './butlerModel';
 export * from './butlerSocket';
+export * from './CharacterSlot';
 export * from './deviceAuth';
 export * from './fakeButlerSocket';
+export * from './speechPlayer';
 export * from './speechSync';
 export * from './warmButler';
 
