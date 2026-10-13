@@ -31,7 +31,6 @@ voice.
 | Vega app scaffold: monorepo, navigation, theme, focus hooks, API client with one mock/real switch | M | `app/` |
 | Spikes: V1 (YouTube IFrame in a WebView) and V3 (deep links, Content Launcher) | S | — |
 | Feed: cover hold, single trailer player, D-pad keys, prefetch, memory check (FR-1) | L | `app/` |
-| Recycled player pool as an open-source package with tests and README | M | `packages/player-pool/` |
 | Services and country screen, settings, About screen with attributions (FR-4) | M | `app/` |
 | Watch now sheet and app launch (FR-3) | M | `app/` |
 | TMDB client with cache, providers per country, `GET /providers`, `GET /titles` | M | `backend/` |
@@ -85,7 +84,7 @@ README lists the AI tools and assets used for the character.
 
 | | P1 | P2 | P3 |
 |---|---|---|---|
-| Points | 18 | 18 | 18 |
+| Points | 16 | 18 | 18 |
 | Own spikes (risk) | V1, V3 | V4, AgentCore | V2, V5, Blender |
 | AI share | Voice (Transcribe, Polly), grounding tools | Agent core, weight tools, AgentCore, model choice | Persona, caps and fallback, agent-driven gestures |
 | Heaviest period | Oct 4–15 (feed, voice) | Oct 1–11 (stack, algorithm, agent), Oct 19–22 (video) | Oct 4–18 (character, gestures, butler screen) |

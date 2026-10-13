@@ -23,7 +23,7 @@ with several subscriptions, who spends more time choosing than watching.
 
 **Why it fits the judges:** AI-enhanced viewing with multi-modal UX (voice +
 D-pad + animated character), a multi-service AWS pipeline (Bedrock + AgentCore
-+ Strands + Transcribe + Polly), a public repo with a reusable package, and a
++ Strands + Transcribe + Polly), a public MIT repo, and a
 real TV constraint (low RAM) solved on purpose.
 
 ## 2. Final decisions
@@ -48,7 +48,7 @@ real TV constraint (low RAM) solved on purpose.
 | D16 | Model | **Claude Haiku 4.5 on Bedrock**, if it is available in our region and our credits cover it. Otherwise **Amazon Nova 2 Lite**. The model ID is a config value. |
 | D17 | Languages (code) | App, Lambdas, CDK and shared types in **TypeScript**. Agent in **Python** (Strands Python SDK). |
 | D18 | Backend | AWS serverless: HTTP API Gateway, Lambda (ARM), DynamoDB on-demand, CDK. |
-| D19 | Open source | **Public repo, MIT license.** Reusable package: the recycled player pool. |
+| D19 | Open source | **Public repo, MIT license.** The reusable player pool package is dropped (Oct 12): plan B left no player to recycle, and there is no time for a replacement. The Open Source mini challenge is no longer a target. |
 
 ## 3. Scope
 
@@ -301,7 +301,7 @@ Vega app (React Native, TS)
 app/        Vega React Native app
 backend/    Lambdas (TS) + CDK stack
 agent/      Strands butler agent (Python) for AgentCore
-packages/   domain (shared types + fixtures), player-pool (open source)
+packages/   domain (shared types + fixtures)
 assets/     butler clips rendered from Blender (sources in assets/blender/)
 docs/       requirements, domain, hackathon rules, workflow
 ```
