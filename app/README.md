@@ -81,6 +81,16 @@ session.end();          // on leaving the screen
 - If sign-in fails, the socket errors or it closes before `end()`, the screen
   gets one `fallback` event with the fallback chips, served by the taste
   algorithm.
+- **Warm session.** A new session waits about 9 s for sign-in and for AgentCore
+  to start it. The feed calls `prepareButlerSession()` when it is ready and when
+  the menu opens, so one session is already open when the butler screen calls
+  `openButlerSession(await butlerSessionInfo(hasMic), handlers)`. The screen
+  must use `butlerSessionInfo`: a session warmed with other values is not used.
+  A warm session is handed out once and for up to 9 minutes (the agent closes
+  idle sessions after 10).
+- `createSpeechSync(speech).at(positionMs)` tells the screen, while a `speech`
+  audio plays, when words are being said (`speaking` loop) and which gestures
+  are due, each once.
 
 ## Signals and device profile
 
