@@ -54,9 +54,6 @@ jobs:
     name: TV UI audit (focus, input)
     runs-on: ubuntu-latest
     timeout-minutes: 5
-    # Regex-based and with known false positives (several hasTVPreferredFocus in
-    # exclusive branches, no TextInput in the app): it reports, it does not block.
-    continue-on-error: true
     env:
       # AmazonAppDev/devices-agent-skills, rn-tv-ui-best-practices skill (MIT).
       AUDIT_COMMIT: c20559126efe35ae46c7625262751173732810a2
@@ -71,9 +68,13 @@ jobs:
           "https://raw.githubusercontent.com/AmazonAppDev/devices-agent-skills/$AUDIT_COMMIT/skills/rn-tv-ui-best-practices/references/scripts/audit.js"
       - name: Audit the app
         working-directory: app
+        # Regex-based and with known false positives (several hasTVPreferredFocus in
+        # exclusive branches, no TextInput in the app): it warns, it does not block.
         run: |
-          set -o pipefail
-          node "$RUNNER_TEMP/audit.js" src --only focus,input | tee "$RUNNER_TEMP/audit.txt"
+          if ! node "$RUNNER_TEMP/audit.js" src --only focus,input > "$RUNNER_TEMP/audit.txt"; then
+            echo "::warning title=TV UI audit::$(grep -E '^Total' "$RUNNER_TEMP/audit.txt"). See the job summary."
+          fi
+          cat "$RUNNER_TEMP/audit.txt"
       - name: Add the findings to the job summary
         if: always()
         run: |
