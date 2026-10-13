@@ -88,6 +88,14 @@ session.end();          // on leaving the screen
   must use `butlerSessionInfo`: a session warmed with other values is not used.
   A warm session is handed out once and for up to 9 minutes (the agent closes
   idle sessions after 10).
+- **Butler screen** (`src/screens/ButlerScreen.tsx`, #99): the character slot
+  (`CharacterSlot`, a placeholder whose light follows the state until #60 puts
+  the clip player in it), the answer text, the suggestion card with Watch now,
+  Undo and Reset for taste changes, and the chips. `butlerReducer` turns agent
+  events into what the screen shows; `characterState` gives the character's
+  state. `createSpeechPlayer` plays each `speech` audio in order with the W3C
+  media `AudioPlayer` and reports talking and gestures. After a `fallback` the
+  chips are answered from the taste pool (`pickFromPool`).
 - `createSpeechSync(speech).at(positionMs)` tells the screen, while a `speech`
   audio plays, when words are being said (`speaking` loop) and which gestures
   are due, each once.
