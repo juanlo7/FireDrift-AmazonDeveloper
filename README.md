@@ -39,20 +39,29 @@ Vega app (React Native for Vega, TypeScript)           app/
 
 Amazon Bedrock (Claude Haiku 4.5, Nova 2 Lite), Bedrock AgentCore (Runtime and
 Gateway), AWS Lambda, Amazon API Gateway (HTTP API), Amazon DynamoDB, Amazon
-Cognito (anonymous device sign-in), Amazon Transcribe, Amazon Polly, AWS Secrets
-Manager, AWS CDK. The stack uses no NAT Gateway, VPC
-Lambdas, provisioned capacity or always-on resources (`docs/requirements.md`,
+Cognito (anonymous device sign-in), Amazon Transcribe, Amazon Polly, Amazon S3
+(Polly audio of the butler's answers), AWS Secrets Manager, AWS CDK. The stack
+uses no NAT Gateway, VPC Lambdas, provisioned capacity or always-on resources (`docs/requirements.md`,
 section 7).
 
 ## Development setup
 
-Requirements: Node.js 22.12 or later, Python 3.12 and [uv](https://docs.astral.sh/uv/).
+Requirements:
+
+| Tool | Version | Where the pin comes from |
+|---|---|---|
+| Node.js | 22 | CI (`.github/workflows/ci.yml`) and the Lambda runtime (`NODEJS_22_X`); `app` accepts 20 or later (`engines`) |
+| Yarn | 4.12.0 | `packageManager` in `package.json`, through Corepack |
+| Python | 3.12 | `agent/.python-version`, `agent/pyproject.toml`, AgentCore runtime `PYTHON_3_12` |
+| uv | current | [docs.astral.sh/uv](https://docs.astral.sh/uv/) |
+| Vega SDK | 0.24 | see "Run the app on the Vega Virtual Device" |
 
 ```sh
 corepack enable        # once: provides the Yarn version pinned in package.json
 yarn install
 yarn typecheck
 yarn test
+yarn workspace @firedrift/app lint
 
 cd agent
 uv sync
@@ -132,14 +141,29 @@ and needs no backend. See `app/README.md` to switch to the real API.
 
 | What | How |
 |---|---|
-| App only, no AWS | Mock mode is the default (`app/src/config.ts`): the feed reads fixtures and the butler plays a fake agent (`butlerMode: 'mock'`) |
+| App only, no AWS | Mock mode is the default (`app/src/config.ts`): the feed reads fixtures and the butler replays recorded agent events (`butlerMode: 'fake'`) |
 | Backend on your machine | `backend/README.md`, "Local API": a free TMDB token, then `yarn workspace @firedrift/backend dev` and `apiMode: 'real'` |
 | Agent on your machine | `agent/README.md`, "Server": AWS credentials and the tool Lambda names, then `uv run python -m server.app` and `uv run python -m server.fake_client ws://localhost:8080/ws` |
-| The full stack on AWS | `backend/README.md`, "AWS stack (CDK)", "Deploy". It creates the API, the table, the secret and the butler runtime |
-| App against the deployed stack | `app/README.md`, "Butler socket": set `apiMode`, `apiBaseUrl`, `butlerMode`, `butlerUrl`, `cognitoRegion`, `cognitoClientId` |
+| The full stack on AWS | `backend/README.md`, "AWS stack (CDK)", "Deploy". It creates the API, the table, the secret, the butler runtime, the tool gateway, device sign-in and the speech bucket. Put the TMDB token in the secret after the first deploy |
+| App against the deployed stack | `app/README.md`, "Butler socket": edit `app/src/config.ts`: `apiMode: 'real'`, `apiBaseUrl`, `butlerMode: 'real'`, `butlerSocketUrl`, `cognitoClientId`, `awsRegion` |
 
 Tests and checks run in CI on every PR (`docs/workflow.md`, "CI"):
-`corepack yarn typecheck`, `corepack yarn test`, `cd agent && uv run pytest`.
+`corepack yarn typecheck`, `corepack yarn workspace @firedrift/app lint`, `corepack yarn test`, `cd agent && uv run pytest`. A fourth job runs the TV UI audit and only warns.
+
+## Voice
+
+- **Push to talk.** The app sends 16-bit PCM at 16 kHz to the agent, in frames
+  of 32 KB or less, between `audio.start` and `audio.end`. The agent sends it
+  to Amazon Transcribe streaming and keeps only the final text. The stack turns
+  this on (`FIREDRIFT_TRANSCRIBE=on`). If Transcribe fails, the butler answers
+  with chips. The microphone capture in the app is issue #60 and is not done
+  yet; the agent end works today with `server.fake_client`.
+- **Spoken answers.** Amazon Polly (neural voice, `Brian` by default) makes an
+  MP3 and speech marks for each sentence. The marks time the gestures of the
+  character. The MP3 goes to a private S3 bucket and the app plays it through a
+  short-lived presigned URL. If Polly fails, the sentence shows as text.
+- **The Vega Virtual Device has no audio input** (`docs/feedback.md`). Test
+  push to talk on a Vega device. Chips work everywhere.
 
 ## Privacy
 
@@ -148,7 +172,8 @@ Tests and checks run in CI on every PR (`docs/workflow.md`, "CI"):
 - The backend stores that ID with your country, your services, and the signals
   you send (like, skip, watch now, time on a cover).
 - **Voice audio is streamed for transcription and never stored.** The butler's
-  own spoken answers are made by Amazon Polly and contain nothing about you.
+  own spoken answers are made by Amazon Polly. They are the only audio stored
+  (a private S3 bucket), and they contain nothing about you.
 - The TMDB key and the AWS credentials live in the backend only. The app has no
   secret.
 
@@ -159,9 +184,13 @@ Tests and checks run in CI on every PR (`docs/workflow.md`, "CI"):
 - **AI services:** Claude Haiku 4.5 and Amazon Nova 2 Lite on Amazon Bedrock;
   Strands Agents; Amazon Transcribe; Amazon Polly.
 - **Built with AI help:** the code, the tests and the docs were written with
-  Claude Code, reviewed and tested by the team. The butler's Blender scripts are
-  AI-assisted too. The full, current list is on the app's About screen
+  Claude and Claude Code, reviewed and tested by the team. The butler's Blender
+  `bpy` scripts are AI-assisted too. At run time, only the butler uses AI
+  models: Claude Haiku 4.5 and Amazon Nova 2 Lite on Amazon Bedrock. The full, current list is on the app's About screen
   (`app/src/about/credits.ts`).
+- **Assets:** the butler character is modeled, rigged and animated by the team in
+  Blender. The TMDB logo follows the TMDB brand rules. The app plays no video
+  and never downloads or re-hosts trailers.
 - **Fonts:** Big Shoulders Display and Figtree (SIL OFL 1.1).
 - **Code from Amazon samples:** focus helpers adapted from
   `AmazonAppDev/vega-tv-interfaces-sample` (MIT-0). See `docs/amazon-samples.md`.
@@ -169,7 +198,7 @@ Tests and checks run in CI on every PR (`docs/workflow.md`, "CI"):
 ## Product feedback and friction log
 
 Problems we hit with Amazon and AWS tools, one line each, with the workaround:
-`docs/feedback.md`. Spike results: `docs/spikes.md`. Decisions and scope:
+`docs/feedback.md`. The submission text draft is `docs/submission.md`. Spike results: `docs/spikes.md`. Decisions and scope:
 `docs/requirements.md`.
 
 ## License
