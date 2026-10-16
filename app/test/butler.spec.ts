@@ -285,6 +285,7 @@ describe('fake butler socket', () => {
   it('starts a voice turn with the transcript and sends weights.changed for taste chips', () => {
     const { session, kinds } = run();
     session.send({ t: 'audio.start', format: 'pcm16', sampleRate: 16000 });
+    session.sendAudio(new ArrayBuffer(3200));
     session.send({ t: 'audio.end' });
     jest.runAllTimers();
     expect(kinds()[0]).toBe('transcript');
