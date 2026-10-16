@@ -142,7 +142,6 @@ export const useFeed = (
     error,
     title,
     isLiked: key !== null && liked.has(key),
-    position: { index: feed.index + 1, total: feed.titles.length },
     hasPrevious: feed.index > 0,
     hasNext: feed.index < feed.titles.length - 1,
     next,

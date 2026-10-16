@@ -3,6 +3,7 @@ import { BackHandler, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useIsFocused } from '@amazon-devices/react-navigation__native';
 import type { TitleCard } from '@firedrift/domain';
 import { api } from '../api';
+import { prepareButlerSession } from '../butler';
 import { FocusableButton, Screen } from '../components';
 import {
   CoverView,
@@ -56,6 +57,13 @@ export const FeedScreen = ({ navigation }: RootScreenProps<'Feed'>) => {
     ? `${settings.country}|${[...settings.services].sort().join(',')}|${settings.showEverything}`
     : '';
   const feed = useFeed(feedDeps, active, reloadKey);
+
+  // A new butler session takes about 9 s to start; it warms up while the user
+  // browses, and again when the menu opens in case the warm one expired.
+  const feedReady = feed.status === 'ready';
+  useEffect(() => {
+    if (feedReady && settings) prepareButlerSession();
+  }, [feedReady, menuOpen, reloadKey, settings]);
 
   // Images that finish loading while a Modal is open never paint on Vega, so the
   // Watch now logos are fetched as soon as the cover shows, before OK opens the sheet.
@@ -112,7 +120,6 @@ export const FeedScreen = ({ navigation }: RootScreenProps<'Feed'>) => {
             title={feed.title}
             previous={shown.current.previous}
             isLiked={feed.isLiked}
-            position={feed.position}
             dimmed={menuOpen || watchNow !== null}
           />
           <Pressable

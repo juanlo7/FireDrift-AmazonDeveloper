@@ -15,6 +15,7 @@ import {
 import { AccountRecovery, UserPool, UserPoolOperation } from "aws-cdk-lib/aws-cognito";
 import { PolicyStatement } from "aws-cdk-lib/aws-iam";
 import type { IFunction } from "aws-cdk-lib/aws-lambda";
+import { BlockPublicAccess, Bucket, BucketEncryption } from "aws-cdk-lib/aws-s3";
 import { Construct } from "constructs";
 import { BackendFunction } from "./backend-function";
 import type { BackendContext } from "./firedrift-stack";
@@ -157,6 +158,16 @@ export class ButlerConstruct extends Construct {
       });
     }
 
+    // Polly MP3s of the butler's answers, read by the app through short-lived presigned
+    // URLs. Never the user's voice (NFR-6). A day is enough for any session.
+    const speechBucket = new Bucket(this, "SpeechBucket", {
+      blockPublicAccess: BlockPublicAccess.BLOCK_ALL,
+      encryption: BucketEncryption.S3_MANAGED,
+      enforceSSL: true,
+      lifecycleRules: [{ expiration: Duration.days(1) }],
+      removalPolicy: RemovalPolicy.DESTROY,
+    });
+
     const runtime = new Runtime(this, "AgentRuntime", {
       runtimeName: `firedrift_butler_${stack.stackName.replace(/[^A-Za-z0-9]/g, "_")}`.slice(0, 48),
       description: "FireDrift butler agent (WebSocket at /ws)",
@@ -171,6 +182,8 @@ export class ButlerConstruct extends Construct {
         FIREDRIFT_TOOLS: "gateway",
         FIREDRIFT_GATEWAY_URL: gateway.gatewayUrl ?? "",
         TABLE_NAME: ctx.table.tableName,
+        FIREDRIFT_SPEECH_BUCKET: speechBucket.bucketName,
+        FIREDRIFT_TRANSCRIBE: "on",
       },
     });
     runtime.addToRolePolicy(
@@ -183,7 +196,22 @@ export class ButlerConstruct extends Construct {
         ]),
       }),
     );
-    runtime.addToRolePolicy(new PolicyStatement({ actions: ["dynamodb:GetItem"], resources: [ctx.table.tableArn] }));
+    // GetItem reads the runtime config; UpdateItem counts turns for the daily caps (#55).
+    runtime.addToRolePolicy(
+      new PolicyStatement({ actions: ["dynamodb:GetItem", "dynamodb:UpdateItem"], resources: [ctx.table.tableArn] }),
+    );
+    runtime.addToRolePolicy(new PolicyStatement({ actions: ["polly:SynthesizeSpeech"], resources: ["*"] }));
+    // Push to talk (#41): streaming speech to text; the audio is never stored.
+    runtime.addToRolePolicy(
+      new PolicyStatement({ actions: ["transcribe:StartStreamTranscriptionWebSocket"], resources: ["*"] }),
+    );
+    // Put the MP3, and get it so the presigned URL the Runtime signs works.
+    runtime.addToRolePolicy(
+      new PolicyStatement({
+        actions: ["s3:PutObject", "s3:GetObject"],
+        resources: [speechBucket.arnForObjects("speech/*")],
+      }),
+    );
     gateway.grantInvoke(runtime);
 
     new CfnOutput(this, "RuntimeArn", { value: runtime.agentRuntimeArn });

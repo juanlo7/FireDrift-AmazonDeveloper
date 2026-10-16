@@ -7,19 +7,23 @@ Run locally (credentials from the environment, see agent/README.md):
 
 import logging
 import os
+from collections.abc import Callable
+from typing import Any
 
 import boto3
 from starlette.websockets import WebSocket, WebSocketDisconnect
 
 from bedrock_agentcore.runtime import BedrockAgentCoreApp
 from brain.brain import Brain
+from brain.caps import Caps, DynamoTurnCounter
 from brain.config import BrainConfig
 from brain.fixture_tools import FixtureToolClient
 from brain.runtime_config import ConfigReader
 from brain.tool_client import CompositeToolClient, LambdaToolClient, ToolClient
+from character.cues import CueParser
 
 from .connection import ButlerConnection
-from .pipeline import NoVoiceIn, SentenceSplitter, SilentVoiceOut, VoiceOut
+from .pipeline import NoVoiceIn, SilentVoiceOut, VoiceIn, VoiceOut
 
 IDLE_TIMEOUT_S = float(os.environ.get("FIREDRIFT_IDLE_TIMEOUT_S", "600"))
 
@@ -81,9 +85,29 @@ def default_voice_out(config: BrainConfig) -> VoiceOut:
     )
 
 
+def default_voice_in(config: BrainConfig) -> Callable[[], VoiceIn]:
+    """Transcribe streaming (#41) when `FIREDRIFT_TRANSCRIBE=on` (set by the stack);
+    otherwise push to talk answers with a chips fallback."""
+    if os.environ.get("FIREDRIFT_TRANSCRIBE") != "on":
+        return NoVoiceIn
+    from voice.transcribe import TranscribeVoiceIn
+
+    session = boto3.Session()
+
+    def credentials() -> Any:
+        # Read per press: the Runtime role's credentials rotate.
+        return session.get_credentials().get_frozen_credentials()
+
+    return lambda: TranscribeVoiceIn(credentials, config.region)
+
+
+def backend_table(config: BrainConfig) -> Any | None:
+    name = os.environ.get("TABLE_NAME")
+    return boto3.resource("dynamodb", region_name=config.region).Table(name) if name else None
+
+
 def default_config_reader(config: BrainConfig) -> ConfigReader:
-    table = os.environ.get("TABLE_NAME")
-    return ConfigReader(boto3.resource("dynamodb", region_name=config.region).Table(table) if table else None)
+    return ConfigReader(backend_table(config))
 
 
 def create_app(
@@ -92,9 +116,13 @@ def create_app(
     config_reader: ConfigReader | None = None,
 ) -> BedrockAgentCoreApp:
     config = BrainConfig()
-    brain = brain or Brain(default_tool_client(config), config)
     reader = config_reader or default_config_reader(config)
+    if brain is None:
+        table = backend_table(config)
+        limits = Caps(reader.butler, DynamoTurnCounter(table) if table is not None else None)
+        brain = Brain(default_tool_client(config), config, limits=limits)
     voice_out = default_voice_out(config)
+    voice_in_factory = default_voice_in(config)
     app = BedrockAgentCoreApp()
 
     @app.entrypoint
@@ -110,9 +138,9 @@ def create_app(
             connection = ButlerConnection(
                 StarletteTransport(websocket),
                 brain,
-                parser_factory=SentenceSplitter,
+                parser_factory=CueParser,
                 voice_out=voice_out,
-                voice_in_factory=NoVoiceIn,
+                voice_in_factory=voice_in_factory,
                 idle_timeout_s=idle_timeout_s,
                 butler_config=reader.butler,
             )

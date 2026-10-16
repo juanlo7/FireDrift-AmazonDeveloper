@@ -23,7 +23,7 @@ with several subscriptions, who spends more time choosing than watching.
 
 **Why it fits the judges:** AI-enhanced viewing with multi-modal UX (voice +
 D-pad + animated character), a multi-service AWS pipeline (Bedrock + AgentCore
-+ Strands + Transcribe + Polly), a public repo with a reusable package, and a
++ Strands + Transcribe + Polly), a public MIT repo, and a
 real TV constraint (low RAM) solved on purpose.
 
 ## 2. Final decisions
@@ -48,7 +48,7 @@ real TV constraint (low RAM) solved on purpose.
 | D16 | Model | **Claude Haiku 4.5 on Bedrock**, if it is available in our region and our credits cover it. Otherwise **Amazon Nova 2 Lite**. The model ID is a config value. |
 | D17 | Languages (code) | App, Lambdas, CDK and shared types in **TypeScript**. Agent in **Python** (Strands Python SDK). |
 | D18 | Backend | AWS serverless: HTTP API Gateway, Lambda (ARM), DynamoDB on-demand, CDK. |
-| D19 | Open source | **Public repo, MIT license.** Reusable package: the recycled player pool. |
+| D19 | Open source | **Public repo, MIT license.** The reusable player pool package is dropped (Oct 12): plan B left no player to recycle, and there is no time for a replacement. The Open Source mini challenge is no longer a target. |
 
 ## 3. Scope
 
@@ -301,7 +301,7 @@ Vega app (React Native, TS)
 app/        Vega React Native app
 backend/    Lambdas (TS) + CDK stack
 agent/      Strands butler agent (Python) for AgentCore
-packages/   domain (shared types + fixtures), player-pool (open source)
+packages/   domain (shared types + fixtures)
 assets/     butler clips rendered from Blender (sources in assets/blender/)
 docs/       requirements, domain, hackathon rules, workflow
 ```
@@ -369,6 +369,14 @@ Results (details in `docs/spikes.md`):
   Terms of Use also forbids using TMDB content "in connection with" an AI-based
   application, which can cover the butler. The team accepts this risk for the
   hackathon; a store release would need a written agreement with TMDB.
+- **V2 (Oct 10): not testable on the VVD.** The microphone privilege is
+  granted and the record stream builds, but the VVD has no audio input
+  (`STATUS_NO_INIT`, read fails). Push to talk by holding OK (`select`) is
+  possible: the remote sends key down and up. Needs a Vega device. D13 stays
+  the base design.
+- **V5 (Oct 10): not testable on the VVD.** `VideoPlayer` starts but the VVD
+  decodes no video (`MediaError` code 4 for a local MP4, 3 for `https`). Memory
+  not measured. Needs a Vega device. The sprite-sheet plan B stays as fallback.
 
 **Risks**
 - **Butler is large for the time left.** Cut order if late: conversation polish

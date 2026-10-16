@@ -13,7 +13,7 @@ CACHE_S = 60
 
 @dataclass(frozen=True)
 class ButlerConfig:
-    """`enabled` is the kill switch. The limits are read by `caps.check_caps` (#55)."""
+    """`enabled` is the kill switch. The limits are read by `caps.Caps` (#55)."""
 
     enabled: bool = True
     model_id: str | None = None

@@ -1,4 +1,5 @@
 import { ApiRequestError, createApiClient, createHttpClient, createMockClient } from '../src/api';
+import { config } from '../src/config';
 
 const PROFILE_ID = '00000000-0000-4000-8000-000000000000';
 
@@ -40,12 +41,12 @@ describe('mock client', () => {
 
 describe('createApiClient', () => {
   it('uses fixtures in mock mode', async () => {
-    const client = createApiClient({ apiMode: 'mock', apiBaseUrl: '', apiTimeoutMs: 100, serviceAppOverrides: {} });
+    const client = createApiClient({ ...config, apiMode: 'mock', apiBaseUrl: '', apiTimeoutMs: 100 });
     await expect(client.health()).resolves.toEqual({ ok: true });
   });
 
   it('fails clearly in real mode without a base URL', async () => {
-    const client = createApiClient({ apiMode: 'real', apiBaseUrl: '', apiTimeoutMs: 100, serviceAppOverrides: {} });
+    const client = createApiClient({ ...config, apiMode: 'real', apiBaseUrl: '', apiTimeoutMs: 100 });
     await expect(client.health()).rejects.toMatchObject({ code: 'not_configured' });
   });
 });

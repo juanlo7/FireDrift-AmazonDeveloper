@@ -22,8 +22,6 @@ export interface CoverViewProps {
   /** The title that was on screen before: its case slides out and its light fades under the new one. */
   previous?: TitleCard | null;
   isLiked: boolean;
-  /** 1-based position in the feed, and how many titles it has now. */
-  position?: {index: number; total: number};
   /** A sheet or the menu is open: the text column steps back so nothing shows cut beside it. */
   dimmed?: boolean;
 }
@@ -74,7 +72,6 @@ export const CoverView = ({
   title,
   previous,
   isLiked,
-  position,
   dimmed = false,
 }: CoverViewProps) => {
   const change = useRef(new Animated.Value(previous ? 0 : 1)).current;
@@ -243,12 +240,6 @@ export const CoverView = ({
         />
       ) : null}
 
-      {position ? (
-        <Text style={styles.plate} testID="feed-position">
-          {position.index} / {position.total}
-        </Text>
-      ) : null}
-
       {dimmed ? null : (
         <Animated.View style={[styles.side, {opacity: sideOpacity}]}>
           <Text style={styles.name} numberOfLines={2} testID="feed-title">
@@ -358,15 +349,6 @@ const styles = StyleSheet.create({
     ...typography.title,
     color: colors.text,
     textAlign: 'center',
-  },
-  plate: {
-    ...typography.label,
-    position: 'absolute',
-    top: CASE_TOP + CASE_HEIGHT + spacing.sm,
-    left: CASE_LEFT,
-    width: CASE_WIDTH,
-    textAlign: 'center',
-    color: colors.textMuted,
   },
   side: {position: 'absolute', left: 410, right: 60, top: 92, bottom: 70},
   metaRow: {

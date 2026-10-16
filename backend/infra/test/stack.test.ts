@@ -182,6 +182,30 @@ describe("butler on AgentCore (#48)", () => {
     expect(resources).not.toMatch(/foundation-model\/\*"/);
   });
 
+  it("gives the butler a private speech bucket that forgets the audio after a day", () => {
+    template.hasResourceProperties("AWS::S3::Bucket", {
+      PublicAccessBlockConfiguration: { BlockPublicAcls: true, RestrictPublicBuckets: true },
+      LifecycleConfiguration: { Rules: [Match.objectLike({ ExpirationInDays: 1, Status: "Enabled" })] },
+    });
+    const runtimes = Object.values(template.findResources("AWS::BedrockAgentCore::Runtime"));
+    expect(runtimes[0]!.Properties.EnvironmentVariables).toHaveProperty("FIREDRIFT_SPEECH_BUCKET");
+    const statements = Object.values(template.findResources("AWS::IAM::Policy")).flatMap(
+      ({ Properties }) => Properties.PolicyDocument.Statement as { Action: string | string[] }[],
+    );
+    expect(statements.some((st) => [st.Action].flat().includes("polly:SynthesizeSpeech"))).toBe(true);
+    expect(statements.some((st) => [st.Action].flat().includes("transcribe:StartStreamTranscriptionWebSocket"))).toBe(true);
+    expect(runtimes[0]!.Properties.EnvironmentVariables).toMatchObject({ FIREDRIFT_TRANSCRIBE: "on" });
+  });
+
+  it("lets the butler count turns for its daily caps, and nothing more on the table", () => {
+    const runtimePolicy = Object.entries(template.findResources("AWS::IAM::Policy")).find(([id]) =>
+      id.startsWith("ButlerAgentRuntimeExecutionRole"),
+    )![1];
+    const statements = runtimePolicy.Properties.PolicyDocument.Statement as { Action: string | string[] }[];
+    const dynamo = statements.flatMap((st) => [st.Action].flat()).filter((a) => a.startsWith("dynamodb:"));
+    expect(dynamo.sort()).toEqual(["dynamodb:GetItem", "dynamodb:UpdateItem"]);
+  });
+
   it("outputs what the app needs to connect", () => {
     const outputs = Object.keys(template.findOutputs("*"));
     for (const name of ["RuntimeArn", "ButlerWebSocketUrl", "UserPoolId", "UserPoolClientId", "GatewayUrl"]) {

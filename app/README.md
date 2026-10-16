@@ -43,12 +43,62 @@ export const config: AppConfig = {
   apiMode: 'mock',   // 'real' calls apiBaseUrl
   apiBaseUrl: '',    // HTTP API URL from the CDK stack output
   apiTimeoutMs: 8000,
+  butlerMode: 'fake', // 'real' connects to butlerSocketUrl
+  butlerSocketUrl: '', // ButlerWebSocketUrl from the CDK stack output
+  cognitoClientId: '', // UserPoolClientId from the CDK stack output
+  awsRegion: 'us-east-1',
 };
 ```
 
 In `mock` mode every call returns the fixtures in `packages/domain/fixtures/rest/`.
 Import the client with `import { api } from '../api'`; screens never call
 `fetch` directly.
+
+## Butler socket
+
+`src/butler/` is the app end of the butler socket (`docs/contracts.md`,
+section 3). The butler screen opens one session per visit:
+
+```ts
+import { openButlerSession } from '../butler';
+
+const session = openButlerSession(
+  { profileId, country, services, hasMic },
+  { onEvent: event => { /* every agent → app event */ }, onAudio: chunk => { /* binary speech audio */ } },
+);
+session.send({ t: 'chip.select', chipId: 'surprise_me' });
+session.sendAudio(pcm); // between audio.start and audio.end, split into 32 KB frames
+session.end();          // on leaving the screen
+```
+
+- `butlerMode: 'fake'` replays the agent → app fixtures in
+  `packages/domain/fixtures/socket/`, so the screen works without the agent.
+  Each `chip.select` or `audio.end` plays one turn.
+- `butlerMode: 'real'` connects to `butlerSocketUrl` (`ButlerWebSocketUrl`
+  output). The device signs up in Cognito with its profile ID and a random
+  password on first use (`cognitoClientId` is the `UserPoolClientId` output),
+  then sends the access token as WebSocket subprotocols.
+- If sign-in fails, the socket errors or it closes before `end()`, the screen
+  gets one `fallback` event with the fallback chips, served by the taste
+  algorithm.
+- **Warm session.** A new session waits about 9 s for sign-in and for AgentCore
+  to start it. The feed calls `prepareButlerSession()` when it is ready and when
+  the menu opens, so one session is already open when the butler screen calls
+  `openButlerSession(await butlerSessionInfo(hasMic), handlers)`. The screen
+  must use `butlerSessionInfo`: a session warmed with other values is not used.
+  A warm session is handed out once and for up to 9 minutes (the agent closes
+  idle sessions after 10).
+- **Butler screen** (`src/screens/ButlerScreen.tsx`, #99): the character slot
+  (`CharacterSlot`, a placeholder whose light follows the state until #60 puts
+  the clip player in it), the answer text, the suggestion card with Watch now,
+  Undo and Reset for taste changes, and the chips. `butlerReducer` turns agent
+  events into what the screen shows; `characterState` gives the character's
+  state. `createSpeechPlayer` plays each `speech` audio in order with the W3C
+  media `AudioPlayer` and reports talking and gestures. After a `fallback` the
+  chips are answered from the taste pool (`pickFromPool`).
+- `createSpeechSync(speech).at(positionMs)` tells the screen, while a `speech`
+  audio plays, when words are being said (`speaking` loop) and which gestures
+  are due, each once.
 
 ## Signals and device profile
 

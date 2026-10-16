@@ -21,7 +21,7 @@ uv run pytest
 | `server/` | WebSocket server end: session, routing, event order | P2 |
 | `brain/` | Strands agent core: tool loop, resolve-then-show, weight changes | P2 |
 | `brain/` (persona, caps) | Persona prompt, caps, short context, fallback | P3 |
-| `character/` | Gesture parser and gesture timing | P3 |
+| `character/` | Gesture parser and gesture timing | P1 (#94) |
 | `voice/` | Transcribe streaming in, Polly with speech marks out | P1 |
 | `tests/` | Tests for every folder; fixtures come from `packages/domain/fixtures` | All |
 
@@ -55,8 +55,12 @@ events of `docs/contracts.md` section 7.
   `FIREDRIFT_TEMPERATURE`, `FIREDRIFT_TURN_TIMEOUT_S`, `FIREDRIFT_MAX_MODEL_CALLS`
   and the `FIREDRIFT_*_FN` Lambda names.
 
-**Hooks for P3:** `brain/persona.md` is the start of the system prompt (#54);
-`brain/caps.py` has `check_caps(session)` and `trim_history(messages)` (#55).
+**Persona and caps:** `brain/persona.md` is the start of the system prompt (#54).
+`brain/caps.py` (#55): before each turn `Caps.check` applies the turn caps per
+session, per profile per day and for everyone per day (limits from the runtime
+config; daily counters are `CAPS#<day>` items in the table, removed by its TTL).
+Over a cap the turn is a `fallback` with `reason: "cap"`, and the app plays
+`shrug`. `trim_history` sends the model only the last turns.
 `brain/prompts/grounding.md` holds the tool rules (P2).
 
 **Try it against AWS** (Bedrock and the weight tools are real; about $0.01 per turn):
@@ -86,9 +90,15 @@ One `ButlerConnection` per socket (contracts section 3):
   10 minutes (`FIREDRIFT_IDLE_TIMEOUT_S`).
 
 **Interfaces for P1 and P3** (`server/pipeline.py`, contracts section 7):
-`GestureParser` (#56, placeholder `SentenceSplitter`), `VoiceOut` and `VoiceIn`
-(#41, placeholders: no `speech` yet, and push to talk answers with a chips
-fallback). Swap them in `server/app.py`.
+`GestureParser` (`character/cues.py`, `CueParser`, #94), `VoiceOut` and
+`VoiceIn` (#41, placeholders: no `speech` yet, and push to talk answers with a
+chips fallback). Swap them in `server/app.py`.
+
+**Gesture cues** (`CueParser`, contracts section 6): splits the streamed answer
+into sentences, strips every `{{...}}` marker, and keeps the first known
+gesture of each sentence, up to two per answer, as a cue at the character
+offset of the word after the marker. Unknown and extra markers are dropped.
+Polly then gives each cue the `timeMs` of that word.
 
 **Run it locally** against AWS (Nova 2 Lite while Claude is blocked, #76):
 
@@ -117,7 +127,14 @@ From the VVD, forward the port: `vega device start-port-forwarding -p 8080 --for
   Polly only when `FIREDRIFT_SPEECH_BUCKET` is set; otherwise it stays silent
   (text only). Only the butler's answers are stored there, never the user's
   voice (NFR-6).
-- **Transcribe in:** not yet; waits for spike V2 (microphone on Vega).
+- **Transcribe in** (`voice/transcribe.py`, `TranscribeVoiceIn`): one streaming
+  session per push-to-talk press over the Transcribe WebSocket API (boto3 has no
+  streaming client): a SigV4-signed `wss://` URL, the PCM sent as event-stream
+  `AudioEvent` messages in 100 ms chunks, and only final results kept. The
+  server uses it when `FIREDRIFT_TRANSCRIBE=on` (set by the stack); otherwise,
+  or if Transcribe fails, push to talk answers with a chips fallback. The
+  transcript comes back about 0.3 s after the button is released. The user's
+  audio is never stored (NFR-6).
 
 ## On AWS (`backend/infra/lib/butler-construct.ts`, #48)
 
@@ -154,7 +171,7 @@ From the VVD, forward the port: `vega device start-port-forwarding -p 8080 --for
     --expression-attribute-values '{":b":{"M":{"enabled":{"BOOL":false}}}}'
   ```
 
-  `modelId` picks the model for new sessions; the limits are for `check_caps` (#55).
+  `modelId` picks the model for new sessions; the limits are for `Caps` (#55).
 
 Try the deployed butler like the TV app does:
 
