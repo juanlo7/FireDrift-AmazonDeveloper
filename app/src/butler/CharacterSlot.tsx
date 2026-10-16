@@ -1,8 +1,30 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useCallback, useEffect, useReducer, useRef, useState } from 'react';
+import type { ComponentType } from 'react';
 import { Animated, Easing, StyleSheet, Text, View } from 'react-native';
+import type { StyleProp, ViewStyle } from 'react-native';
 import type { Gesture } from '@firedrift/domain';
 import { colors, fonts, radius, spacing, typography } from '../theme';
 import type { CharacterState } from './butlerModel';
+import { createClipPlayer } from './clipPlayer';
+import { clipReducer, currentClip, initialClipView } from './clips';
+
+interface SurfaceViewProps {
+  style?: StyleProp<ViewStyle>;
+  onSurfaceViewCreated: (handle: string) => void;
+  onSurfaceViewDestroyed: (handle: string) => void;
+}
+
+/** Loaded on first use: the native module exists only on Vega. */
+const loadSurfaceView = (): ComponentType<SurfaceViewProps> | null => {
+  try {
+    return require('@amazon-devices/react-native-w3cmedia').KeplerVideoSurfaceView ?? null;
+  } catch {
+    return null;
+  }
+};
+
+/** A gesture clip is 1–2 s; if its `ended` never comes, go back to the loop after this. */
+const GESTURE_GUARD_MS = 4000;
 
 export interface CharacterSlotProps {
   state: CharacterState;
@@ -39,12 +61,53 @@ const PULSE: Record<CharacterState, [number, number, number]> = {
 };
 
 /**
- * The butler's place on screen: a lit case like the feed's, with a placeholder
- * figure whose light follows the state. #60 puts the clip player (state loops
- * and gestures) inside the case, at this size, in place of the placeholder.
+ * The butler's place on screen: a lit case like the feed's. The one clip player
+ * loops the clip of the state and plays a gesture once over it. If the player
+ * or a clip fails (the VVD cannot decode video, spike V5), the placeholder
+ * figure stays, silently.
  */
 export const CharacterSlot = ({ state, gesture }: CharacterSlotProps) => {
   const light = useRef(new Animated.Value(PULSE.idle[0])).current;
+  const [clip, dispatch] = useReducer(clipReducer, initialClipView);
+  const [playing, setPlaying] = useState(false);
+  const [SurfaceView] = useState(loadSurfaceView);
+  const player = useRef<ReturnType<typeof createClipPlayer> | null>(null);
+
+  if (!player.current) {
+    player.current = createClipPlayer({
+      onPlaying: () => setPlaying(true),
+      onEnded: () => dispatch({ t: 'gestureEnded' }),
+      onError: () => dispatch({ t: 'error' }),
+    });
+  }
+
+  useEffect(() => {
+    if (!SurfaceView) dispatch({ t: 'error' });
+    return () => {
+      player.current?.dispose();
+    };
+  }, [SurfaceView]);
+
+  useEffect(() => dispatch({ t: 'state', state }), [state]);
+  useEffect(() => {
+    if (gesture) dispatch({ t: 'gesture', gesture });
+  }, [gesture]);
+
+  useEffect(() => {
+    if (!clip.gesture) return;
+    const guard = setTimeout(() => dispatch({ t: 'gestureEnded' }), GESTURE_GUARD_MS);
+    return () => clearTimeout(guard);
+  }, [clip.gesture]);
+
+  const wanted = currentClip(clip);
+  useEffect(() => {
+    if (wanted) player.current?.play(wanted);
+    // `wanted` is a new object on each render; the url and loop say if it changed.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [wanted?.url, wanted?.loop]);
+
+  const onCreated = useCallback((handle: string) => player.current?.attach(handle), []);
+  const onDestroyed = useCallback(() => player.current?.detach(), []);
 
   useEffect(() => {
     const [low, high, ms] = PULSE[state];
@@ -58,19 +121,28 @@ export const CharacterSlot = ({ state, gesture }: CharacterSlotProps) => {
     return () => beat.stop();
   }, [state, light]);
 
+  const showPlaceholder = clip.failed || !playing;
+
   return (
     <View style={styles.case} testID="butler-character" accessibilityLabel={`Butler, ${STATE_LABELS[state]}`}>
-      <Animated.View style={[styles.glow, { opacity: light }]} />
-      <View style={styles.figure}>
-        <View style={styles.head} />
-        <View style={styles.shoulders} />
-        <View style={styles.bowTie} />
-      </View>
+      {showPlaceholder ? (
+        <>
+          <Animated.View style={[styles.glow, { opacity: light }]} />
+          <View style={styles.figure}>
+            <View style={styles.head} />
+            <View style={styles.shoulders} />
+            <View style={styles.bowTie} />
+          </View>
+        </>
+      ) : null}
+      {SurfaceView && !clip.failed ? (
+        <SurfaceView style={styles.video} onSurfaceViewCreated={onCreated} onSurfaceViewDestroyed={onDestroyed} />
+      ) : null}
       <View style={styles.plate}>
         <Text style={styles.state} testID="butler-state">
           {STATE_LABELS[state]}
         </Text>
-        {gesture ? (
+        {gesture && showPlaceholder ? (
           <Text style={styles.gesture} testID="butler-gesture">
             {`The butler ${GESTURE_LABELS[gesture]}`}
           </Text>
@@ -92,6 +164,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'flex-end',
   },
+  video: { position: 'absolute', top: 0, left: 0, width: SLOT_WIDTH, height: SLOT_HEIGHT },
   glow: {
     position: 'absolute',
     top: 40,
