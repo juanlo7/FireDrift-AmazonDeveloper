@@ -14,3 +14,4 @@ __pycache__/
 # Impeccable design mocks and review captures (local only)
 .impeccable/mocks/
 .impeccable/review/
+/build/

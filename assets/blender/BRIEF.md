@@ -23,11 +23,10 @@ movements. He is helpful, never pushy, and a little amused when he is excited.
 
 - The app shows the clip in a **300 x 400 portrait slot** (3:4), see
   `SLOT_WIDTH` and `SLOT_HEIGHT` in `app/src/butler/CharacterSlot.tsx`.
-- Render in the same 3:4 ratio: **600 x 800** (or 450 x 600). Never wider than
-  1280 x 720.
-- Camera is fixed, at chest-to-head height. Head centre at about 43% of the
-  frame height, shoulders cut by the bottom edge, space above the head for the
-  thinking dots.
+- Render in the same 3:4 ratio at **540 x 720**. The contract allows 720 px
+  height at most (1280 x 720 or smaller).
+- Camera is fixed, at chest-to-head height, a little below eye level. Head in
+  the top third, the frame cut at the waist, gloves at the bottom edge.
 - Keep all important parts inside the central 80% of the frame, so a small
   crop does not cut a gesture.
 - Same camera, framing and light in every clip.
@@ -47,7 +46,7 @@ All loops are seamless: the last frame leads into the first with no jump.
 |---|---|
 | `idle` (2-6 s) | Slow breathing, tiny head sway, calm light. Also used as `fallback`. |
 | `listening` (2-4 s) | Head tilted, leaning in, eyes on the viewer. Brighter light, soft ripples. |
-| `thinking` (2-4 s) | Head sways, eyes look up and to the side, one hand near the chin. |
+| `thinking` (2-4 s) | Head turns, eyes look up and to the side, one brow up, the right glove under the chin. |
 | `speaking` (2-4 s) | Mouth opens and closes, small head and hand movement, lively light. |
 
 ## Gestures
@@ -77,3 +76,22 @@ a loop with no jump.
 | File size | each under 2 MB |
 | Flags | `-movflags +faststart` |
 | Consistency | same framing and background in all clips |
+
+## What we built
+
+`butler.py` builds this brief from code in Blender 5.2 LTS:
+
+- **Model:** low-poly primitives with flat shading. Tailcoat, shirt front
+  with studs, wing collar, amber bow tie, white gloves, grey hair and
+  moustache, dot eyes with a highlight.
+- **Rig:** one armature (`ButlerRig`) with 12 bones: root, spine, neck, head,
+  two brows, and upper arm, forearm and hand on each side. Every part is a
+  rigid mesh parented to one bone. The eyes (blink, look) and the mouth (open,
+  width) are animated by scale and position.
+- **Animation:** each clip is a pose function of time. Loops use whole sine
+  cycles, so the frame after the last one is the first one. Gestures use an
+  envelope that is zero at both ends, so they start and end on the first pose
+  of `idle`. `check_seams()` stops the render if a clip breaks this rule.
+- **Light:** the "lit case" of the app: a dark wall with a warm pool behind the
+  head, a warm key light, two amber rim lights and a low amber footlight.
+  The `Standard` view transform keeps the theme colours exact.
