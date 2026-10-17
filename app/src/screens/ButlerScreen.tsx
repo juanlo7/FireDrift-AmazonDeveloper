@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useReducer, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useReducer, useRef, useState } from 'react';
 import { Image, StyleSheet, Text, View } from 'react-native';
 import type { Chip, Gesture, TitleCard } from '@firedrift/domain';
 import { api } from '../api';
@@ -7,21 +7,32 @@ import {
   butlerSessionInfo,
   characterState,
   CharacterSlot,
+  createPushToTalk,
   createSpeechPlayer,
   FALLBACK_REASONS,
   fallbackEvent,
   initialView,
   openButlerSession,
+  openSilentMic,
+  openVegaMic,
   pickFromPool,
   type ButlerSession,
 } from '../butler';
 import { FocusableButton, Screen } from '../components';
+import { config } from '../config';
+import { useRemoteKeys } from '../focus';
 import { deviceProfile } from '../profile';
 import { colors, fonts, radius, spacing, typography } from '../theme';
 import { WatchNowSheet } from '../watchNow';
 
 /** How long a gesture's caption stays on the placeholder; the clips are 1–2 s. */
 const GESTURE_MS = 1500;
+/** Remote keys that talk to the butler while held. OK is taken by the chips; they use the button. */
+const TALK_KEYS = ['play', 'pause', 'playpause'];
+/** `HWEvent.eventKeyAction`: 0 is key down, 1 is key up. */
+const KEY_UP = 1;
+/** The offline butler on a device with no audio input still hears silence, to try the flow. */
+const openMic = async () => (await openVegaMic()) ?? (config.butlerMode === 'fake' ? openSilentMic() : null);
 const titleKey = (title: TitleCard) => `${title.type}:${title.tmdbId}`;
 
 /**
@@ -39,6 +50,28 @@ export const ButlerScreen = () => {
   const speech = useRef<ReturnType<typeof createSpeechPlayer> | null>(null);
   const shown = useRef(new Set<string>());
   const pool = useRef<TitleCard[]>([]);
+  const fallback = useRef(false);
+  fallback.current = view.fallback !== null;
+
+  // Hold to talk. `listening` shows before the mic opens; no mic leaves the chips working.
+  const talk = useMemo(
+    () =>
+      createPushToTalk({
+        openMic,
+        getSession: () => (fallback.current ? null : session.current),
+        onListening: listening => {
+          if (listening) speech.current?.stop();
+          dispatch({ t: 'listening', listening });
+        },
+        onSent: () => dispatch({ t: 'asked' }),
+      }),
+    [],
+  );
+  useRemoteKeys(event => {
+    if (!TALK_KEYS.includes(event.eventType)) return;
+    if (event.eventKeyAction === KEY_UP) talk.release();
+    else talk.press();
+  });
 
   useEffect(() => {
     let gestureTimer: ReturnType<typeof setTimeout> | undefined;
@@ -66,11 +99,12 @@ export const ButlerScreen = () => {
       .catch(() => dispatch({ t: 'agent', event: fallbackEvent() }));
     return () => {
       left = true;
+      talk.release();
       if (gestureTimer) clearTimeout(gestureTimer);
       session.current?.end();
       player.dispose();
     };
-  }, []);
+  }, [talk]);
 
   const answerFromTaste = useCallback(async (chip: Chip, current: TitleCard | null) => {
     try {
@@ -185,8 +219,17 @@ export const ButlerScreen = () => {
                 testID={`butler-chip-${chip.id}`}
               />
             ))}
+            {view.fallback ? null : (
+              <FocusableButton
+                label={view.listening ? 'Listening…' : 'Hold to talk'}
+                onPressIn={() => talk.press({ autoRelease: false })}
+                onPressOut={talk.release}
+                onPress={() => undefined}
+                testID="butler-talk"
+              />
+            )}
           </View>
-          <Text style={styles.hint}>Back · Feed</Text>
+          <Text style={styles.hint}>Hold Play/Pause or Hold to talk · Back · Feed</Text>
         </View>
       </View>
 

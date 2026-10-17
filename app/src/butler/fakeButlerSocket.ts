@@ -25,7 +25,7 @@ export interface FakeButlerOptions {
 }
 
 /**
- * A butler socket with no network: each turn (`audio.end` or `chip.select`)
+ * A butler socket with no network: each turn (`audio.end` after some audio, or `chip.select`)
  * replays the fixtures in the order the agent sends them. The butler screen
  * works with it before the agent is reachable.
  */
@@ -34,6 +34,7 @@ export const createFakeButlerSocket =
   (_info, handlers) => {
     const timers: ReturnType<typeof setTimeout>[] = [];
     let over = false;
+    let heardBytes = 0;
 
     const play = (events: AgentToAppEvent[]) =>
       events.forEach((event, i) =>
@@ -64,10 +65,14 @@ export const createFakeButlerSocket =
     return {
       send: event => {
         if (over) return;
-        if (event.t === 'audio.end') turn(true);
+        if (event.t === 'audio.start') heardBytes = 0;
+        // A turn by voice needs audio: an empty press is ignored, as the real agent does.
+        if (event.t === 'audio.end' && heardBytes > 0) turn(true);
         if (event.t === 'chip.select') turn(false, event.chipId);
       },
-      sendAudio: () => undefined,
+      sendAudio: pcm => {
+        heardBytes += pcm.byteLength;
+      },
       end: () => {
         over = true;
         timers.forEach(clearTimeout);

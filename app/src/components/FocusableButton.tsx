@@ -12,6 +12,9 @@ export interface FocusableButtonProps {
   /** Takes focus when the screen opens. Use on one element per screen. */
   hasTVPreferredFocus?: boolean;
   onFocus?: () => void;
+  /** Key down and key up of OK, for a hold (push to talk). */
+  onPressIn?: () => void;
+  onPressOut?: () => void;
   style?: StyleProp<ViewStyle>;
   testID?: string;
 }
@@ -23,6 +26,8 @@ export const FocusableButton = ({
   onPress,
   hasTVPreferredFocus,
   onFocus,
+  onPressIn,
+  onPressOut,
   style,
   testID,
 }: FocusableButtonProps) => {
@@ -34,6 +39,8 @@ export const FocusableButton = ({
       accessibilityLabel={accessibilityLabel ?? label}
       hasTVPreferredFocus={hasTVPreferredFocus}
       onPress={onPress}
+      onPressIn={onPressIn}
+      onPressOut={onPressOut}
       onFocus={handleFocus}
       onBlur={handleBlur}
       style={[styles.button, isFocused && styles.focused, style]}
