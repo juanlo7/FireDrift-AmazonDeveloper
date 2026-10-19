@@ -95,7 +95,9 @@ session.end();          // on leaving the screen
   events into what the screen shows; `characterState` gives the character's
   state. `createSpeechPlayer` plays each `speech` audio in order with the W3C
   media `AudioPlayer` and reports talking and gestures. After a `fallback` the
-  chips are answered from the taste pool (`pickFromPool`).
+  chips are answered from the taste pool (`pickFromPool`); the next chip or talk
+  press at least 30 s later opens a new session (`canRetryAgent`, never after a
+  `cap` fallback).
 - `createSpeechSync(speech).at(positionMs)` tells the screen, while a `speech`
   audio plays, when words are being said (`speaking` loop) and which gestures
   are due, each once.

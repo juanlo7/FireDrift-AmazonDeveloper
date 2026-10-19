@@ -120,8 +120,10 @@ Drives the Blender clip that the character plays.
 | `fallback` | Agent off or over cap; chips only | `idle` clip + short message |
 
 Moves: `idle → listening → thinking → speaking → idle`. A chip goes
-`idle → thinking`. Any error goes to `fallback`, and the next working turn
-returns to `idle`.
+`idle → thinking`. Any error goes to `fallback`. In `fallback`, the chips are
+answered from the taste algorithm; the next chip or talk press at least 30 s
+later tries the agent again in a new session (never after a `cap` fallback), and
+a working turn returns to `idle`.
 
 ### Gesture
 A one-shot clip (`nod`, `shrug`, `shiver`, `excited`, `bow`) that the agent

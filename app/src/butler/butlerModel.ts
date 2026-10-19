@@ -25,7 +25,7 @@ export interface ButlerView {
   talking: boolean;
   /** The talk button is held (push to talk, #60). */
   listening: boolean;
-  /** Set by `fallback`: the session is over and chips come from the taste algorithm. */
+  /** Set by `fallback`: chips come from the taste algorithm until a turn goes to the agent again. */
   fallback: { reason: string; message: string } | null;
 }
 
@@ -60,8 +60,7 @@ export type ButlerAction =
 export const butlerReducer = (view: ButlerView, action: ButlerAction): ButlerView => {
   switch (action.t) {
     case 'asked':
-      // In fallback the chips stay: the app answers them from the taste algorithm.
-      return view.fallback ? view : { ...view, answer: '', heard: '', waiting: true, chips: [] };
+      return { ...view, answer: '', heard: '', waiting: true, chips: [], fallback: null };
     case 'talking':
       return { ...view, talking: action.talking };
     case 'listening':
@@ -102,7 +101,7 @@ export const butlerReducer = (view: ButlerView, action: ButlerAction): ButlerVie
   }
 };
 
-/** The character follows the turn: listening, then talking, then waiting; fallback is sticky. */
+/** The character follows the turn: listening, then talking, then waiting; fallback until the agent is tried again. */
 export const characterState = (view: ButlerView): CharacterState => {
   if (view.listening) return 'listening';
   if (view.talking) return 'speaking';
@@ -110,6 +109,16 @@ export const characterState = (view: ButlerView): CharacterState => {
   if (view.waiting) return 'thinking';
   return 'idle';
 };
+
+/** At most one new session per this time after a fallback, so the kill switch does not open one per key press. */
+export const RETRY_MS = 30_000;
+
+/**
+ * After a fallback, whether the next chip or talk press tries the agent in a new
+ * session. Never over a cap: a new session would get round the per-session cap.
+ */
+export const canRetryAgent = (fallback: NonNullable<ButlerView['fallback']>, msSinceFallback: number): boolean =>
+  fallback.reason !== 'cap' && msSinceFallback >= RETRY_MS;
 
 const sharesGenre = (a: TitleCard, b: TitleCard) => a.genres.some(genre => b.genres.includes(genre));
 
