@@ -96,7 +96,7 @@ are JSON `{ "t": <event>, ...fields }`. Audio goes in binary frames.
 
 | Event | Fields | Notes |
 |---|---|---|
-| `session.start` | `profileId, country, services, hasMic` | First frame |
+| `session.start` | `profileId, country, services, hasMic`, optional `current: TitleCard` | First frame. `current` is the title on screen when the session starts (a taste pick after a fallback), so chips act on it |
 | `audio.start` | `format: "pcm16", sampleRate: 16000` | Talk button pressed |
 | *(binary)* | PCM 16-bit mono chunks | While the button is held |
 | `audio.end` | — | Button released |

@@ -58,6 +58,8 @@ export const ButlerScreen = () => {
   const sessionInfo = useRef<ButlerSessionInfo | null>(null);
   const handlers = useRef<ButlerHandlers | null>(null);
   const fallback = useRef<{ state: NonNullable<ButlerView['fallback']>; at: number } | null>(null);
+  const onScreen = useRef<TitleCard | null>(null);
+  onScreen.current = view.suggestion?.title ?? null;
 
   /** The session for the next input, or null to answer from the taste algorithm. */
   const agentSession = useCallback((): ButlerSession | null => {
@@ -65,7 +67,9 @@ export const ButlerScreen = () => {
     if (!off) return session.current;
     if (!sessionInfo.current || !handlers.current || !canRetryAgent(off.state, Date.now() - off.at)) return null;
     session.current?.end();
-    session.current = openButlerSession(sessionInfo.current, handlers.current);
+    // The new session must know the taste pick on screen, or its chips act on nothing.
+    const current = onScreen.current ?? undefined;
+    session.current = openButlerSession({ ...sessionInfo.current, current }, handlers.current);
     fallback.current = null;
     return session.current;
   }, []);

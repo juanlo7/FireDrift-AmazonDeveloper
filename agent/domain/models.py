@@ -93,6 +93,8 @@ class SessionStartEvent(CamelModel):
     country: Country
     services: list[int]
     has_mic: bool
+    # The title on screen when the session starts, e.g. a taste pick after a fallback.
+    current: TitleCard | None = None
 
 
 class AudioStartEvent(CamelModel):

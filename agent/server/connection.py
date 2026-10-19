@@ -115,6 +115,7 @@ class ButlerConnection:
                     country=start.country,
                     services=start.services,
                     has_mic=start.has_mic,
+                    current=start.current,
                 ),
                 model_id=self._butler_config().model_id,
             )
