@@ -14,7 +14,7 @@ import os
 
 import boto3
 
-from domain.models import ChipInput, TextInput
+from domain.models import Chip, ChipInput, TextInput
 
 from .brain import Brain
 from .config import BrainConfig
@@ -59,8 +59,10 @@ def aws_brain(aws: boto3.Session, config: BrainConfig) -> Brain:
     )
 
 
-def parse_input(raw: str) -> TextInput | ChipInput:
-    """`chip:<id>` picks a chip; anything else is what the user says."""
+def parse_input(raw: str, offered: list[Chip] | None = None) -> TextInput | ChipInput:
+    """`chip:<id>` picks a chip, `chip:@2` the second chip offered; anything else is what the user says."""
+    if raw.startswith("chip:@"):
+        return ChipInput(kind="chip", chip_id=(offered or [])[int(raw.removeprefix("chip:@")) - 1].id)
     if raw.startswith("chip:"):
         return ChipInput(kind="chip", chip_id=raw.removeprefix("chip:"))
     return TextInput(kind="text", text=raw)
@@ -70,7 +72,7 @@ async def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--profile", required=True, help="FireDrift profile UUID")
     parser.add_argument("--aws-profile", default=os.environ.get("AWS_PROFILE"), help="Unset: credentials from the environment")
-    parser.add_argument("inputs", nargs="+", help="What the user says; chip:<id> picks a chip")
+    parser.add_argument("inputs", nargs="+", help="What the user says; chip:<id> or chip:@<n> picks a chip")
     args = parser.parse_args()
 
     config = BrainConfig()
@@ -78,7 +80,7 @@ async def main() -> None:
     session = aws_brain(aws, config).start(Session(profile_id=args.profile))
 
     for raw in args.inputs:
-        user_input = parse_input(raw)
+        user_input = parse_input(raw, session.session.last_chips)
         print(f"\n> {raw}")
         answer = ""
         async for event in session.run_turn(user_input):
@@ -89,7 +91,7 @@ async def main() -> None:
             elif event.t == "weights.changed":
                 print(f"  [weights.changed] {[(d.feature, d.delta) for d in event.change.changes]}")
             elif event.t == "chips":
-                print(f"  [chips] {[c.id for c in event.chips]}")
+                print(f"  [chips] {[c.label for c in event.chips]}")
             elif event.t == "fallback":
                 print(f"  [fallback] {event.reason}: {event.message}")
         print(f"  [answer] {answer.strip()}")
