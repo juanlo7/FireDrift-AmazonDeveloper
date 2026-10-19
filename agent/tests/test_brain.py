@@ -228,3 +228,15 @@ def test_system_prompt_has_persona_and_grounding_without_comments():
     prompt = system_prompt()
     assert "butler" in prompt and "show_suggestion" in prompt
     assert "<!--" not in prompt
+
+
+def test_text_after_a_tool_call_is_a_new_sentence():
+    session, _, _ = start(
+        [
+            Step(text=["Let me look."], tools=[("find_titles", DARK_ISH)]),
+            Step(text=["Try 1899."]),
+        ]
+    )
+    events = run(session, TextInput(kind="text", text="something like Dark"))
+
+    assert text_of(events) == "Let me look. Try 1899."
