@@ -36,6 +36,8 @@ const createW3cVideo = (): VideoLike => {
 export const createClipPlayer = (handlers: ClipPlayerHandlers, createVideo: () => VideoLike = createW3cVideo) => {
   let video: VideoLike | null = null;
   let surface: string | null = null;
+  /** The surface whose player is still starting. */
+  let attaching: string | null = null;
   let wanted: Clip | null = null;
   let shown: Clip | null = null;
   let disposed = false;
@@ -64,6 +66,9 @@ export const createClipPlayer = (handlers: ClipPlayerHandlers, createVideo: () =
   };
 
   const attach = async (handle: string) => {
+    // Vega reports one surface twice; a second player on it fights the first for the frames.
+    if (handle === surface || handle === attaching) return;
+    attaching = handle;
     try {
       const created = createVideo();
       await created.initialize();
@@ -87,6 +92,8 @@ export const createClipPlayer = (handlers: ClipPlayerHandlers, createVideo: () =
     } catch (cause) {
       console.warn('[butler] clip player unavailable', cause);
       handlers.onError();
+    } finally {
+      attaching = null;
     }
   };
 

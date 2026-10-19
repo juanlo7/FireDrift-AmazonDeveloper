@@ -130,6 +130,18 @@ describe('clip player', () => {
     expect(video.loads[1]).toBe(`${clipUrl('gesture-shrug')} loop=false`);
   });
 
+  it('makes one player when the surface reports itself twice', async () => {
+    // Vega calls onSurfaceViewCreated twice for one surface, before initialize() ends.
+    let made = 0;
+    const player = createClipPlayer(handlers(), () => {
+      made += 1;
+      return fakeVideo();
+    });
+    player.play(currentClip(initialClipView)!);
+    await Promise.all([player.attach('surface-1'), player.attach('surface-1')]);
+    expect(made).toBe(1);
+  });
+
   it('reports playing, ended and errors, and reports a player that cannot start', async () => {
     const video = fakeVideo();
     const h = handlers();
