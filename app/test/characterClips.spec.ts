@@ -1,3 +1,4 @@
+import { Gesture } from '@firedrift/domain';
 import {
   clipReducer,
   clipUrl,
@@ -11,6 +12,23 @@ import {
 
 const run = (view: ClipView, ...actions: Parameters<typeof clipReducer>[1][]) =>
   actions.reduce(clipReducer, view);
+
+describe('clip files', () => {
+  it('packages every clip the app plays in app/assets/butler', () => {
+    const states = ['idle', 'listening', 'thinking', 'speaking', 'fallback'] as const;
+    const urls = [...states.map(state => clipUrl(stateClip(state))), ...Gesture.options.map(g => clipUrl(`gesture-${g}`))];
+    // The build packages app/assets/ as /pkg/assets/.
+    const missing = urls.filter(url => {
+      try {
+        require(url.replace('file:///pkg/', '../'));
+        return false;
+      } catch {
+        return true;
+      }
+    });
+    expect(missing).toEqual([]);
+  });
+});
 
 describe('clip selection', () => {
   it('maps each state to its looping clip, and fallback to idle', () => {

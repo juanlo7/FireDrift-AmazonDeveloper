@@ -126,20 +126,20 @@ The app owns the character state: `listening` on `audio.start`, `thinking` on
 
 | File | State | Spec |
 |---|---|---|
-| `assets/butler/idle.mp4` | `idle`, `fallback` | Seamless loop, 2–6 s |
-| `assets/butler/listening.mp4` | `listening` | Seamless loop, 2–4 s |
-| `assets/butler/thinking.mp4` | `thinking` | Seamless loop, 2–4 s |
-| `assets/butler/speaking.mp4` | `speaking` | Seamless loop, 2–4 s, mouth moving |
+| `app/assets/butler/idle.mp4` | `idle`, `fallback` | Seamless loop, 2–6 s |
+| `app/assets/butler/listening.mp4` | `listening` | Seamless loop, 2–4 s |
+| `app/assets/butler/thinking.mp4` | `thinking` | Seamless loop, 2–4 s |
+| `app/assets/butler/speaking.mp4` | `speaking` | Seamless loop, 2–4 s, mouth moving |
 
 **Gestures** (one-shot, played once over the current state, then back to its loop):
 
 | File | Gesture | Use |
 |---|---|---|
-| `assets/butler/gesture-nod.mp4` | `nod` | Agrees, confirms a pick |
-| `assets/butler/gesture-shrug.mp4` | `shrug` | Not sure, nothing found |
-| `assets/butler/gesture-shiver.mp4` | `shiver` | Scary or dark title |
-| `assets/butler/gesture-excited.mp4` | `excited` | Strong match, big recommendation |
-| `assets/butler/gesture-bow.mp4` | `bow` | Greeting, goodbye |
+| `app/assets/butler/gesture-nod.mp4` | `nod` | Agrees, confirms a pick |
+| `app/assets/butler/gesture-shrug.mp4` | `shrug` | Not sure, nothing found |
+| `app/assets/butler/gesture-shiver.mp4` | `shiver` | Scary or dark title |
+| `app/assets/butler/gesture-excited.mp4` | `excited` | Strong match, big recommendation |
+| `app/assets/butler/gesture-bow.mp4` | `bow` | Greeting, goodbye |
 
 Gestures are 1–2 s, start and end on the same pose as the loops, and play in the
 same clip player (one clip player only, NFR-2).

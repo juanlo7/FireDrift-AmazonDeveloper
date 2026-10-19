@@ -11,7 +11,7 @@ ROOT=$(cd "$(dirname "$0")/../.." && pwd)
 BLENDER=${BLENDER:-blender}
 FFMPEG=${FFMPEG:-ffmpeg}
 FRAMES="$ROOT/build/butler"
-OUT="$ROOT/assets/butler"
+OUT="$ROOT/app/assets/butler"
 CLIPS=${*:-idle listening thinking speaking gesture-nod gesture-shrug gesture-shiver gesture-excited gesture-bow}
 
 rm -rf "$FRAMES"
