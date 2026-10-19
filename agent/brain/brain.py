@@ -74,6 +74,12 @@ class BrainSession:
     def messages(self) -> list[Any]:
         return self._agent.messages
 
+    @property
+    def usage(self) -> tuple[int, int]:
+        """Input and output tokens of every model call in this session so far."""
+        usage = self._agent.event_loop_metrics.accumulated_usage
+        return usage["inputTokens"], usage["outputTokens"]
+
     def _drain(self) -> list[BaseModel]:
         events, self._pending[:] = list(self._pending), []
         return events

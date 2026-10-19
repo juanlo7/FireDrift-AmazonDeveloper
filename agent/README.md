@@ -70,6 +70,11 @@ eval "$(aws configure export-credentials --profile firedrift --format env)"
 uv run python -m brain.demo --profile <uuid> "Something like Dark, but shorter" chip:tell_me_more "I'm tired of action movies"
 ```
 
+**Compare models** (#51): `uv run python -m brain.model_eval --profile <uuid>` plays
+the demo prompts on Claude Haiku 4.5 and Nova 2 Lite and prints, per prompt, whether
+the turn did what was expected, the persona checks, the time to the first word and
+the cost. Use a new profile UUID: the prompts change its weights.
+
 Tests use `tests/scripted_model.py`, a Strands model that plays a script, so
 the real agent loop runs the real tools without Bedrock.
 
