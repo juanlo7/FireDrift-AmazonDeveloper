@@ -7,8 +7,9 @@ export type ClipName = 'idle' | 'listening' | 'thinking' | 'speaking' | `gesture
 /**
  * Clips are read by path from the package, not with `require()`: the app builds
  * without them, and a missing file is an error the player turns into the placeholder.
+ * A plain path, not a `file://` URL: the player opens the string as a file name.
  */
-export const clipUrl = (name: ClipName): string => `file:///pkg/assets/butler/${name}.mp4`;
+export const clipUrl = (name: ClipName): string => `/pkg/assets/butler/${name}.mp4`;
 
 /** One loop per state; `fallback` shows the `idle` clip (domain.md). */
 export const stateClip = (state: CharacterState): ClipName => (state === 'fallback' ? 'idle' : state);
