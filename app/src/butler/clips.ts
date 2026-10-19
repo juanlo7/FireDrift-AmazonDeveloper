@@ -52,6 +52,13 @@ export const clipReducer = (view: ClipView, action: ClipAction): ClipView => {
   }
 };
 
+/**
+ * The still to show over the surface: the first frame of the clip asked for, until
+ * that clip plays. A new `src` leaves the surface black for a moment on Vega.
+ */
+export const stillFor = (wanted: Clip | null, onScreen: ClipName | null): ClipName | null =>
+  wanted && wanted.name !== onScreen ? wanted.name : null;
+
 /** What the one clip player must play now, or `null` to show the placeholder. */
 export const currentClip = (view: ClipView): Clip | null => {
   if (view.failed) return null;
