@@ -3,7 +3,7 @@ import asyncio
 import pytest
 
 from brain.brain import Brain
-from brain.fixture_tools import FixtureToolClient
+from brain.fixture_tools import FixtureToolClient, load_fixture
 from brain.model_eval import DEMO_PROMPTS, DemoPrompt, TurnResult, evaluate, report
 from brain.session import Session
 from tests.scripted_model import ScriptedModel, Step
@@ -25,14 +25,19 @@ DEMO_SCRIPT = [
     Step(tools=[("show_suggestion", {"type": "movie", "tmdbId": 329865, "reason": "Calm and moving."})]),
     Step(text=["How about Arrival?"]),
     Step(tools=[("ranked_picks", {"count": 3})]),
-    Step(tools=[("show_suggestion", {"type": "series", "tmdbId": 70523, "reason": "Your top pick."})]),
-    Step(text=["{{excited}} Dark again, your top pick."]),
+    # Dark and Arrival were shown in this visit, so the surprise is a new title.
+    Step(tools=[("show_suggestion", {"type": "movie", "tmdbId": 335984, "reason": "Your top new pick."})]),
+    Step(text=["{{excited}} Blade Runner 2049, your top new pick."]),
 ]
+
+PICKS = load_fixture("ranked-picks.output.json")
+NEW_PICK = {**PICKS["titles"][1], "tmdbId": 335984, "name": "Blade Runner 2049", "year": 2017}
 
 
 def run_demo(steps):
     model = ScriptedModel(steps)
-    session = Brain(FixtureToolClient(), model_factory=lambda _config: model).start(Session(profile_id=PROFILE_ID))
+    client = FixtureToolClient(ranked_picks={"titles": [*PICKS["titles"], NEW_PICK]})
+    session = Brain(client, model_factory=lambda _config: model).start(Session(profile_id=PROFILE_ID))
     return asyncio.run(evaluate(session, DEMO_PROMPTS))
 
 

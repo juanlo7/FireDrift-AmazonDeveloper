@@ -16,6 +16,8 @@ export interface ColdStartInput {
   /** `"<type>:<tmdbId>"` of titles the profile already reacted to. */
   seen: Set<string>;
   size: number;
+  /** Effective weights: a main genre the user turned down (below 0) is left out. */
+  weights?: Record<string, number>;
 }
 
 interface Candidate {
@@ -81,12 +83,15 @@ export const pickVaried = (movies: Candidate[], series: Candidate[], seen: Set<s
 
 export const buildColdStartPool = async (
   deps: { tmdb: TmdbClient; catalog: CatalogService },
-  { profile, seen, size }: ColdStartInput,
+  { profile, seen, size, weights = {} }: ColdStartInput,
 ): Promise<TitleCard[]> => {
-  const [movies, series] = await Promise.all([
+  const wanted = (c: Candidate) => (weights[`genre:${c.genre}`] ?? 0) >= 0;
+  const [allMovies, allSeries] = await Promise.all([
     discoverType(deps.tmdb, profile, "movie"),
     discoverType(deps.tmdb, profile, "series"),
   ]);
+  const movies = allMovies.filter(wanted);
+  const series = allSeries.filter(wanted);
   const services = profile.showEverything ? [] : profile.services;
   const cards = await Promise.allSettled(
     pickVaried(movies, series, seen, size).map((c) =>

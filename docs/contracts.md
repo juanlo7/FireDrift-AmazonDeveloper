@@ -160,8 +160,8 @@ failure it returns `{ "error": { "code", "message" } }`.
 | `get_weights` | `profileId` | `WeightsSummary` |
 | `update_weights` | `profileId, changes: { feature, delta }[], reason` | `{ change: WeightChange, clamped: string[] }` |
 | `resolve_titles` | `profileId, proposals: { title, year, type }[]` (max 5) | `{ resolved: TitleCard[], dropped: { proposal, reason: "no_match" \| "not_on_my_services" }[] }` |
-| `similar` | `profileId, type, tmdbId, count` | `{ titles: TitleCard[] }` |
-| `ranked_picks` | `profileId, count` | `{ titles: TitleCard[] }` |
+| `similar` | `profileId, type, tmdbId, count`, optional `exclude: { type, tmdbId }[]` | `{ titles: TitleCard[] }` |
+| `ranked_picks` | `profileId, count`, optional `exclude: { type, tmdbId }[]` | `{ titles: TitleCard[] }` |
 
 Limits enforced by the tools, not by the prompt (values in the taste config):
 
@@ -172,6 +172,11 @@ Limits enforced by the tools, not by the prompt (values in the taste config):
   `invalid_change`.
 - `ranked_picks`: `count` up to 10.
 - `resolve_titles`: at most 5 proposals per call.
+- `similar` and `ranked_picks`: `exclude` (at most 50) holds the titles the
+  butler already showed in this visit; the tool never returns them.
+- `ranked_picks` on a new profile (the cold start): a main genre with a
+  negative weight is left out, so "I'm tired of action" works from the first
+  turn.
 
 ## 6. Gesture cues (agent → character)
 
