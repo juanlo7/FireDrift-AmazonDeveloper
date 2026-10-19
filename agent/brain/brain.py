@@ -22,7 +22,7 @@ from domain.models import (
 )
 
 from . import caps
-from .chips import chip_prompt, chips_for, fallback_chips
+from .chips import ReplyExtractor, chip_prompt, chips_for, fallback_chips
 from .config import BrainConfig
 from .session import Session, TurnState
 from .tool_client import ToolClient
@@ -106,6 +106,7 @@ class BrainSession:
 
         last_text = ""
         message_ended = False
+        replies = ReplyExtractor()
         try:
             async with asyncio.timeout(self._config.turn_timeout_s):
                 async for event in self._agent.stream_async(prompt, limits={"turns": self._config.max_model_calls}):
@@ -115,7 +116,7 @@ class BrainSession:
                         continue
                     if "message" in event:
                         message_ended = True
-                    text = event.get("data")
+                    text = replies.feed(event.get("data") or "")
                     if text:
                         # Each model message after a tool call starts with no space before it.
                         if message_ended and last_text and not last_text[-1].isspace() and not text[0].isspace():
@@ -129,9 +130,12 @@ class BrainSession:
             yield FallbackEvent(t="fallback", reason="error", message=ERROR_MESSAGE, chips=fallback_chips())
             return
 
+        rest = replies.flush()
+        if rest:
+            yield BrainAnswerDelta(t="answer.delta", text=rest)
         for pending in self._drain():
             yield pending
-        session.last_chips = chips_for(session)
+        session.last_chips = chips_for(session, replies.replies)
         yield ChipsEvent(t="chips", chips=session.last_chips)
         yield AnswerDoneEvent(t="answer.done")
 

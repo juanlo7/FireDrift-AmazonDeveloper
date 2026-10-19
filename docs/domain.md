@@ -99,6 +99,7 @@ A title already shown to the profile. Not shown again in the feed for a while.
 - **Answer:** short text, its audio (Polly) with speech marks, at most one
   suggestion, and the next chips.
 - **Chip:** a quick reply chosen with the D-pad. Works without a microphone.
+  The model proposes most of them; a chosen one counts as the user's words.
 
 ### Proposal, resolution, suggestion
 - **Proposal:** what the model offers: `{title, year, type}`. Not trusted.

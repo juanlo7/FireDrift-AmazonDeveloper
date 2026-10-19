@@ -240,3 +240,18 @@ def test_text_after_a_tool_call_is_a_new_sentence():
     events = run(session, TextInput(kind="text", text="something like Dark"))
 
     assert text_of(events) == "Let me look. Try 1899."
+
+
+def test_the_models_replies_become_the_chips_and_never_the_text():
+    session, model, _ = start(
+        [
+            Step(text=["Light or intense tonight? {{rep", "ly: Something light}} {{reply: Make me jump}}"]),
+            Step(text=["{{nod}} Then a comedy."]),
+        ]
+    )
+    events = run(session, TextInput(kind="text", text="I don't know what to watch"))
+    assert "reply" not in text_of(events) and "{" not in text_of(events)
+    assert [c.label for c in events[-2].chips] == ["Something light", "Make me jump", "Surprise me"]
+
+    run(session, ChipInput(kind="chip", chip_id="say:Something light"))
+    assert json.dumps(model.requests[1]["messages"][-1]).count("Something light") == 1
