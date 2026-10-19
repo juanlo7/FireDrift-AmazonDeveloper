@@ -175,6 +175,15 @@ describe("ranked_picks", () => {
     expect(titles.every((t) => t.genres.some((g) => g === "Action" || g === "Action & Adventure"))).toBe(true);
   });
 
+  it("leaves out the titles the butler already showed, on a new profile too", async () => {
+    const { rankedPicks } = setup();
+    const first = RankedPicksOutput.parse(await rankedPicks({ profileId: PROFILE_ID, count: 3 })).titles;
+    const exclude = first.map((t) => ({ type: t.type, tmdbId: t.tmdbId }));
+    const next = RankedPicksOutput.parse(await rankedPicks({ profileId: PROFILE_ID, count: 3, exclude })).titles;
+    expect(next).toHaveLength(3);
+    expect(next.some((t) => exclude.some((e) => e.type === t.type && e.tmdbId === t.tmdbId))).toBe(false);
+  });
+
   it("caps count at maxRankedPicks", async () => {
     const { rankedPicks } = setup();
     const { titles } = RankedPicksOutput.parse(await rankedPicks({ profileId: PROFILE_ID, count: 30 }));

@@ -5,8 +5,12 @@ import { TitleCard, TitleType, WeightChange, WeightDelta, WeightsSummary } from 
 // never from the model. Limits are enforced by the tools, not by the prompt.
 
 export const MAX_PROPOSALS_PER_CALL = 5;
+export const MAX_EXCLUDED = 50;
 
 const ProfileId = z.uuid();
+
+/** Titles the butler already showed in this visit: the tool never gives them again. */
+const Exclude = z.array(z.object({ type: TitleType, tmdbId: z.number().int().positive() })).max(MAX_EXCLUDED).optional();
 
 // get_weights
 export const GetWeightsInput = z.object({ profileId: ProfileId });
@@ -59,6 +63,7 @@ export const SimilarInput = z.object({
   type: TitleType,
   tmdbId: z.number().int().positive(),
   count: z.number().int().positive(),
+  exclude: Exclude,
 });
 export type SimilarInput = z.infer<typeof SimilarInput>;
 
@@ -72,6 +77,7 @@ export type SimilarOutput = TitlesOutput;
 export const RankedPicksInput = z.object({
   profileId: ProfileId,
   count: z.number().int().positive(),
+  exclude: Exclude,
 });
 export type RankedPicksInput = z.infer<typeof RankedPicksInput>;
 

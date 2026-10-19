@@ -22,10 +22,11 @@ interface RankedPicksDeps {
 
 /**
  * `ranked_picks` → `{ titles }`: the taste algorithm's best matches for the
- * butler (no discovery share). Leaves out what the feed already showed and saves nothing.
+ * butler (no discovery share). Leaves out what the feed and the butler already showed
+ * (`exclude`), and saves nothing.
  */
 export const createRankedPicksTool = (deps: () => RankedPicksDeps, now: () => number = Date.now) =>
-  createToolHandler<RankedPicksInput, RankedPicksOutput>(RankedPicksInput, async ({ profileId, count }) => {
+  createToolHandler<RankedPicksInput, RankedPicksOutput>(RankedPicksInput, async ({ profileId, count, exclude }) => {
     const { tmdb, catalog, profiles, signals, pools, weights, config } = deps();
     const taste = await config.getTasteConfig();
     const [profile, history, recentPools, layers] = await Promise.all([
@@ -44,6 +45,7 @@ export const createRankedPicksTool = (deps: () => RankedPicksDeps, now: () => nu
         config: { ...taste, quotas: taste.butler.rankedPicksQuotas },
         size: Math.min(count, taste.butler.maxRankedPicks),
         now: now(),
+        exclude,
       },
     );
     return { titles };

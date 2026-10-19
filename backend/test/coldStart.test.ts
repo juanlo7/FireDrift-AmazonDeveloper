@@ -39,6 +39,16 @@ describe("buildColdStartPool", () => {
     expect(new Set(titles.map((t) => t.type))).toEqual(new Set(["movie", "series"]));
   });
 
+  it("leaves out a main genre with a negative weight", async () => {
+    const { tmdb } = createFakeTmdb();
+    const { catalog, getTitleCard } = createFakeCatalog();
+    // The fake gives each title the main genre (id - 1) % 4: genre 0 is ids 1, 5, 9…
+    await buildColdStartPool({ tmdb, catalog }, { profile: DEFAULT_PROFILE, seen: new Set(), size: 20, weights: { "genre:0": -0.5 } });
+    const ids = getTitleCard.mock.calls.map((call) => call[1]);
+    expect(ids).toHaveLength(20);
+    expect(ids.some((id) => (id - 1) % 4 === 0)).toBe(false);
+  });
+
   it("filters by the profile's services and country", async () => {
     const { tmdb, discover } = createFakeTmdb();
     const { catalog, getTitleCard } = createFakeCatalog();

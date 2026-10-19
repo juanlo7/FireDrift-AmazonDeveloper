@@ -3,13 +3,14 @@ import { buildTastePool, TASTE_VERSION, type TastePoolDeps, type TastePoolInput,
 
 export type PoolBuilder = (deps: TastePoolDeps, input: TastePoolInput) => Promise<TastePoolResult>;
 
-const coldStartOnly: PoolBuilder = async (deps, { profile, signals, recentPools, size }) => ({
+const coldStartOnly: PoolBuilder = async (deps, { profile, signals, recentPools, size, exclude = [] }) => ({
   algorithmVersion: COLD_START_VERSION,
   titles: await buildColdStartPool(deps, {
     profile,
     seen: new Set([
       ...signals.map((s) => seenKey(s.type, s.tmdbId)),
       ...recentPools.flatMap((p) => p.titles.map((t) => seenKey(t.type, t.tmdbId))),
+      ...exclude.map((t) => seenKey(t.type, t.tmdbId)),
     ]),
     size,
   }),
