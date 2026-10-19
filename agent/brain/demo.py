@@ -41,6 +41,31 @@ def tool_functions(session: boto3.Session) -> dict[str, str]:
     return {tool: arn for tool, arn in found.items() if arn}
 
 
+def aws_brain(aws: boto3.Session, config: BrainConfig) -> Brain:
+    """A brain on Bedrock with the stack's tool Lambdas (fixtures for missing grounding tools)."""
+    functions = tool_functions(aws)
+    lambdas = LambdaToolClient(functions, aws.client("lambda"))
+    grounding = lambdas if {"resolve_titles", "similar"} <= functions.keys() else FixtureToolClient()
+    client = CompositeToolClient(weights=lambdas, grounding=grounding)
+
+    import strands.models.bedrock as bedrock
+
+    return Brain(
+        client,
+        config,
+        model_factory=lambda c: bedrock.BedrockModel(
+            boto_session=aws, model_id=c.model_id, max_tokens=c.max_tokens, temperature=c.temperature
+        ),
+    )
+
+
+def parse_input(raw: str) -> TextInput | ChipInput:
+    """`chip:<id>` picks a chip; anything else is what the user says."""
+    if raw.startswith("chip:"):
+        return ChipInput(kind="chip", chip_id=raw.removeprefix("chip:"))
+    return TextInput(kind="text", text=raw)
+
+
 async def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--profile", required=True, help="FireDrift profile UUID")
@@ -50,28 +75,10 @@ async def main() -> None:
 
     config = BrainConfig()
     aws = boto3.Session(profile_name=args.aws_profile, region_name=config.region)
-    functions = tool_functions(aws)
-    lambdas = LambdaToolClient(functions, aws.client("lambda"))
-    grounding = lambdas if {"resolve_titles", "similar"} <= functions.keys() else FixtureToolClient()
-    client = CompositeToolClient(weights=lambdas, grounding=grounding)
-
-    import strands.models.bedrock as bedrock
-
-    brain = Brain(
-        client,
-        config,
-        model_factory=lambda c: bedrock.BedrockModel(
-            boto_session=aws, model_id=c.model_id, max_tokens=c.max_tokens, temperature=c.temperature
-        ),
-    )
-    session = brain.start(Session(profile_id=args.profile))
+    session = aws_brain(aws, config).start(Session(profile_id=args.profile))
 
     for raw in args.inputs:
-        user_input = (
-            ChipInput(kind="chip", chip_id=raw.removeprefix("chip:"))
-            if raw.startswith("chip:")
-            else TextInput(kind="text", text=raw)
-        )
+        user_input = parse_input(raw)
         print(f"\n> {raw}")
         answer = ""
         async for event in session.run_turn(user_input):
