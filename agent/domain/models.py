@@ -250,16 +250,27 @@ class ResolveTitlesOutput(CamelModel):
     dropped: list[DroppedProposal]
 
 
+class TitleRef(CamelModel):
+    type: TitleType
+    tmdb_id: TmdbId
+
+
+# Titles the butler already showed in this visit: the tool never gives them again.
+Exclude = Annotated[list[TitleRef], Field(max_length=50)]
+
+
 class SimilarInput(CamelModel):
     profile_id: ProfileId
     type: TitleType
     tmdb_id: TmdbId
     count: Annotated[int, Field(gt=0)]
+    exclude: Exclude | None = None
 
 
 class RankedPicksInput(CamelModel):
     profile_id: ProfileId
     count: Annotated[int, Field(gt=0)]
+    exclude: Exclude | None = None
 
 
 class TitlesOutput(CamelModel):

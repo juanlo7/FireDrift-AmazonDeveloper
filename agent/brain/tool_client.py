@@ -5,6 +5,7 @@ Lambdas directly, and the AgentCore Gateway client (MCP) comes with #48.
 """
 
 import json
+from collections.abc import Sequence
 from typing import Any, Protocol
 
 from domain.models import (
@@ -16,6 +17,15 @@ from domain.models import (
     WeightDelta,
     WeightsSummary,
 )
+
+from .session import TitleKey
+
+# contracts.md section 5: `exclude` holds at most this many titles, the newest ones.
+MAX_EXCLUDED = 50
+
+
+def exclude_payload(exclude: Sequence[TitleKey]) -> list[dict[str, Any]]:
+    return [{"type": type, "tmdbId": tmdb_id} for type, tmdb_id in list(exclude)[-MAX_EXCLUDED:]]
 
 
 class ToolError(Exception):
@@ -32,11 +42,13 @@ class ToolClient(Protocol):
 
     def update_weights(self, profile_id: str, changes: list[WeightDelta], reason: str) -> UpdateWeightsOutput: ...
 
-    def ranked_picks(self, profile_id: str, count: int) -> TitlesOutput: ...
+    def ranked_picks(self, profile_id: str, count: int, exclude: Sequence[TitleKey] = ()) -> TitlesOutput: ...
 
     def resolve_titles(self, profile_id: str, proposals: list[Proposal]) -> ResolveTitlesOutput: ...
 
-    def similar(self, profile_id: str, type: TitleType, tmdb_id: int, count: int) -> TitlesOutput: ...
+    def similar(
+        self, profile_id: str, type: TitleType, tmdb_id: int, count: int, exclude: Sequence[TitleKey] = ()
+    ) -> TitlesOutput: ...
 
 
 def _check(result: Any) -> Any:
@@ -73,16 +85,19 @@ class LambdaToolClient:
         payload = {"profileId": profile_id, "changes": _dump(changes), "reason": reason}
         return UpdateWeightsOutput.model_validate(self._invoke("update_weights", payload))
 
-    def ranked_picks(self, profile_id: str, count: int) -> TitlesOutput:
-        return TitlesOutput.model_validate(self._invoke("ranked_picks", {"profileId": profile_id, "count": count}))
+    def ranked_picks(self, profile_id: str, count: int, exclude: Sequence[TitleKey] = ()) -> TitlesOutput:
+        payload = {"profileId": profile_id, "count": count, "exclude": exclude_payload(exclude)}
+        return TitlesOutput.model_validate(self._invoke("ranked_picks", payload))
 
     def resolve_titles(self, profile_id: str, proposals: list[Proposal]) -> ResolveTitlesOutput:
         payload = {"profileId": profile_id, "proposals": _dump(proposals)}
         return ResolveTitlesOutput.model_validate(self._invoke("resolve_titles", payload))
 
-    def similar(self, profile_id: str, type: TitleType, tmdb_id: int, count: int) -> TitlesOutput:
+    def similar(
+        self, profile_id: str, type: TitleType, tmdb_id: int, count: int, exclude: Sequence[TitleKey] = ()
+    ) -> TitlesOutput:
         payload = {"profileId": profile_id, "type": type, "tmdbId": tmdb_id, "count": count}
-        return TitlesOutput.model_validate(self._invoke("similar", payload))
+        return TitlesOutput.model_validate(self._invoke("similar", {**payload, "exclude": exclude_payload(exclude)}))
 
 
 class CompositeToolClient:
@@ -98,11 +113,13 @@ class CompositeToolClient:
     def update_weights(self, profile_id: str, changes: list[WeightDelta], reason: str) -> UpdateWeightsOutput:
         return self._weights.update_weights(profile_id, changes, reason)
 
-    def ranked_picks(self, profile_id: str, count: int) -> TitlesOutput:
-        return self._weights.ranked_picks(profile_id, count)
+    def ranked_picks(self, profile_id: str, count: int, exclude: Sequence[TitleKey] = ()) -> TitlesOutput:
+        return self._weights.ranked_picks(profile_id, count, exclude)
 
     def resolve_titles(self, profile_id: str, proposals: list[Proposal]) -> ResolveTitlesOutput:
         return self._grounding.resolve_titles(profile_id, proposals)
 
-    def similar(self, profile_id: str, type: TitleType, tmdb_id: int, count: int) -> TitlesOutput:
-        return self._grounding.similar(profile_id, type, tmdb_id, count)
+    def similar(
+        self, profile_id: str, type: TitleType, tmdb_id: int, count: int, exclude: Sequence[TitleKey] = ()
+    ) -> TitlesOutput:
+        return self._grounding.similar(profile_id, type, tmdb_id, count, exclude)

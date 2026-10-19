@@ -31,6 +31,15 @@ const MODELS = [
 const str = (description: string): SchemaDefinition => ({ type: SchemaDefinitionType.STRING, description });
 const int = (description: string): SchemaDefinition => ({ type: SchemaDefinitionType.INTEGER, description });
 const profileId = str("Butler session profile; set by the agent, never by the model");
+const exclude: SchemaDefinition = {
+  type: SchemaDefinitionType.ARRAY,
+  description: "Titles the butler already showed in this visit; set by the agent",
+  items: {
+    type: SchemaDefinitionType.OBJECT,
+    properties: { type: str("movie or series"), tmdbId: int("TMDB ID") },
+    required: ["type", "tmdbId"],
+  },
+};
 
 /** Tool input schemas of docs/contracts.md section 5, by Gateway target name. */
 const TOOL_SCHEMAS: Record<string, { tool: string; description: string; inputSchema: SchemaDefinition }> = {
@@ -88,14 +97,18 @@ const TOOL_SCHEMAS: Record<string, { tool: string; description: string; inputSch
     description: "Titles similar to one TMDB title, on the user's services",
     inputSchema: {
       type: SchemaDefinitionType.OBJECT,
-      properties: { profileId, type: str("movie or series"), tmdbId: int("TMDB ID"), count: int("Up to 10") },
+      properties: { profileId, type: str("movie or series"), tmdbId: int("TMDB ID"), count: int("Up to 10"), exclude },
       required: ["profileId", "type", "tmdbId", "count"],
     },
   },
   "ranked-picks": {
     tool: "ranked_picks",
     description: "Best titles for the user from the taste algorithm",
-    inputSchema: { type: SchemaDefinitionType.OBJECT, properties: { profileId, count: int("Up to 10") }, required: ["profileId", "count"] },
+    inputSchema: {
+      type: SchemaDefinitionType.OBJECT,
+      properties: { profileId, count: int("Up to 10"), exclude },
+      required: ["profileId", "count"],
+    },
   },
 };
 

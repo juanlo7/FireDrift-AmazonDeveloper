@@ -1,6 +1,7 @@
 """A `ToolClient` that answers from `packages/domain/fixtures/tools`, for tests and for #40 until it ships."""
 
 import json
+from collections.abc import Sequence
 from pathlib import Path
 from typing import Any
 
@@ -14,6 +15,8 @@ from domain.models import (
     WeightDelta,
     WeightsSummary,
 )
+
+from .session import TitleKey
 
 # In the repo the fixtures live in packages/domain; the Runtime package copies them next to the code.
 _PACKAGED = Path(__file__).resolve().parents[1] / "fixtures" / "tools"
@@ -53,17 +56,21 @@ class FixtureToolClient:
             self._answer("update_weights", profile_id=profile_id, changes=changes, reason=reason)
         )
 
-    def ranked_picks(self, profile_id: str, count: int) -> TitlesOutput:
-        return TitlesOutput.model_validate(self._answer("ranked_picks", profile_id=profile_id, count=count))
+    def ranked_picks(self, profile_id: str, count: int, exclude: Sequence[TitleKey] = ()) -> TitlesOutput:
+        return TitlesOutput.model_validate(
+            self._answer("ranked_picks", profile_id=profile_id, count=count, exclude=list(exclude))
+        )
 
     def resolve_titles(self, profile_id: str, proposals: list[Proposal]) -> ResolveTitlesOutput:
         return ResolveTitlesOutput.model_validate(
             self._answer("resolve_titles", profile_id=profile_id, proposals=proposals)
         )
 
-    def similar(self, profile_id: str, type: TitleType, tmdb_id: int, count: int) -> TitlesOutput:
+    def similar(
+        self, profile_id: str, type: TitleType, tmdb_id: int, count: int, exclude: Sequence[TitleKey] = ()
+    ) -> TitlesOutput:
         return TitlesOutput.model_validate(
-            self._answer("similar", profile_id=profile_id, type=type, tmdb_id=tmdb_id, count=count)
+            self._answer("similar", profile_id=profile_id, type=type, tmdb_id=tmdb_id, count=count, exclude=list(exclude))
         )
 
 

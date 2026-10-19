@@ -9,7 +9,7 @@ from brain.fixture_tools import FixtureToolClient, load_fixture
 from brain.grounding import unsupported_facts
 from brain.session import Session
 from brain.tool_client import ToolError
-from domain.models import ChipInput, TextInput, brain_event
+from domain.models import ChipInput, TextInput, TitleCard, brain_event
 from tests.scripted_model import ScriptedModel, Step
 
 PROFILE_ID = "3f6c2a7e-8b1d-4c5e-9a2f-1d7e6b4c8a90"
@@ -255,3 +255,35 @@ def test_the_models_replies_become_the_chips_and_never_the_text():
 
     run(session, ChipInput(kind="chip", chip_id="say:Something light"))
     assert json.dumps(model.requests[1]["messages"][-1]).count("Something light") == 1
+
+
+def test_a_title_is_shown_once_per_visit_and_the_tools_stop_offering_it():
+    pick = Step(tools=[("ranked_picks", {"count": 2})])
+    session, model, client = start(
+        [
+            pick,
+            Step(tools=[("show_suggestion", {"type": "series", "tmdbId": 70523, "reason": "Moody."})]),
+            Step(text=["Try Dark."]),
+            pick,
+            Step(tools=[("show_suggestion", {"type": "movie", "tmdbId": 329865, "reason": "Clever."})]),
+            Step(text=["Try Arrival."]),
+            pick,
+            Step(tools=[("show_suggestion", {"type": "series", "tmdbId": 70523, "reason": "Again."})]),
+            Step(text=["Nothing new."]),
+        ]
+    )
+    run(session, TextInput(kind="text", text="surprise me"))
+    run(session, ChipInput(kind="chip", chip_id="surprise_me"))
+    events = run(session, ChipInput(kind="chip", chip_id="surprise_me"))
+
+    assert "suggestion" not in kinds(events)
+    picks_result = json.dumps(model.requests[7]["messages"][-1])
+    assert "70523" not in picks_result and "329865" not in picks_result
+    assert "already_suggested" in json.dumps(model.requests[8]["messages"][-1])
+    *_, (tool, args) = [call for call in client.calls if call[0] == "ranked_picks"]
+    assert args["exclude"] == [("series", 70523), ("movie", 329865)]
+
+
+def test_the_title_on_screen_at_session_start_counts_as_shown():
+    dark = TitleCard.model_validate(load_fixture("ranked-picks.output.json")["titles"][0])
+    assert Session(profile_id=PROFILE_ID, current=dark).suggested == [("series", 70523)]
