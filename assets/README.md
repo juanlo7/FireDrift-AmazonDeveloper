@@ -10,7 +10,7 @@
 The nine clips in `app/assets/butler/` are the final renders of the butler: four
 seamless loops and five one-shot gestures. They live in the app, not here, because
 the Vega build packages only `app/assets/` (the app plays
-`file:///pkg/assets/butler/<name>.mp4`). A Blender script builds the model, the rig
+`/pkg/assets/butler/<name>.mp4`, a plain path: a `file://` URL fails). A Blender script builds the model, the rig
 and the animation from code, so anyone can change and render them again.
 
 | Item | Value |

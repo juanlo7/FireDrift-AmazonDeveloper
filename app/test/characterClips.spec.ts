@@ -20,7 +20,7 @@ describe('clip files', () => {
     // The build packages app/assets/ as /pkg/assets/.
     const missing = urls.filter(url => {
       try {
-        require(url.replace('file:///pkg/', '../'));
+        require(url.replace('/pkg/', '../'));
         return false;
       } catch {
         return true;
@@ -36,7 +36,7 @@ describe('clip selection', () => {
     expect(stateClip('fallback')).toBe('idle');
     expect(currentClip({...initialClipView, state: 'speaking'})).toEqual({
       name: 'speaking',
-      url: 'file:///pkg/assets/butler/speaking.mp4',
+      url: '/pkg/assets/butler/speaking.mp4',
       loop: true,
     });
     expect(currentClip({...initialClipView, state: 'fallback'})?.url).toBe(
