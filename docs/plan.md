@@ -72,7 +72,6 @@ The critical path at the start: shared types and the AWS stack come first.
 | Strands agent core: tool loop, resolve-then-show, weight changes | M | `agent/brain/` |
 | Butler WebSocket, agent server end | S | `agent/` |
 | Model choice: Haiku 4.5 vs Nova 2 Lite on a short set of demo prompts (quality, latency, cost) | S | `agent/tests/` |
-| Demo video: script, shot list, capture and edit (< 3 min) | M | — |
 
 ### Person 3 — Butler persona, gestures and character
 
@@ -93,6 +92,7 @@ the WebView, the microphone or the clip player runs there.
 | Render, compress and test the clips on the simulator (memory, loops) | S | `assets/butler/` |
 | Character in the butler screen's slot (#60): clip player with the state loops and the gestures (`createSpeechSync`), push-to-talk mic capture | M | `app/` |
 | README setup and run instructions; owner of the submission text | S | `README.md` |
+| Demo video: script, shot list, capture and edit (< 3 min) | M | — |
 
 The screen's character slot shows a placeholder until the clips land, so the
 butler screen never waits for the final renders. Only assets we have the right to use; the
@@ -102,10 +102,10 @@ README lists the AI tools and assets used for the character.
 
 | | P1 | P2 | P3 |
 |---|---|---|---|
-| Points | 24 | 18 | 13 |
+| Points | 24 | 16 | 15 |
 | Own spikes (risk) | V1, V3 | V4, AgentCore | V2, V5, Blender, Apple Silicon simulator |
 | AI share | Voice (Transcribe, Polly), grounding tools, caps and fallback, gesture sync | Agent core, weight tools, AgentCore, model choice | Persona, gesture set |
-| Heaviest period | Oct 4–18 (feed, voice, butler plumbing and screen) | Oct 1–11 (stack, algorithm, agent), Oct 19–22 (video) | Oct 4–18 (character, clips, simulator checks) |
+| Heaviest period | Oct 4–18 (feed, voice, butler plumbing and screen) | Oct 1–11 (stack, algorithm, agent) | Oct 4–18 (character, clips, simulator checks), Oct 19–22 (video) |
 | Stacks | App, backend (TS), agent voice and brain (Python), CI | Backend (TS), agent (Python) | App (TS), agent persona (Python), Blender |
 
 ## Milestones
@@ -117,7 +117,7 @@ README lists the AI tools and assets used for the character.
 | Oct 4–11 | Blocks against mocks and fixtures. |
 | Oct 12–15 | Integration: mock to real, one config value at a time. |
 | Oct 16–18 | Polish, memory and responsiveness measurements. **Feature freeze Oct 18.** |
-| Oct 19–22 | Demo video (P2 leads, all capture), README, product feedback, friction log, submission. |
+| Oct 19–22 | Demo video (P3 leads, all capture), README, product feedback, friction log, submission. |
 
 ## How we stay independent
 
