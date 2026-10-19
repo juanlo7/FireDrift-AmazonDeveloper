@@ -104,13 +104,24 @@ class BrainSession:
             session.turn.tool_results.append(session.current)
         self._agent.messages[:] = caps.trim_history(self._agent.messages)
 
+        last_text = ""
+        message_ended = False
         try:
             async with asyncio.timeout(self._config.turn_timeout_s):
                 async for event in self._agent.stream_async(prompt, limits={"turns": self._config.max_model_calls}):
                     for pending in self._drain():
                         yield pending
-                    text = event.get("data") if isinstance(event, dict) else None
+                    if not isinstance(event, dict):
+                        continue
+                    if "message" in event:
+                        message_ended = True
+                    text = event.get("data")
                     if text:
+                        # Each model message after a tool call starts with no space before it.
+                        if message_ended and last_text and not last_text[-1].isspace() and not text[0].isspace():
+                            text = " " + text
+                        message_ended = False
+                        last_text = text
                         yield BrainAnswerDelta(t="answer.delta", text=text)
         except Exception:
             logger.exception("Brain turn failed")
