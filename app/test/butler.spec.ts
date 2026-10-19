@@ -1,4 +1,4 @@
-import type { AgentToAppEvent } from '@firedrift/domain';
+import { AppToAgentEvent, type AgentToAppEvent } from '@firedrift/domain';
 import {
   base64Url,
   createButlerConnector,
@@ -152,7 +152,7 @@ class FakeWebSocket implements WebSocketLike {
 }
 
 describe('butler socket', () => {
-  const connect = (getAccessToken: () => Promise<string> = async () => 'a.b.c') => {
+  const connect = (getAccessToken: () => Promise<string> = async () => 'a.b.c', info: ButlerSessionInfo = INFO) => {
     const sockets: FakeWebSocket[] = [];
     const events: AgentToAppEvent[] = [];
     const audio: ArrayBuffer[] = [];
@@ -165,7 +165,7 @@ describe('butler socket', () => {
         return ws;
       },
     });
-    const session = open(INFO, { onEvent: e => events.push(e), onAudio: chunk => audio.push(chunk) });
+    const session = open(info, { onEvent: e => events.push(e), onAudio: chunk => audio.push(chunk) });
     return { session, sockets, events, audio };
   };
 
@@ -185,6 +185,16 @@ describe('butler socket', () => {
     ws.open();
     expect(JSON.parse(ws.sent[0] as string)).toEqual({ t: 'session.start', ...INFO });
     expect(ws.frames).toEqual(['session.start', 'chip.select']);
+  });
+
+  it('sends the title on screen in session.start when there is one', async () => {
+    const current = require('@firedrift/domain/fixtures/rest/pool.response.json').titles[0];
+    const { sockets } = connect(undefined, { ...INFO, current });
+    await flush();
+    sockets[0].open();
+
+    const start = JSON.parse(sockets[0].sent[0] as string);
+    expect(AppToAgentEvent.parse(start)).toEqual({ t: 'session.start', ...INFO, current });
   });
 
   it('sends events and microphone audio in frames under the Runtime limit', async () => {
