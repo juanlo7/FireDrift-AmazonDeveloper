@@ -1,0 +1,56 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  html, body { margin: 0; background: #000; color: #eee; font: 14px sans-serif; }
+  #player, video { width: 640px; height: 360px; background: #111; }
+  #log { position: fixed; right: 8px; top: 8px; width: 40%; white-space: pre-wrap; }
+</style>
+</head>
+<body>
+<div id="player"></div>
+<video id="plain" muted playsinline></video>
+<div id="log"></div>
+<script>
+  // Spike: does the YouTube IFrame API play a trailer in the Vega WebView, and does a
+  // plain HTML5 <video> decode at all? Each step reports to the app with postMessage.
+  var TRAILER = 'Way9Dexny3w';
+  var PLAIN_MP4 = 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4';
+  function report(line) {
+    document.getElementById('log').textContent += line + '\n';
+    if (window.ReactNativeWebView) window.ReactNativeWebView.postMessage(line);
+  }
+  window.onerror = function (message) { report('js error: ' + message); };
+  report('page loaded, origin ' + location.origin);
+
+  var plain = document.getElementById('plain');
+  report('canPlayType mp4/h264: ' + plain.canPlayType('video/mp4; codecs="avc1.42E01E"'));
+  ['loadeddata', 'playing', 'error'].forEach(function (name) {
+    plain.addEventListener(name, function () {
+      report('html5 video ' + name + (plain.error ? ' code ' + plain.error.code : ''));
+    });
+  });
+  plain.src = PLAIN_MP4;
+  plain.play().catch(function (e) { report('html5 play() rejected: ' + e); });
+
+  var tag = document.createElement('script');
+  tag.src = 'https://www.youtube.com/iframe_api';
+  tag.onerror = function () { report('iframe_api failed to load'); };
+  document.head.appendChild(tag);
+  function onYouTubeIframeAPIReady() {
+    report('iframe_api ready');
+    new YT.Player('player', {
+      videoId: TRAILER,
+      playerVars: { autoplay: 1, mute: 1, controls: 0, playsinline: 1 },
+      events: {
+        onReady: function (e) { report('yt ready'); e.target.playVideo(); },
+        onStateChange: function (e) { report('yt state ' + e.data + ' (1 = playing)'); },
+        onError: function (e) { report('yt error ' + e.data); }
+      }
+    });
+  }
+</script>
+</body>
+</html>

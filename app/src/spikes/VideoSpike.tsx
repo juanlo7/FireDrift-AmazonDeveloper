@@ -15,7 +15,7 @@ import { colors, spacing, typography } from '../theme';
  */
 
 const SOURCES = [
-  { label: 'local file', uri: 'file:///pkg/assets/clip_test.mp4' },
+  { label: 'butler idle clip', uri: 'file:///pkg/assets/butler/idle.mp4' },
   {
     label: 'remote https',
     uri: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
@@ -100,7 +100,7 @@ export const VideoSpike = () => {
     if (event.eventKeyAction === 1) {
       return;
     }
-    if (event.eventType === 'play') {
+    if (event.eventType === 'fastforward') {
       const next = sourceIndex + 1;
       setSourceIndex(next);
       load(next);
@@ -117,7 +117,7 @@ export const VideoSpike = () => {
   return (
     <View style={styles.box} testID="video-spike">
       <Text style={styles.status}>
-        VideoSpike v2: {SOURCES[sourceIndex % SOURCES.length].label}, loops {loops}. F4 (Play) switches source.
+        VideoSpike v2: {SOURCES[sourceIndex % SOURCES.length].label}, loops {loops}. Fast forward switches source.
       </Text>
       <KeplerVideoSurfaceView
         style={styles.video}

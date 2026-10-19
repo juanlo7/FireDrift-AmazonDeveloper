@@ -1,14 +1,12 @@
 import React, { useEffect } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { TVFocusProvider } from './focus';
-import { RootNavigator } from './navigation/RootNavigator';
-import { settingsStore, useSettings } from './settings';
+import { TrailerSpike } from './spikes/TrailerSpike';
+import { settingsStore } from './settings';
 import { signalQueue } from './signals';
 import { colors } from './theme';
 
 export const App = () => {
-  const settings = useSettings();
-
   useEffect(() => {
     // Signals left from an earlier run go out as soon as the app opens.
     signalQueue.start().catch(cause => console.warn('[signals] could not start the queue', cause));
@@ -19,11 +17,9 @@ export const App = () => {
   return (
     <View style={styles.root}>
       {/* Settings load from the device in a few ms; they decide the first screen. */}
-      {settings ? (
-        <TVFocusProvider>
-          <RootNavigator firstRun={!settings.setupDone} />
-        </TVFocusProvider>
-      ) : null}
+      <TVFocusProvider>
+        <TrailerSpike />
+      </TVFocusProvider>
     </View>
   );
 };

@@ -349,6 +349,20 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@amazon-devices/webview@npm:4.0.2":
+  version: 4.0.2
+  resolution: "@amazon-devices/webview@npm:4.0.2"
+  dependencies:
+    "@amazon-devices/keplerscript-turbomodule-api": "npm:^1.0.0"
+  peerDependencies:
+    "@amazon-devices/react-native-kepler": "*"
+    "@types/react": "*"
+    react: "*"
+    react-native: "*"
+  checksum: 10c0/bb51b56b83fcc0ba80c880722aacd21444c79438699afed685b2192d986a2baf90897146b0ec13d7187b335bf9518fe07b79e861993c963d162ceae5a4627082
+  languageName: node
+  linkType: hard
+
 "@aws-cdk/asset-awscli-v1@npm:2.2.292":
   version: 2.2.292
   resolution: "@aws-cdk/asset-awscli-v1@npm:2.2.292"
@@ -2184,6 +2198,7 @@ __metadata:
     "@amazon-devices/react-navigation__native": "npm:~8.0.9000000000+7.1.22"
     "@amazon-devices/react-navigation__native-stack": "npm:~8.0.9000000001"
     "@amazon-devices/security-manager-lib": "npm:1.0.1767254405-rn-83"
+    "@amazon-devices/webview": "npm:4.0.2"
     "@babel/core": "npm:^7.25.2"
     "@firedrift/domain": "workspace:*"
     "@react-native-community/cli": "npm:20.0.0"

@@ -30,6 +30,7 @@
     "@amazon-devices/react-navigation__native": "~8.0.9000000000+7.1.22",
     "@amazon-devices/react-navigation__native-stack": "~8.0.9000000001",
     "@amazon-devices/security-manager-lib": "1.0.1767254405-rn-83",
+    "@amazon-devices/webview": "4.0.2",
     "@firedrift/domain": "workspace:*",
     "react": "19.2.0",
     "react-native": "0.83.0"

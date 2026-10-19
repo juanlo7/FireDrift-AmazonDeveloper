@@ -55,6 +55,10 @@ id = "/com.amazon.kepler.keplermediadescriptor_1@IKeplermediadescriptor_1"
 [[needs.module]]
 id = "/com.amazon.kepler.w3cmedia_2@IW3cmedia_3"
 
+[[needs.module]]
+id = "/com.amazon.kepler.webview_4@IWebview_4"
+
+
 
 
 
@@ -99,6 +103,13 @@ id = "com.amazon.audio.stream"
 
 [[wants.service]]
 id = "com.amazon.audio.control"
+
+# Spike: Vega WebView (trailer player test on the Apple Silicon VVD)
+[[wants.service]]
+id = "com.amazon.webview.renderer_service"
+
+[[wants.service]]
+id = "com.amazon.inputmethod.service"
 
 [offers]
 [[offers.service]]
