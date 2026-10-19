@@ -89,7 +89,7 @@ the WebView, the microphone or the clip player runs there.
 | Gesture set: the closed list of gestures, what each one means and when the persona uses it | S | `agent/character/` |
 | Character design, model and rig in Blender (`bpy` scripts, AI-assisted) | M | `assets/blender/` |
 | Animate the four seamless loops and the one-shot gestures | L | `assets/blender/` |
-| Render, compress and test the clips on the simulator (memory, loops) | S | `assets/butler/` |
+| Render, compress and test the clips on the simulator (memory, loops) | S | `app/assets/butler/` |
 | Character in the butler screen's slot (#60): clip player with the state loops and the gestures (`createSpeechSync`), push-to-talk mic capture | M | `app/` |
 | README setup and run instructions; owner of the submission text | S | `README.md` |
 | Demo video: script, shot list, capture and edit (< 3 min) | M | — |

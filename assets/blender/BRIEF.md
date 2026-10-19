@@ -66,7 +66,7 @@ a loop with no jump.
 
 | Item | Value |
 |---|---|
-| Files | `assets/butler/{idle,listening,thinking,speaking}.mp4` and `assets/butler/gesture-{nod,shrug,shiver,excited,bow}.mp4` |
+| Files | `app/assets/butler/{idle,listening,thinking,speaking}.mp4` and `app/assets/butler/gesture-{nod,shrug,shiver,excited,bow}.mp4` |
 | Loop length | `idle` 2-6 s; `listening`, `thinking`, `speaking` 2-4 s; all seamless |
 | Gesture length | 1-2 s, rest pose at both ends |
 | Codec | H.264 MP4, profile main, yuv420p |
