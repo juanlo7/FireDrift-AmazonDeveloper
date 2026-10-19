@@ -100,7 +100,7 @@ are JSON `{ "t": <event>, ...fields }`. Audio goes in binary frames.
 | `audio.start` | `format: "pcm16", sampleRate: 16000` | Talk button pressed |
 | *(binary)* | PCM 16-bit mono chunks | While the button is held |
 | `audio.end` | — | Button released |
-| `chip.select` | `chipId` | Chip chosen with the D-pad |
+| `chip.select` | `chipId` | Chip chosen with the D-pad. A `say:<text>` chip counts as the user saying `<text>`, only if the agent offered it in its last `chips` |
 | `suggestion.feedback` | `tmdbId, type, kind: "like" \| "skip" \| "watch_now"` | Context for the agent; the app also queues the Signal |
 | `session.end` | — | Leaving the butler screen |
 
@@ -113,7 +113,7 @@ are JSON `{ "t": <event>, ...fields }`. Audio goes in binary frames.
 | `answer.delta` | `text` | Streamed answer text |
 | `speech` | `audioUrl` or binary frames, `format: "mp3"`, `marks: { timeMs, type, value }[]`, `gestures: { name: Gesture, timeMs }[]` | One per sentence; app plays it in order and shows `speaking`. Each gesture plays once at its `timeMs` (section 6) |
 | `suggestion` | `title: TitleCard, reason` | Only TMDB-resolved titles |
-| `chips` | `chips: Chip[]` | Next quick replies |
+| `chips` | `chips: Chip[]` | Next quick replies. Up to three come from the model as `{ id: "say:<text>", label: "<text>" }`, then the chips for the title on screen; with no model reply, the fixed chips (section 6) |
 | `weights.changed` | `change: WeightChange` | Shown with the Undo action |
 | `answer.done` | — | Back to `idle` after the audio ends |
 | `fallback` | `reason: "cap" \| "disabled" \| "error", message, chips: Chip[]` | App switches to chips + algorithm |
@@ -184,6 +184,11 @@ type Gesture = "nod" | "shrug" | "shiver" | "excited" | "bow";
 
 - **Marker:** `{{gesture}}` placed right before the word it goes with, for
   example `Then try this one. {{shiver}} It is creepy, but not gory.`
+- **Reply marker:** `{{reply: <text>}}` at the end of the answer, up to three,
+  each under 28 characters. The brain takes them out of the text before
+  `answer.delta`, so they are never shown or spoken, and sends them as the
+  first `chips`. With no valid reply, the chips are the fixed set of
+  `agent/brain/chips.py`.
 - **Parser (agent server):** strips every `{{...}}` from the text before
   `answer.delta` and Polly, so markers are never shown or spoken. A marker with
   a name outside `Gesture` is dropped. Max one gesture per sentence and two per
