@@ -37,6 +37,9 @@ describe('butler view', () => {
     view = butlerReducer(butlerReducer(view, { t: 'talking', talking: false }), { t: 'agent', event: fixture('answer-done') });
     expect(characterState(view)).toBe('idle');
     expect(characterState(butlerReducer(view, { t: 'listening', listening: true }))).toBe('listening');
+    // Holding the talk button wins over speech that is still playing.
+    const talking = butlerReducer(view, { t: 'talking', talking: true });
+    expect(characterState(butlerReducer(talking, { t: 'listening', listening: true }))).toBe('listening');
   });
 
   it('keeps the fallback and its chips, and answers the next chips locally', () => {
@@ -150,5 +153,27 @@ describe('butler screen', () => {
     await waitFor(() => expect(screen.getByTestId('butler-chip-more_like_this')).toBeTruthy(), { timeout: 5000 });
     expect(screen.getByTestId('butler-answer')).toHaveTextContent((fixture('answer-delta') as { text: string }).text);
     expect(screen.getByTestId('butler-watch-now')).toBeTruthy();
+  });
+
+  it('shows listening at once on the talk button, and a voice turn is answered as text with the chips back', async () => {
+    await renderApp();
+    await waitFor(() => expect(screen.getByTestId('feed-title')).toBeTruthy());
+    pressBack();
+    await waitFor(() => expect(screen.getByTestId('feed-menu')).toBeTruthy());
+    fireEvent.press(screen.getByTestId('menu-butler'));
+    await waitFor(() => expect(screen.getByTestId('screen-butler')).toBeTruthy());
+    // Wait for the session to open, as the talk button does nothing before it.
+    await waitFor(() => expect(screen.getByTestId('butler-talk')).toBeTruthy());
+    await new Promise<void>(resolve => setTimeout(resolve, 50));
+
+    fireEvent(screen.getByTestId('butler-talk'), 'pressIn');
+    expect(screen.getByTestId('butler-state')).toHaveTextContent('Listening');
+    await new Promise<void>(resolve => setTimeout(resolve, 250)); // the silent mic gives a frame
+    fireEvent(screen.getByTestId('butler-talk'), 'pressOut');
+
+    // No Polly audio in the fixtures: the answer still shows as text.
+    await waitFor(() => expect(screen.getByTestId('butler-answer')).toHaveTextContent(
+      (fixture('answer-delta') as { text: string }).text), { timeout: 5000 });
+    await waitFor(() => expect(screen.getByTestId('butler-chip-more_like_this')).toBeTruthy(), { timeout: 5000 });
   });
 });
