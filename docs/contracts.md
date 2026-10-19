@@ -1,9 +1,11 @@
 # FireDrift — Contracts
 
 The interfaces between the blocks of work (`docs/plan.md`). Names follow
-`docs/domain.md`. The TypeScript source of truth is `packages/domain`; fixtures
-for every message live in `packages/domain/fixtures/`. A change here needs a PR
-approved by the other two members.
+`docs/domain.md`. The source of truth is the zod schemas in
+`packages/domain/src` (TypeScript types come from them); the agent mirrors them
+with pydantic in `agent/domain/models.py`. Fixtures for every message live in
+`packages/domain/fixtures/`, and tests on both sides validate them. A change
+here needs a PR approved by the other two members.
 
 Conventions: JSON, `camelCase`, timestamps in ISO 8601 UTC, `type` is
 `movie | series`, `country` is ISO 3166-1 alpha-2.
@@ -37,14 +39,16 @@ interface TitleCard {
   onMyServices: boolean;
 }
 
-type SignalKind = "like" | "skip" | "watch_now" | "trailer_progress";
+type SignalKind = "like" | "skip" | "watch_now" | "dwell";
+type DwellSurface = "cover" | "trailer";  // new surfaces add a value
 
 interface Signal {
   signalId: string;             // UUID, idempotency key
   tmdbId: number;
   type: TitleType;
   kind: SignalKind;
-  ratio?: number;               // only for trailer_progress, 0–1
+  surface?: DwellSurface;       // only for dwell
+  ratio?: number;               // only for dwell: time on the surface / its cap, 0–1
   source: "feed" | "butler";
   at: string;
 }
@@ -107,7 +111,7 @@ are JSON `{ "t": <event>, ...fields }`. Audio goes in binary frames.
 | `transcript` | `text, final: boolean` | What the user said |
 | `thinking` | — | Character goes to `thinking` |
 | `answer.delta` | `text` | Streamed answer text |
-| `speech` | `audioUrl` or binary frames, `format: "mp3"`, `marks: { timeMs, type, value }[]` | One per sentence; app plays it in order and shows `speaking` |
+| `speech` | `audioUrl` or binary frames, `format: "mp3"`, `marks: { timeMs, type, value }[]`, `gestures: { name: Gesture, timeMs }[]` | One per sentence; app plays it in order and shows `speaking`. Each gesture plays once at its `timeMs` (section 6) |
 | `suggestion` | `title: TitleCard, reason` | Only TMDB-resolved titles |
 | `chips` | `chips: Chip[]` | Next quick replies |
 | `weights.changed` | `change: WeightChange` | Shown with the Undo action |
@@ -127,6 +131,19 @@ The app owns the character state: `listening` on `audio.start`, `thinking` on
 | `assets/butler/thinking.mp4` | `thinking` | Seamless loop, 2–4 s |
 | `assets/butler/speaking.mp4` | `speaking` | Seamless loop, 2–4 s, mouth moving |
 
+**Gestures** (one-shot, played once over the current state, then back to its loop):
+
+| File | Gesture | Use |
+|---|---|---|
+| `assets/butler/gesture-nod.mp4` | `nod` | Agrees, confirms a pick |
+| `assets/butler/gesture-shrug.mp4` | `shrug` | Not sure, nothing found |
+| `assets/butler/gesture-shiver.mp4` | `shiver` | Scary or dark title |
+| `assets/butler/gesture-excited.mp4` | `excited` | Strong match, big recommendation |
+| `assets/butler/gesture-bow.mp4` | `bow` | Greeting, goodbye |
+
+Gestures are 1–2 s, start and end on the same pose as the loops, and play in the
+same clip player (one clip player only, NFR-2).
+
 All clips: H.264 MP4, 1280×720 or smaller, 30 fps, no audio, same framing and
 background (or alpha if Vega supports it, see `requirements.md` V5), each under
 2 MB.
@@ -134,7 +151,9 @@ background (or alpha if Vega supports it, see `requirements.md` V5), each under
 ## 5. Agent tools (backend → agent)
 
 Lambdas exposed as MCP tools through AgentCore Gateway. `profileId` comes from
-the session, never from the model.
+the session, never from the model: the tool schemas the model sees leave it out,
+and the agent adds it to every call. A tool never throws; on bad input or a
+failure it returns `{ "error": { "code", "message" } }`.
 
 | Tool | Input | Output |
 |---|---|---|
@@ -144,5 +163,73 @@ the session, never from the model.
 | `similar` | `profileId, type, tmdbId, count` | `{ titles: TitleCard[] }` |
 | `ranked_picks` | `profileId, count` | `{ titles: TitleCard[] }` |
 
-Limits enforced by the tools, not by the prompt: max changes and max delta per
-`update_weights` call, clamp range, max proposals per call.
+Limits enforced by the tools, not by the prompt (values in the taste config):
+
+- `update_weights`: repeated features are summed; at most **3** features per
+  call (the rest are not applied); each delta is capped at **±0.5**; the
+  adjustment layer stays within **[-1, 1]**. Every feature cut by a limit is
+  listed in `clamped`. A call left with nothing to change returns the error
+  `invalid_change`.
+- `ranked_picks`: `count` up to 10.
+- `resolve_titles`: at most 5 proposals per call.
+
+## 6. Gesture cues (agent → character)
+
+The model picks gestures inside its own answer, in the same generation. No
+extra tool call and no extra model call.
+
+```ts
+type Gesture = "nod" | "shrug" | "shiver" | "excited" | "bow";
+```
+
+- **Marker:** `{{gesture}}` placed right before the word it goes with, for
+  example `Then try this one. {{shiver}} It is creepy, but not gory.`
+- **Parser (agent server):** strips every `{{...}}` from the text before
+  `answer.delta` and Polly, so markers are never shown or spoken. A marker with
+  a name outside `Gesture` is dropped. Max one gesture per sentence and two per
+  answer; extra markers are dropped.
+- **Timing:** each kept marker takes the `timeMs` of the Polly word mark that
+  follows it and is sent in that sentence's `speech.gestures`.
+- **Without the model** (`fallback`, chips only): no gestures, or a fixed one
+  (`shrug` when a cap is reached).
+
+## 7. Agent pipeline (voice ↔ brain ↔ character)
+
+Inside the agent server, three owners meet at these types
+(`packages/domain/src/pipeline.ts`, mirrored in `agent/domain/models.py`).
+
+```
+app ──audio──► voice (P1): Transcribe ──transcript──► server (P2) ──BrainInput──► brain (P2)
+                                                                                    │
+app ◄──events── server (P2) ◄── speech ── voice (P1): Polly ◄── CuedSentence ── parser (P3)
+                    ▲                                                               │
+                    └────────── suggestion, chips, weights.changed, fallback ◄──────┘
+```
+
+```ts
+type BrainInput =
+  | { kind: "text"; text: string }      // final transcript
+  | { kind: "chip"; chipId: string };
+
+// What the brain streams for one turn: the agent → app events of section 3
+// without transcript and speech. answer.delta still holds the {{gesture}} markers.
+type BrainEvent =
+  | { t: "answer.delta"; text: string }
+  | SuggestionEvent | ChipsEvent | WeightsChangedEvent | AnswerDoneEvent | FallbackEvent;
+
+// One sentence after the gesture parser: clean text to show and speak, and
+// at most one cue. charOffset is the index in `text` the gesture goes with.
+interface CuedSentence {
+  text: string;
+  cues: { gesture: Gesture; charOffset: number }[];
+}
+```
+
+- The server sends `thinking` when it passes a `BrainInput` to the brain.
+- The parser (P3) splits the raw answer into sentences, sends each clean
+  sentence as `answer.delta` to the app, and passes it as a `CuedSentence` to
+  the voice side.
+- The voice side (P1) synthesizes each `CuedSentence`, maps every cue to the
+  first Polly word mark at or after `charOffset`, and sends one `speech` event
+  with `marks` and `gestures`.
+- Any failure in a step degrades as in FR-5: the server sends `fallback`.

@@ -1,7 +1,7 @@
 # FireDrift — Project Guide
 
 FireDrift is our entry for the **Amazon Developer Hackathon 2026, Fire TV track**.
-Target mini challenges: AWS Builder and Open Source.
+Target mini challenge: AWS Builder.
 Submission deadline: **Fri, Oct 23, 2026, 12:00 pm PT** (plan to submit by Oct 22).
 
 **Product:** movies and series discovery on Fire TV (Vega OS), in two modes: a
@@ -36,7 +36,7 @@ Team: three members with equal shares of work (`docs/plan.md`).
 | Voice | Amazon Transcribe streaming in, Amazon Polly neural out (speech marks drive the animation). Push to talk |
 | Infrastructure | AWS CDK (TypeScript) |
 | Catalog and availability | TMDB API (metadata, trailers, watch providers) |
-| Shared code | Domain types and the recycled-player pool (Open Source) — in `packages/` |
+| Shared code | Domain types and fixtures — in `packages/` |
 
 ## Product rules
 
@@ -71,7 +71,9 @@ Team: three members with equal shares of work (`docs/plan.md`).
 - **Branches:** `main` = production (demo-ready). `development` = integration.
   Start every work branch from `development` as `<type>/<issue>-<slug>`.
   Open PRs against `development`. Never commit directly to `main` or `development`.
-- **Commits:** Conventional Commits, English only.
+- **Commits:** Conventional Commits, English only. Never add AI attribution:
+  no `Co-Authored-By` trailer for Claude or any AI, and no "Generated with"
+  line in commits or PR descriptions (external and internal policy).
 - **Judging fit:** every feature must run on Vega OS, work with the D-pad, and
   show up in a demo video of less than 3 minutes. Prefer creative over obvious
   (see `docs/hackathon.md`).

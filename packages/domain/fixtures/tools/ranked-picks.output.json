@@ -1,0 +1,69 @@
+{
+  "titles": [
+    {
+      "tmdbId": 70523,
+      "type": "series",
+      "name": "Dark",
+      "year": 2017,
+      "overview": "A missing child sets four families on a frantic hunt for answers as they unearth a mind-bending mystery that spans three generations.",
+      "rating": 8.4,
+      "genres": [
+        "Crime",
+        "Drama",
+        "Mystery",
+        "Sci-Fi & Fantasy"
+      ],
+      "runtimeMinutes": 55,
+      "posterUrl": "https://image.tmdb.org/t/p/w500/apbrbWs8M9lyOpJYU5WXrpFbk1Z.jpg",
+      "backdropUrl": "https://image.tmdb.org/t/p/w1280/4gD6nViEU3hZgpXTZbG0cS2Ud8Y.jpg",
+      "trailerKey": "rrwycJ08PSA",
+      "providers": [
+        {
+          "providerId": 8,
+          "name": "Netflix",
+          "logoUrl": "https://image.tmdb.org/t/p/w92/pbpMk2JmcoNnQwx5JGpXngfoWtp.jpg",
+          "offer": "subscription"
+        }
+      ],
+      "onMyServices": true
+    },
+    {
+      "tmdbId": 329865,
+      "type": "movie",
+      "name": "Arrival",
+      "year": 2016,
+      "overview": "Taking place after alien crafts land around the world, an expert linguist is recruited by the military to determine whether they come in peace or are a threat.",
+      "rating": 7.6,
+      "genres": [
+        "Drama",
+        "Science Fiction",
+        "Mystery"
+      ],
+      "runtimeMinutes": 116,
+      "posterUrl": "https://image.tmdb.org/t/p/w500/x2FJsf1ElAgr63Y3PNPtJrcmpoe.jpg",
+      "backdropUrl": "https://image.tmdb.org/t/p/w1280/yIZ1xendyqKvY3FGeeUYUd5X9Mm.jpg",
+      "trailerKey": "tFMo3UJ4B4g",
+      "providers": [
+        {
+          "providerId": 119,
+          "name": "Amazon Prime Video",
+          "logoUrl": "https://image.tmdb.org/t/p/w92/pvske1MyAoymrs5bguRfVqYiM9a.jpg",
+          "offer": "subscription"
+        },
+        {
+          "providerId": 2,
+          "name": "Apple TV",
+          "logoUrl": "https://image.tmdb.org/t/p/w92/9ghgSC0MA082EL6HLCW3GalykFD.jpg",
+          "offer": "rent"
+        },
+        {
+          "providerId": 2,
+          "name": "Apple TV",
+          "logoUrl": "https://image.tmdb.org/t/p/w92/9ghgSC0MA082EL6HLCW3GalykFD.jpg",
+          "offer": "buy"
+        }
+      ],
+      "onMyServices": true
+    }
+  ]
+}

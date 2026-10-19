@@ -1,1 +1,17 @@
 repos/
+
+# Node and Yarn
+node_modules/
+.yarn/*
+!.yarn/releases
+
+# Python
+.venv/
+agent/.build/
+__pycache__/
+.pytest_cache/
+
+# Impeccable design mocks and review captures (local only)
+.impeccable/mocks/
+.impeccable/review/
+/build/

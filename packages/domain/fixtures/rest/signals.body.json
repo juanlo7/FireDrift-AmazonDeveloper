@@ -1,0 +1,38 @@
+{
+  "signals": [
+    {
+      "signalId": "6b1f2c3d-4e5f-4a6b-8c7d-9e0f1a2b3c4d",
+      "tmdbId": 70523,
+      "type": "series",
+      "kind": "like",
+      "source": "feed",
+      "at": "2026-10-03T18:40:01Z"
+    },
+    {
+      "signalId": "7c2a3d4e-5f6a-4b7c-9d8e-0f1a2b3c4d5e",
+      "tmdbId": 329865,
+      "type": "movie",
+      "kind": "dwell",
+      "surface": "cover",
+      "ratio": 0.92,
+      "source": "feed",
+      "at": "2026-10-03T18:40:45Z"
+    },
+    {
+      "signalId": "8d3b4e5f-6a7b-4c8d-8e9f-1a2b3c4d5e6f",
+      "tmdbId": 1405,
+      "type": "series",
+      "kind": "skip",
+      "source": "feed",
+      "at": "2026-10-03T18:41:02Z"
+    },
+    {
+      "signalId": "9e4c5f6a-7b8c-4d9e-9f0a-2b3c4d5e6f7a",
+      "tmdbId": 90669,
+      "type": "series",
+      "kind": "watch_now",
+      "source": "butler",
+      "at": "2026-10-03T18:43:30Z"
+    }
+  ]
+}

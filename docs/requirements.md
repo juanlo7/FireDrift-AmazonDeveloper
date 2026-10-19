@@ -23,7 +23,7 @@ with several subscriptions, who spends more time choosing than watching.
 
 **Why it fits the judges:** AI-enhanced viewing with multi-modal UX (voice +
 D-pad + animated character), a multi-service AWS pipeline (Bedrock + AgentCore
-+ Strands + Transcribe + Polly), a public repo with a reusable package, and a
++ Strands + Transcribe + Polly), a public MIT repo, and a
 real TV constraint (low RAM) solved on purpose.
 
 ## 2. Final decisions
@@ -36,19 +36,19 @@ real TV constraint (low RAM) solved on purpose.
 | D4 | Language | **English only** (UI, butler voice, docs, submission). |
 | D5 | Country | Taken from the device region, **editable** in settings. |
 | D6 | Services filter | **Only my services** by default, with a "show everything" option. |
-| D7 | Taste signals | Like, Skip, Watch now, trailer watch time, and what the user tells the butler. |
-| D8 | Trailer player | One reused WebView with the official YouTube IFrame API. **Plan B** if it does not work on Vega: cover + synopsis with an animated backdrop. |
+| D7 | Taste signals | Like, Skip, Watch now, dwell time (on the cover with plan B), and what the user tells the butler. |
+| D8 | Trailer player | **Plan B adopted (spike V1, Oct 4):** cover + synopsis with an animated backdrop, no trailer player. The Vega WebView does not run on the VVD on Ubuntu or Intel Mac (`docs/spikes.md`). The demo is recorded on an Apple Silicon Mac. Original plan: one reused WebView with the official YouTube IFrame API. |
 | D9 | Feed ranking | Our own algorithm in Lambda (Driftune-style). **No LLM in the feed.** |
 | D10 | Butler | In the MVP. Full voice conversation with sound and an animated character. |
 | D11 | Butler voice | **Amazon Transcribe streaming** (speech → text) → agent → **Amazon Polly** neural voice (text → speech, with speech marks to sync the animation). |
 | D12 | Listening | **Push to talk** (hold a remote button). No always-on microphone. |
 | D13 | No microphone | Butler works with **quick-reply chips** (D-pad) and still **speaks** and animates. |
-| D14 | Butler animation | Made in **Blender** with help from AI tools, shipped as **short pre-rendered video clips** per butler state (`contracts.md`, section 4). |
+| D14 | Butler animation | Made in **Blender** with help from AI tools, shipped as **short pre-rendered video clips**: one loop per butler state plus one-shot **gestures** the agent picks with cue markers in its answer (`contracts.md`, sections 4 and 6). |
 | D15 | Agent runtime | **Strands agent on Amazon Bedrock AgentCore Runtime**, WebSocket streaming. Tools are our Lambdas exposed through **AgentCore Gateway**. |
 | D16 | Model | **Claude Haiku 4.5 on Bedrock**, if it is available in our region and our credits cover it. Otherwise **Amazon Nova 2 Lite**. The model ID is a config value. |
 | D17 | Languages (code) | App, Lambdas, CDK and shared types in **TypeScript**. Agent in **Python** (Strands Python SDK). |
 | D18 | Backend | AWS serverless: HTTP API Gateway, Lambda (ARM), DynamoDB on-demand, CDK. |
-| D19 | Open source | **Public repo, MIT license.** Reusable package: the recycled player pool. |
+| D19 | Open source | **Public repo, MIT license.** The reusable player pool package is dropped (Oct 12): plan B left no player to recycle, and there is no time for a replacement. The Open Source mini challenge is no longer a target. |
 
 ## 3. Scope
 
@@ -56,7 +56,7 @@ real TV constraint (low RAM) solved on purpose.
 
 | ID | Requirement |
 |---|---|
-| FR-1 | Trailer feed with one recycled player |
+| FR-1 | Cover feed browsed with the remote (D8 plan B; trailer player is stretch) |
 | FR-2 | Taste learning from signals (like, skip, watch now, watch time) |
 | FR-3 | "Watch now": open the streaming service |
 | FR-4 | My services and country |
@@ -80,27 +80,33 @@ real TV constraint (low RAM) solved on purpose.
 Acceptance criteria use Given / When / Then. Each one must pass on the Vega
 simulator or a device, with the remote only.
 
-### FR-1 Trailer feed with one recycled player
+### FR-1 Cover feed (D8 plan B)
 
 The device has little RAM. The feed is a **paced sequence**, not a smooth
-TikTok-style scroll.
+TikTok-style scroll. Since spike V1 (D8 plan B) there is **no trailer player**:
+each title is a full-screen **cover** (backdrop with a slow animated drift,
+title, year, type, runtime, rating, genres and synopsis).
 
-- Exactly **one** trailer player (WebView + YouTube IFrame API) exists at any
-  time, reused for every title.
-- Each title shows its **cover** (poster, title, year, rating, genres) for a
-  **minimum hold** (default 3 s, one constant) while the player loads behind it.
-  Then the trailer plays full screen.
-- The app prefetches metadata and images for the next 3 titles, never video.
-- Official YouTube player only: no download, re-hosting, or hidden required
-  controls.
+- Only the cover on screen holds images. The app prefetches metadata and images
+  for the next 3 titles, never video.
+- A new pool is requested when the current one is nearly used (5 titles or
+  fewer left), never per signal.
+- Remote: Up/Down = previous/next, Right = Like, Left = Skip, OK = Watch now,
+  Back = menu.
 
 Acceptance:
-- Given the feed is open, when I press Down, then the next cover appears and
-  stays at least the minimum hold before the trailer starts.
-- Given I browsed 20 titles, then there is still one player instance and memory
-  does not grow between titles (device profiler).
-- Given a trailer fails (no video, blocked, offline), then the cover stays with
-  the synopsis and the feed keeps working.
+- Given the feed is open, when I press Down, then the next cover is visible in
+  under 500 ms (NFR-3).
+- Given I browsed 20 titles, then memory does not grow between titles (device
+  profiler).
+- Given a title has no backdrop, or the pool refill fails (offline), then the
+  cover still shows its poster or synopsis and the feed keeps working.
+- Given the feed is open, then every remote key above does its action and Back
+  opens a menu with Butler, Settings and About.
+
+Original plan (stretch, Apple Silicon VVD or device only): one reused WebView
+with the official YouTube IFrame API that plays the trailer after a minimum
+cover hold of 3 s. See `docs/spikes.md`.
 
 ### FR-2 Taste learning
 
@@ -119,8 +125,10 @@ Acceptance:
 - Given I liked 5 action titles and skipped 5 romances, when the next pool
   loads, then most titles are closer to the liked genres and keywords.
 - Given I like a title, then no request is sent until a batch rule is met.
-- Given I watch a trailer to the end, then that title counts as a weak positive
-  signal; given I leave it in the first seconds, as a weak negative.
+- Given I stay on a cover for its whole cap (default 15 s), then that title
+  counts as a weak positive signal; given I leave it in under 2 s, as a weak
+  negative. Each `dwell` signal says its surface (`cover`), so a trailer
+  surface can be added later with its own cap and strength.
 - Given the backend is down, then the feed works from the last pool and the
   queue is retried later.
 
@@ -128,8 +136,9 @@ Acceptance:
 
 - The profile keeps **weights per feature**: genre, keyword, person (cast and
   director), decade, type (movie or series), runtime band.
-- Signal strength (defaults, one config object): Watch now > Like > full
-  trailer watch > early trailer exit > Skip (negative).
+- Signal strength (defaults, one config object): Watch now > Like > long
+  dwell > short dwell > Skip (negative). Dwell caps and strengths are set per
+  surface.
 - A pool is built by **quotas**, not by one sort: favourites (similar to liked
   titles), genre picks, and **discovery** titles outside the known taste.
 - Candidates come from TMDB `discover`, `recommendations` and `similar`,
@@ -188,6 +197,9 @@ series one at a time and talks with the user: "something like Dark",
 - The answer is **spoken** (Polly) and shown as short text. The character plays
   the clip of its current state: *idle*, *listening*, *thinking*, *speaking*.
   The *speaking* clip follows the Polly speech marks.
+- **Gestures:** the agent picks short gestures (`nod`, `shrug`, `shiver`,
+  `excited`, `bow`) with cue markers in its own answer, in the same model call.
+  Each gesture plays at the word it marks. Markers are never spoken or shown.
 - The current suggestion is a card (poster, title, year, short reason) with its
   trailer in the **same single trailer player** (FR-1), and a Watch now action.
 
@@ -244,6 +256,11 @@ Acceptance:
   and the algorithm, and the feed is unaffected.
 - Given a butler suggestion plays its trailer, then there is still one trailer
   player instance.
+- Given the agent proposes a scary title, then the character can play a
+  gesture (for example `shiver`) at the marked word, and the marker is not
+  spoken or shown.
+- Given the model writes an unknown gesture marker, then it is dropped and the
+  answer plays normally.
 
 ## 5. Non-functional requirements
 
@@ -284,7 +301,7 @@ Vega app (React Native, TS)
 app/        Vega React Native app
 backend/    Lambdas (TS) + CDK stack
 agent/      Strands butler agent (Python) for AgentCore
-packages/   domain (shared types + fixtures), player-pool (open source)
+packages/   domain (shared types + fixtures)
 assets/     butler clips rendered from Blender (sources in assets/blender/)
 docs/       requirements, domain, hackathon rules, workflow
 ```
@@ -338,9 +355,33 @@ Transcribe ~$0.004, Polly ~$0.005, AgentCore runtime negligible). That is about
 | V5 | Can Vega play local video clips for the butler next to the trailer WebView within memory? | Sprite sheets of the Blender renders |
 | V6 | TMDB terms for the hackathon and a later store release. | Adjust attributions or data use |
 
+Results (details in `docs/spikes.md`):
+- **V1 (Oct 4): no** on our VVD (Ubuntu): no WebView module. D8 plan B is
+  adopted. The `trailer_progress` signal is replaced by `dwell` with a
+  `surface` (FR-2). FR-1 text and the butler suggestion still describe the
+  trailer player; their owners update them in a follow-up PR.
+- **V3 (Oct 4): partly yes.** An app opens another app with
+  `pkg://<component-id>`; `canOpenURL` throws when no app handles the URL.
+  Service links (Netflix, Prime Video) need a Vega device to check; until then
+  FR-3 uses the fallback (service name and logo).
+- **V6 (Oct 4): accepted risk.** The free TMDB API is for non-commercial use,
+  which fits a hackathon entry with no fees or ads. Section 1.C of the TMDB API
+  Terms of Use also forbids using TMDB content "in connection with" an AI-based
+  application, which can cover the butler. The team accepts this risk for the
+  hackathon; a store release would need a written agreement with TMDB.
+- **V2 (Oct 10): not testable on the VVD.** The microphone privilege is
+  granted and the record stream builds, but the VVD has no audio input
+  (`STATUS_NO_INIT`, read fails). Push to talk by holding OK (`select`) is
+  possible: the remote sends key down and up. Needs a Vega device. D13 stays
+  the base design.
+- **V5 (Oct 10): not testable on the VVD.** `VideoPlayer` starts but the VVD
+  decodes no video (`MediaError` code 4 for a local MP4, 3 for `https`). Memory
+  not measured. Needs a Vega device. The sprite-sheet plan B stays as fallback.
+
 **Risks**
 - **Butler is large for the time left.** Cut order if late: conversation polish
-  → free voice input (keep chips + spoken answers) → animation states reduced to
+  → gestures (keep the four state loops) → free voice input (keep chips +
+  spoken answers) → animation states reduced to
   *idle* and *speaking*. The feed and FR-1 to FR-4 are never cut.
 - **Wrong or non-existent titles from the model.** Resolve-then-show; track the
   drop rate in tests.

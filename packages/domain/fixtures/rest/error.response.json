@@ -1,0 +1,6 @@
+{
+  "error": {
+    "code": "too_many_signals",
+    "message": "A batch holds at most 50 signals."
+  }
+}

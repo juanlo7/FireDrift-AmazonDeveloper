@@ -1,0 +1,10 @@
+{
+  "t": "session.start",
+  "profileId": "3f6c2a7e-8b1d-4c5e-9a2f-1d7e6b4c8a90",
+  "country": "ES",
+  "services": [
+    8,
+    119
+  ],
+  "hasMic": true
+}
