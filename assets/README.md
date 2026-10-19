@@ -29,7 +29,9 @@ assets/blender/render.sh idle speaking   # only these clips
 
 It needs Blender 5.2 LTS and `ffmpeg` with `libx264`. Set `BLENDER=...` or
 `FFMPEG=...` if they are not on your `PATH`. The PNG frames go to `build/butler/`
-(not in git). The script overwrites the clips in `app/assets/butler/`.
+(not in git). The script overwrites the clips in `app/assets/butler/` and their
+first frames in `app/assets/butler/stills/`. The app shows the still while a clip
+starts, because a new clip leaves the video surface black for a moment.
 
 To check a pose before a full render, render one middle frame per clip:
 

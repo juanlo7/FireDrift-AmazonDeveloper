@@ -18,10 +18,12 @@ rm -rf "$FRAMES"
 # shellcheck disable=SC2086
 "$BLENDER" -b --factory-startup -P "$ROOT/assets/blender/butler.py" -- --out "$FRAMES" --clips $CLIPS
 
-mkdir -p "$OUT"
+mkdir -p "$OUT/stills"
 for clip in $CLIPS; do
   "$FFMPEG" -loglevel error -y -framerate 30 -i "$FRAMES/$clip/f_%04d.png" \
     -c:v libx264 -profile:v main -pix_fmt yuv420p -crf 20 -preset slow \
     -an -movflags +faststart "$OUT/$clip.mp4"
+  # The first frame: the app shows it while the clip starts.
+  "$FFMPEG" -loglevel error -y -i "$OUT/$clip.mp4" -frames:v 1 -q:v 3 "$OUT/stills/$clip.jpg"
   echo "$OUT/$clip.mp4"
 done

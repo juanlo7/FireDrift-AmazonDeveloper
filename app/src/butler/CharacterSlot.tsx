@@ -1,12 +1,14 @@
 import React, { useCallback, useEffect, useReducer, useRef, useState } from 'react';
 import type { ComponentType } from 'react';
-import { Animated, Easing, StyleSheet, Text, View } from 'react-native';
+import { Animated, Easing, Image, StyleSheet, Text, View } from 'react-native';
 import type { StyleProp, ViewStyle } from 'react-native';
 import type { Gesture } from '@firedrift/domain';
 import { colors, fonts, radius, spacing, typography } from '../theme';
 import type { CharacterState } from './butlerModel';
 import { createClipPlayer } from './clipPlayer';
-import { clipReducer, currentClip, initialClipView } from './clips';
+import { clipReducer, currentClip, initialClipView, stillFor } from './clips';
+import type { ClipName } from './clips';
+import { CLIP_STILLS } from './stills';
 
 interface SurfaceViewProps {
   style?: StyleProp<ViewStyle>;
@@ -69,13 +71,14 @@ const PULSE: Record<CharacterState, [number, number, number]> = {
 export const CharacterSlot = ({ state, gesture }: CharacterSlotProps) => {
   const light = useRef(new Animated.Value(PULSE.idle[0])).current;
   const [clip, dispatch] = useReducer(clipReducer, initialClipView);
-  const [playing, setPlaying] = useState(false);
+  /** The clip the player shows now; `null` until the first one plays. */
+  const [onScreen, setOnScreen] = useState<ClipName | null>(null);
   const [SurfaceView] = useState(loadSurfaceView);
   const player = useRef<ReturnType<typeof createClipPlayer> | null>(null);
 
   if (!player.current) {
     player.current = createClipPlayer({
-      onPlaying: () => setPlaying(true),
+      onPlaying: name => setOnScreen(name),
       onEnded: () => dispatch({ t: 'gestureEnded' }),
       onError: () => dispatch({ t: 'error' }),
     });
@@ -121,7 +124,8 @@ export const CharacterSlot = ({ state, gesture }: CharacterSlotProps) => {
     return () => beat.stop();
   }, [state, light]);
 
-  const showPlaceholder = clip.failed || !playing;
+  const showPlaceholder = clip.failed || !SurfaceView;
+  const still = showPlaceholder ? null : stillFor(wanted, onScreen);
 
   return (
     <View style={styles.case} testID="butler-character" accessibilityLabel={`Butler, ${STATE_LABELS[state]}`}>
@@ -138,6 +142,7 @@ export const CharacterSlot = ({ state, gesture }: CharacterSlotProps) => {
       {SurfaceView && !clip.failed ? (
         <SurfaceView style={styles.video} onSurfaceViewCreated={onCreated} onSurfaceViewDestroyed={onDestroyed} />
       ) : null}
+      {still ? <Image source={CLIP_STILLS[still]} style={styles.video} testID="butler-still" /> : null}
       <View style={styles.plate}>
         <Text style={styles.state} testID="butler-state">
           {STATE_LABELS[state]}

@@ -6,6 +6,7 @@ import {
   currentClip,
   initialClipView,
   stateClip,
+  stillFor,
   type ClipView,
   type VideoLike,
 } from '../src/butler';
@@ -79,6 +80,16 @@ describe('clip selection', () => {
   });
 });
 
+describe('still over a clip change', () => {
+  it('shows the first frame of the clip asked for until that clip plays', () => {
+    const speaking = currentClip({...initialClipView, state: 'speaking'});
+    expect(stillFor(speaking, 'thinking')).toBe('speaking');
+    expect(stillFor(speaking, null)).toBe('speaking');
+    expect(stillFor(speaking, 'speaking')).toBeNull();
+    expect(stillFor(null, 'idle')).toBeNull();
+  });
+});
+
 describe('clip player', () => {
   const fakeVideo = () => {
     const listeners: Record<string, () => void> = {};
@@ -130,6 +141,16 @@ describe('clip player', () => {
     expect(video.loads[1]).toBe(`${clipUrl('gesture-shrug')} loop=false`);
   });
 
+  it('says which clip is playing', async () => {
+    const video = fakeVideo();
+    const h = handlers();
+    const player = createClipPlayer(h, () => video);
+    player.play(currentClip({...initialClipView, state: 'thinking'})!);
+    await player.attach('s');
+    video.fire('playing');
+    expect(h.onPlaying).toHaveBeenLastCalledWith('thinking');
+  });
+
   it('makes one player when the surface reports itself twice', async () => {
     // Vega calls onSurfaceViewCreated twice for one surface, before initialize() ends.
     let made = 0;
@@ -151,6 +172,7 @@ describe('clip player', () => {
     video.fire('ended');
     video.fire('error');
     expect(h.onPlaying).toHaveBeenCalledTimes(1);
+    expect(h.onPlaying).toHaveBeenCalledWith(null);
     expect(h.onEnded).toHaveBeenCalledTimes(1);
     expect(h.onError).toHaveBeenCalledTimes(1);
 

@@ -1,4 +1,4 @@
-import type { Clip } from './clips';
+import type { Clip, ClipName } from './clips';
 
 /** The part of the W3C media `VideoPlayer` the clip player uses, so tests can pass a fake. */
 export interface VideoLike {
@@ -15,8 +15,8 @@ export interface VideoLike {
 }
 
 export interface ClipPlayerHandlers {
-  /** A clip is on screen: the placeholder can go. */
-  onPlaying(): void;
+  /** A clip is on screen: the placeholder or the still over it can go. */
+  onPlaying(name: ClipName | null): void;
   /** A one-shot clip ended. */
   onEnded(): void;
   /** The player or a clip failed (for example the VVD cannot decode video, spike V5). */
@@ -79,7 +79,7 @@ export const createClipPlayer = (handlers: ClipPlayerHandlers, createVideo: () =
       created.setSurfaceHandle(handle);
       created.autoplay = true;
       created.muted = true;
-      created.addEventListener('playing', () => handlers.onPlaying());
+      created.addEventListener('playing', () => handlers.onPlaying(shown?.name ?? null));
       created.addEventListener('ended', () => handlers.onEnded());
       created.addEventListener('error', () => {
         console.warn('[butler] clip player error; showing the placeholder');
