@@ -72,7 +72,7 @@ player (D8 plan B).
 
 | Service | What it does in FireDrift | Why this one |
 |---|---|---|
-| Amazon Bedrock (Claude Haiku 4.5, Nova 2 Lite) | The butler's language model | Low cost per turn. Model ID is a config value, so we can switch |
+| Amazon Bedrock (Claude Haiku 4.5, Nova 2 Lite) | The butler's language model. Haiku 4.5 is the default; Nova 2 Lite is the fallback | We compared both on the demo prompts (#51): Haiku's picks fit the request, with the same time to first word. The model ID is a config value, so we can switch without a deploy |
 | Amazon Bedrock AgentCore Runtime | Hosts the Strands agent and the butler WebSocket | Managed runtime for streaming sessions; no server to run |
 | Amazon Bedrock AgentCore Gateway | Exposes our Lambdas to the agent as tools (`get_weights`, `update_weights`, `ranked_picks`) | One tool interface with IAM auth |
 | Strands Agents | The agent loop and tool calls | Open source agent SDK that runs on AgentCore |
@@ -90,8 +90,12 @@ The stack has no NAT Gateway, no VPC Lambda, no provisioned capacity and no
 always-on resource. The butler has per-session and daily caps and a kill switch
 in DynamoDB. Cost plan: `docs/requirements.md`, section 7.
 
-**TODO (P2):** add the real cost per voice turn and the total spend from the AWS
-console on Oct 22.
+Measured cost: about **$0.013 per butler turn** for the model on Haiku 4.5
+(Nova 2 Lite: $0.004), so about $0.02 per voice turn with Transcribe and
+Polly, as planned. Total AWS spend from Oct 1 to Oct 19: **$0.35** before
+credits (Secrets Manager, Polly, DynamoDB, S3).
+
+**TODO (P2):** update the total spend from the AWS console on Oct 22.
 
 ## Challenges
 
@@ -102,7 +106,8 @@ console on Oct 22.
   not test the microphone or the clips there. We built the agent end against a
   fake client and kept chips as a full alternative.
 - **Claude Haiku 4.5 blocked on Bedrock** for our account (use case form). We
-  switched to Nova 2 Lite through one config value.
+  ran on Nova 2 Lite through one config value until the form unblocked Haiku,
+  then picked the model with a test on the demo prompts (#51).
 - **The model must not invent titles.** We made "propose freely, TMDB
   confirms": nothing shows unless TMDB resolves it.
 - **Cost on $150 of credits.** We set caps per turn, per session and per day,
@@ -177,6 +182,12 @@ workaround). Summary of the Oct 4 to Oct 10 entries:
   No notice came in between.
 - boto3 with `aws login` credentials needs `botocore[crt]`, which plain `boto3`
   does not install. The AWS CLI works with the same profile.
+- The AWS Price List API has no price for Claude models on Bedrock, so the
+  cost per turn needs the pricing web page.
+
+Each entry is also a GitHub issue with steps, expected and actual results, and
+a suggestion: label
+[`friction-log`](https://github.com/juanlo7/FireDrift-AmazonDeveloper/issues?q=label%3Afriction-log).
 
 **TODO (each teammate):** add your own product feedback here for the tools you
 used, in the five questions of the form. One short block per person.
@@ -184,7 +195,7 @@ used, in the five questions of the form. One short block per person.
 | Person | Tools | Worked well | Needs work | Onboarding | Build again? |
 |---|---|---|---|---|---|
 | P1 | TODO | TODO | TODO | TODO | TODO |
-| P2 | TODO | TODO | TODO | TODO | TODO |
+| P2 | Amazon Bedrock (Converse, Claude Haiku 4.5, Nova 2 Lite), Bedrock AgentCore Runtime and Gateway, Strands Agents, Lambda, API Gateway, DynamoDB, Cognito, AWS CDK | One Converse API for both models, so switching is one config value. Strands runs our tools with little code, and its `Model` interface let us test the agent loop with a scripted model, without Bedrock. AgentCore Runtime hosts the butler WebSocket with no server to run, and Gateway exposes our Lambdas as tools. CDK deployed the whole stack from one app, one construct per owner | The Bedrock use case form appeared with no notice after Haiku 4.5 already worked. The Price List API has no Claude prices. boto3 cannot read `aws login` credentials without `botocore[crt]` | Fast: a 20-line Strands script answered on Bedrock on day 3 (spike V4, Oct 3), and the CDK stack was deployed the next day (#71). | Yes: serverless and pay per call fit a $150 budget, and the agent stack (Strands, AgentCore) let one person build the butler backend |
 | P3 | TODO | TODO | TODO | TODO | TODO |
 
 **TODO (P3, Apple Silicon Mac):** add the entries from the WebView, microphone
@@ -197,14 +208,24 @@ and clip tests on the Mac, and add any new line to `docs/feedback.md`.
 - Repository: `https://github.com/juanlo7/FireDrift-AmazonDeveloper` (public
   and `LICENSE` visible in "About": **TODO** check on Oct 22).
 - Primary track: Fire TV. Mini challenge: AWS Builder.
-- Optional feature requests for Amazon: **TODO** (description, why it matters,
-  priority).
+- Optional feature requests for Amazon:
+  - **WebView, audio input and video decoding on the Vega Virtual Device on
+    Linux and Intel Mac** (Critical): without them, a team with no Vega device
+    or Apple Silicon Mac cannot test players, voice or WebView apps.
+  - **`vega device screenshot` and a detached `vega virtual-device start`**
+    (Important): screenshots for docs and reviews, and a simulator that
+    survives the shell that started it, for scripts and CI.
+  - **Notice before Bedrock model access changes** (Important): ask for the
+    use case form before the first call works, and say so in the console.
+  - **Claude prices in the AWS Price List API** (Nice-to-have): cost tooling
+    needs one source for every Bedrock model.
 
 ## Pending list before submission (Oct 22)
 
 - [ ] Demo video link.
 - [ ] Teammates' product feedback.
 - [ ] Features list checked against the simulator or device.
-- [ ] Spend and cost per voice turn.
+- [x] Cost per voice turn (#51).
+- [ ] Total spend on Oct 22.
 - [ ] Repository public, `LICENSE` in "About".
 - [ ] README setup tested from a clean clone.
