@@ -14,6 +14,15 @@ FireDrift helps people who do not know what to watch. Browse covers with the
 remote, or talk to an animated butler. It learns your taste from what you like
 and skip, then opens the streaming app that has the title.
 
+## Inspiration
+
+You sit down to watch something, scroll catalog rows across several streaming
+apps, and still do not know what to pick. We wanted the opposite on the
+TV: one title at a time that gets closer to your taste with every press of the
+remote, and, when you would rather ask, a butler who knows your taste and
+answers out loud. It should help you pick and then hand you over to the app
+that streams the title, not compete with it.
+
 ## What it does
 
 - **Cover feed.** One title at a time, full screen, with a slow animated
@@ -115,6 +124,19 @@ credits (Secrets Manager, Polly, DynamoDB, S3).
 - **Time.** Three people, no Vega device at first. We split the work by
   contract and moved blocks between us (`docs/plan.md`).
 
+## Accomplishments that we're proud of
+
+- **The butler never shows an invented title.** The model proposes, TMDB
+  confirms: every card, poster, link and service comes from TMDB.
+- **The feed works without any AI.** Ranking is our own algorithm, so the main
+  screen has no model cost and no model latency.
+- **Cheap to run.** The whole stack cost $0.35 from Oct 1 to Oct 19, and a
+  butler turn on Claude Haiku 4.5 costs about $0.013.
+- **Three people, no blocking.** Shared schemas and fixtures first, so each of
+  us built against mocks and plugged in the real service later.
+- **The model choice is backed by data.** A small eval on the demo prompts
+  picked Claude Haiku 4.5 over Nova 2 Lite (#51).
+
 ## What we learned
 
 - A contract-first split (shared schemas and fixtures) lets three people work
@@ -124,6 +146,9 @@ credits (Secrets Manager, Polly, DynamoDB, S3).
 - A fallback path (chips) is cheaper than making the voice path perfect.
 - The Vega tools are young. Several problems had no documented answer. We kept
   them in the friction log below.
+- A scripted model behind the Strands `Model` interface tests the whole agent
+  loop and our real tools without Bedrock, and the same prompts on Bedrock give
+  a cheap model comparison. (P2)
 
 **TODO (team):** each person adds one or two lessons of their own.
 
@@ -135,6 +160,14 @@ credits (Secrets Manager, Polly, DynamoDB, S3).
 - Household profiles and group mode.
 - Spanish UI and voice.
 - Prepare a Vega Appstore release.
+
+## Built with
+
+React Native for Vega, TypeScript, Python, Strands Agents, Amazon Bedrock
+(Claude Haiku 4.5, Amazon Nova 2 Lite), Amazon Bedrock AgentCore (Runtime,
+Gateway), AWS Lambda, Amazon API Gateway, Amazon DynamoDB, Amazon Cognito,
+Amazon Transcribe, Amazon Polly, Amazon S3, AWS Secrets Manager, AWS CDK,
+TMDB API, Blender, zod, Jest, pytest.
 
 ## Product feedback and friction log
 
