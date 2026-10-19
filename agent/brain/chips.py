@@ -1,6 +1,13 @@
-"""Quick replies after every answer (FR-5). The code picks them, so there are always chips."""
+"""Quick replies after every answer (FR-5).
+
+The model may end its answer with up to three `{{reply: ...}}` markers, the
+words the user might say next. They become the first chips. The code adds the
+chips for the title on screen, and with no valid reply it keeps the fixed
+chips, so there are always chips.
+"""
 
 import json
+import re
 
 from domain.models import Chip, TitleCard
 
@@ -15,9 +22,57 @@ SURPRISE_ME = Chip(id="surprise_me", label="Surprise me")
 
 CATALOG = {chip.id: chip for chip in (MORE_LIKE_THIS, SHORTER, DIFFERENT_GENRE, TELL_ME_MORE, WATCH_NOW, SURPRISE_ME)}
 
+# A chip the model wrote: its id carries the words, so the app needs no change.
+SAY = "say:"
+MAX_REPLIES = 3
+MAX_REPLY_CHARS = 28
+REPLY_MARKER = re.compile(r"\{\{\s*reply\s*:\s*([^{}]*?)\s*\}\}\s*", re.IGNORECASE)
 
-def chips_for(session: Session) -> list[Chip]:
-    """With a title on screen, chips act on it; without one, they start a search."""
+
+class ReplyExtractor:
+    """Takes the `{{reply: ...}}` markers out of the streamed answer, before the
+    text is split into sentences, shown or spoken. Other markers pass through."""
+
+    def __init__(self) -> None:
+        self._held = ""
+        self.replies: list[str] = []
+
+    def _keep(self, match: re.Match[str]) -> str:
+        reply = match.group(1).strip()
+        known = {r.casefold() for r in self.replies}
+        if reply and len(reply) <= MAX_REPLY_CHARS and reply.casefold() not in known:
+            if len(self.replies) < MAX_REPLIES:
+                self.replies.append(reply)
+        return ""
+
+    def feed(self, text: str) -> str:
+        """The part of the text that is safe to pass on now."""
+        text = REPLY_MARKER.sub(self._keep, self._held + text)
+        # Hold back a marker that is not closed yet: it may be a reply.
+        start = text.rfind("{{")
+        if start != -1 and "}}" not in text[start:]:
+            text, self._held = text[:start], text[start:]
+        elif text.endswith("{"):
+            text, self._held = text[:-1], "{"
+        else:
+            self._held = ""
+        return text
+
+    def flush(self) -> str:
+        rest, self._held = self._held, ""
+        return REPLY_MARKER.sub(self._keep, rest)
+
+
+def reply_chip(reply: str) -> Chip:
+    return Chip(id=SAY + reply, label=reply)
+
+
+def chips_for(session: Session, replies: list[str]) -> list[Chip]:
+    """The model's replies first. With a title on screen, chips act on it; without one, they start a search."""
+    if replies:
+        said = {reply.casefold() for reply in replies}
+        title_chips = [MORE_LIKE_THIS, WATCH_NOW] if session.current else [SURPRISE_ME]
+        return [reply_chip(reply) for reply in replies] + [c for c in title_chips if c.label.casefold() not in said]
     if session.current:
         return [MORE_LIKE_THIS, TELL_ME_MORE, WATCH_NOW, SHORTER, DIFFERENT_GENRE]
     return [SURPRISE_ME, SHORTER, DIFFERENT_GENRE]
@@ -44,6 +99,11 @@ def tmdb_facts(title: TitleCard) -> dict:
 
 def chip_prompt(chip_id: str, session: Session) -> str:
     """What the model reads when the user picks a chip instead of speaking."""
+    if chip_id.startswith(SAY):
+        # Only words the agent offered: the id comes from the app, not from the model.
+        if any(chip.id == chip_id for chip in session.last_chips):
+            return chip_id.removeprefix(SAY)
+        return "The user chose a reply that is no longer offered. Suggest a title they would like."
     current = session.current
     about = f'"{current.name}" ({current.type}, tmdbId {current.tmdb_id})' if current else "nothing yet"
     prompts = {
