@@ -230,16 +230,57 @@ def test_system_prompt_has_persona_and_grounding_without_comments():
     assert "<!--" not in prompt
 
 
-def test_text_after_a_tool_call_is_a_new_sentence():
+def test_only_the_final_message_is_said():
+    # Text before a tool call made long answers and a dropped third gesture (#54, #56).
+    session, _, _ = start(
+        [
+            Step(text=["{{excited}} Let me look."], tools=[("find_titles", DARK_ISH)]),
+            Step(text=["{{shrug}} Not that. Let me search again."], tools=[("find_titles", DARK_ISH)]),
+            Step(text=["{{shiver}} Try 1899."]),
+        ]
+    )
+    events = run(session, TextInput(kind="text", text="something scary"))
+
+    assert text_of(events) == "{{shiver}} Try 1899."
+
+
+def test_the_text_next_to_show_suggestion_is_the_answer():
     session, _, _ = start(
         [
             Step(text=["Let me look."], tools=[("find_titles", DARK_ISH)]),
-            Step(text=["Try 1899."]),
+            Step(
+                text=["{{excited}} Try 1899."],
+                tools=[("show_suggestion", {"type": "series", "tmdbId": 90669, "reason": "Same creators."})],
+            ),
+            Step(text=["{{reply: Something darker}}"]),
         ]
     )
     events = run(session, TextInput(kind="text", text="something like Dark"))
 
-    assert text_of(events) == "Let me look. Try 1899."
+    assert text_of(events).strip() == "{{excited}} Try 1899."
+    assert "suggestion" in kinds(events)
+
+
+def test_two_said_messages_are_two_sentences():
+    session, _, _ = start(
+        [
+            Step(
+                text=["Here it is."],
+                tools=[("show_suggestion", {"type": "series", "tmdbId": 90669, "reason": "Same creators."})],
+            ),
+            Step(text=["1899 is a puzzle."]),
+        ]
+    )
+    events = run(session, TextInput(kind="text", text="something like Dark"))
+
+    assert text_of(events) == "Here it is. 1899 is a puzzle."
+
+
+def test_a_turn_with_no_final_message_still_says_its_last_text():
+    session, _, _ = start([Step(text=["Let me look."], tools=[("find_titles", DARK_ISH)])] * 9)
+    events = run(session, TextInput(kind="text", text="something like Dark"))
+
+    assert text_of(events) == "Let me look."
 
 
 def test_the_models_replies_become_the_chips_and_never_the_text():

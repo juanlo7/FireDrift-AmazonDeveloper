@@ -32,6 +32,8 @@ logger = logging.getLogger(__name__)
 
 HERE = Path(__file__).resolve().parent
 ERROR_MESSAGE = "I lost my train of thought. Here are some picks for you."
+# Tools that come with the answer itself, not with a search.
+ANSWER_TOOLS = frozenset({"show_suggestion"})
 
 
 def system_prompt() -> str:
@@ -104,9 +106,14 @@ class BrainSession:
             session.turn.tool_results.append(session.current)
         self._agent.messages[:] = caps.trim_history(self._agent.messages)
 
-        last_text = ""
-        message_ended = False
         replies = ReplyExtractor()
+        # The text of the model message being written. Text that comes with a search ("Let me
+        # look...") is not said: it made long answers (#54). A message whose only tool is
+        # show_suggestion is the answer: the model often writes it next to that call.
+        message = ""
+        unsaid = ""
+        said = ""
+
         try:
             async with asyncio.timeout(self._config.turn_timeout_s):
                 async for event in self._agent.stream_async(prompt, limits={"turns": self._config.max_model_calls}):
@@ -114,22 +121,33 @@ class BrainSession:
                         yield pending
                     if not isinstance(event, dict):
                         continue
-                    if "message" in event:
-                        message_ended = True
-                    text = replies.feed(event.get("data") or "")
-                    if text:
-                        # Each model message after a tool call starts with no space before it.
-                        if message_ended and last_text and not last_text[-1].isspace() and not text[0].isspace():
-                            text = " " + text
-                        message_ended = False
-                        last_text = text
-                        yield BrainAnswerDelta(t="answer.delta", text=text)
+                    message += event.get("data") or ""
+                    if "message" not in event:
+                        continue
+                    blocks = event["message"].get("content", []) if isinstance(event["message"], dict) else []
+                    tools = {block["toolUse"]["name"] for block in blocks if "toolUse" in block}
+                    if tools - ANSWER_TOOLS:
+                        unsaid = message or unsaid
+                    else:
+                        text = replies.feed(message)
+                        if text:
+                            # Each model message starts with no space before it.
+                            if said and not said[-1].isspace() and not text[0].isspace():
+                                text = " " + text
+                            said = text
+                            yield BrainAnswerDelta(t="answer.delta", text=text)
+                    message = ""
         except Exception:
             logger.exception("Brain turn failed")
             self._drain()
             yield FallbackEvent(t="fallback", reason="error", message=ERROR_MESSAGE, chips=fallback_chips())
             return
 
+        if not said and (message or unsaid):
+            # No final message (the call limit): the last text is better than silence.
+            text = replies.feed(message or unsaid)
+            if text:
+                yield BrainAnswerDelta(t="answer.delta", text=text)
         rest = replies.flush()
         if rest:
             yield BrainAnswerDelta(t="answer.delta", text=rest)

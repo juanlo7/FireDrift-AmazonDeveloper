@@ -43,3 +43,9 @@ def test_examples_pass_the_parser_with_valid_gestures_in_the_limits():
         assert all("{" not in s.text for s in sentences)
         assert all(len(s.cues) <= 1 for s in sentences)
         assert sum(len(s.cues) for s in sentences) == len(used)
+
+
+def test_persona_keeps_the_model_quiet_until_its_tools_are_done():
+    # Text before a tool call made answers of 4 to 5 sentences, and a third gesture was dropped (#54, #56).
+    assert "Do not announce a search or comment on tool results" in PERSONA
+    assert "Answer once, at the end" in PERSONA
