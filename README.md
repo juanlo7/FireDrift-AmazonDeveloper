@@ -13,6 +13,29 @@ what to watch. Two ways in, both with the remote:
 It complements streaming services; it does not replace them. Built for the
 Amazon Developer Hackathon 2026, Fire TV track. Docs: `docs/`.
 
+**Demo video (2:29):** VIDEO_URL
+
+## Try it on our live stack (judges)
+
+Our AWS stack stays up until Nov 20, 2026. No account or key is needed.
+
+1. Start the Vega Virtual Device (see "Run the app on the Vega Virtual Device").
+2. Install the prebuilt package attached to our Devpost submission
+   (`firedrift-vpkg.zip`), or build your own (step 3):
+
+   ```sh
+   vega run-app app_aarch64.vpkg com.firedrift.app.main -d VirtualDevice   # Apple Silicon Mac
+   vega run-app app_x86_64.vpkg com.firedrift.app.main -d VirtualDevice    # Linux, Intel Mac
+   ```
+
+3. From source: `app/src/config.ts` already holds the live URLs. Set
+   `apiMode: 'real'` and `butlerMode: 'real'`, then build and run as below.
+
+What to try: browse the feed (Up/Down), Like (Right), Skip (Left), Watch now
+(OK). Press Back for the menu and open the butler: "Surprise me", then
+"Something lighter" changes your taste, with Undo. The VVD has no microphone,
+so use the chips there.
+
 ## How it works
 
 ```
@@ -75,6 +98,7 @@ uv run pytest
 | `backend/infra` | AWS stack in CDK: API, table, secret, Lambdas (`backend/README.md`, "AWS stack") |
 | `tools/fake-streaming-app` | Test Vega app that Watch now can open on the VVD (`tools/fake-streaming-app/README.md`) |
 | `packages/domain` | Shared contract schemas, types and fixtures (`packages/domain/README.md`) |
+| `videos/firedrift-demo` | The demo video as a HyperFrames project: script, footage, voice, render (`SCRIPT.md`) |
 | `agent` | Butler agent in Python (`agent/README.md`) |
 
 ## Run the app on the Vega Virtual Device
@@ -156,8 +180,10 @@ Tests and checks run in CI on every PR (`docs/workflow.md`, "CI"):
   of 32 KB or less, between `audio.start` and `audio.end`. The agent sends it
   to Amazon Transcribe streaming and keeps only the final text. The stack turns
   this on (`FIREDRIFT_TRANSCRIBE=on`). If Transcribe fails, the butler answers
-  with chips. The microphone capture in the app is issue #60 and is not done
-  yet; the agent end works today with `server.fake_client`.
+  with chips. The app holds the key, records the microphone and streams it
+  (#106); the Vega Virtual Device has no audio input, so the capture is not
+  yet checked on a Vega device (#60). The agent end works today with
+  `server.fake_client`.
 - **Spoken answers.** Amazon Polly (neural voice, `Brian` by default) makes an
   MP3 and speech marks for each sentence. The marks time the gestures of the
   character. The MP3 goes to a private S3 bucket and the app plays it through a
@@ -189,8 +215,10 @@ Tests and checks run in CI on every PR (`docs/workflow.md`, "CI"):
   models: Claude Haiku 4.5 and Amazon Nova 2 Lite on Amazon Bedrock. The full, current list is on the app's About screen
   (`app/src/about/credits.ts`).
 - **Assets:** the butler character is modeled, rigged and animated by the team in
-  Blender. The TMDB logo follows the TMDB brand rules. The app plays no video
-  and never downloads or re-hosts trailers.
+  Blender. The TMDB logo follows the TMDB brand rules. The only video the app
+  plays is the butler's own clips; it never downloads or re-hosts trailers.
+  The demo video uses our own voice, royalty-free or generated sound effects,
+  and no music.
 - **Fonts:** Big Shoulders Display and Figtree (SIL OFL 1.1).
 - **Code from Amazon samples:** focus helpers adapted from
   `AmazonAppDev/vega-tv-interfaces-sample` (MIT-0). See `docs/amazon-samples.md`.
