@@ -81,7 +81,7 @@ FireDrift is a React Native for Vega app for Fire TV with two ways in, both driv
 - **The butler never shows an invented title.** Every card comes from TMDB.
 - **The AI changes your taste and you stay in control:** validated, clamped tool calls with Undo.
 - **The feed works without any AI**, so the main screen has no model cost and no model latency.
-- **Cheap to run:** about $0.013 per butler turn on Claude Haiku 4.5 and **TODO** of total AWS spend for the whole hackathon.
+- **Cheap to run:** about $0.013 per butler turn on Claude Haiku 4.5 and $1.87 of total AWS spend from Oct 1 to Oct 21, before credits.
 - **A character, not a chat box:** our own Blender butler whose gestures land on the spoken word.
 - **Three people, no blocking**, thanks to shared schemas and fixtures.
 
@@ -163,7 +163,7 @@ FireDrift is a multi-service pipeline: a Strands agent on Bedrock AgentCore that
 - AWS Secrets Manager: the TMDB token. It lives only in the backend.
 - AWS CDK and CloudWatch Logs: the whole stack as code; logs kept 7 days.
 
-Cost design: no NAT Gateway, no VPC Lambda, no provisioned capacity, no always-on resource. The feed never calls an LLM. The butler has per-session and daily turn caps and a kill switch. Measured: about $0.013 per butler turn on Claude Haiku 4.5 ($0.004 on Nova 2 Lite), about $0.02 per voice turn with Transcribe and Polly. Total AWS spend for the hackathon: TODO.
+Cost design: no NAT Gateway, no VPC Lambda, no provisioned capacity, no always-on resource. The feed never calls an LLM. The butler has per-session and daily turn caps and a kill switch. Measured: about $0.013 per butler turn on Claude Haiku 4.5 ($0.004 on Nova 2 Lite), about $0.02 per voice turn with Transcribe and Polly. Total AWS spend from Oct 1 to Oct 21: $1.87 before credits (Claude Haiku 4.5 $1.22, Secrets Manager $0.21, Polly $0.18, AgentCore $0.10, the rest under $0.10).
 
 Docs: README "How it works" and "AWS services", backend/README.md, agent/README.md, docs/contracts.md (REST, socket, tools), docs/requirements.md section 7 (cost).
 ```
@@ -267,7 +267,7 @@ agent; P3: character, clips, video).
 - AgentCore Runtime: a streaming WebSocket agent with no server to run. AgentCore Gateway: our Lambdas became tools with IAM auth.
 - Polly: natural neural voice, and speech marks that make lip and gesture sync easy.
 - Transcribe streaming: final text about 0.3 s after the key is released.
-- Lambda, HTTP API, DynamoDB on demand and CDK: the whole stack cost under one dollar for the hackathon and deploys from one command.
+- Lambda, HTTP API, DynamoDB on demand and CDK: the whole stack cost under two dollars for the hackathon and deploys from one command.
 ```
 
 **3. What needs work?**
@@ -310,7 +310,7 @@ Claude Code (Claude models) to write and review code, tests and docs; everything
 
 - [x] Feature freeze and features checked on the simulator (Oct 19).
 - [x] Cost per butler turn (#51).
-- [ ] Total AWS spend (Cost Explorer).
+- [x] Total AWS spend (Cost Explorer): $1.87, Oct 1 to Oct 21.
 - [ ] Demo video on YouTube, link here and in the README.
 - [ ] Prebuilt `.vpkg` against the live stack.
 - [ ] P1 and P3 check their product feedback.
