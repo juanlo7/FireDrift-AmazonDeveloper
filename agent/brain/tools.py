@@ -53,6 +53,14 @@ def _compact(title: TitleCard) -> dict[str, Any]:
     }
 
 
+def put_on_screen(session: Session, title: TitleCard, reason: str, emit: Callable[[BaseModel], None]) -> None:
+    """Shows a grounded title: it becomes the title on screen and is never shown again in this visit."""
+    session.turn.suggestion = title
+    session.current = title
+    session.suggested.append(title_key(title))
+    emit(SuggestionEvent(t="suggestion", title=title, reason=reason.strip()))
+
+
 def build_tools(session: Session, client: ToolClient, emit: Callable[[BaseModel], None]) -> list[Any]:
     """Strands tools bound to one session. `emit` receives brain events as soon as a tool succeeds."""
 
@@ -168,10 +176,7 @@ def build_tools(session: Session, client: ToolClient, emit: Callable[[BaseModel]
             return {"error": "not_grounded", "message": "That title is not in a tool result of this turn."}
         if session.turn.suggestion is not None:
             return {"error": "limit", "message": "One title per answer is already on screen."}
-        session.turn.suggestion = title
-        session.current = title
-        session.suggested.append((type, tmdbId))
-        emit(SuggestionEvent(t="suggestion", title=title, reason=reason.strip()))
+        put_on_screen(session, title, reason, emit)
         return {"shown": title.name}
 
     return [get_taste, change_taste, find_titles, similar_titles, ranked_picks, show_suggestion]
