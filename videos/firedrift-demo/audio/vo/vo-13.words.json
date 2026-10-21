@@ -1,0 +1,122 @@
+[
+  {
+    "text": "the",
+    "start": 0,
+    "end": 0.25,
+    "id": "w0"
+  },
+  {
+    "text": "model",
+    "start": 0.46,
+    "end": 0.66,
+    "id": "w1"
+  },
+  {
+    "text": "never",
+    "start": 0.66,
+    "end": 0.95,
+    "id": "w2"
+  },
+  {
+    "text": "invents",
+    "start": 1.29,
+    "end": 1.65,
+    "id": "w3"
+  },
+  {
+    "text": "a",
+    "start": 1.65,
+    "end": 1.73,
+    "id": "w4"
+  },
+  {
+    "text": "die-dome.",
+    "start": 1.73,
+    "end": 3.14,
+    "id": "w5"
+  },
+  {
+    "text": "TMDB",
+    "start": 3.29,
+    "end": 3.88,
+    "id": "w6"
+  },
+  {
+    "text": "confirms",
+    "start": 3.88,
+    "end": 4.79,
+    "id": "w7"
+  },
+  {
+    "text": "every",
+    "start": 5.1,
+    "end": 5.46,
+    "id": "w8"
+  },
+  {
+    "text": "peak",
+    "start": 5.46,
+    "end": 5.65,
+    "id": "w9"
+  },
+  {
+    "text": "and",
+    "start": 5.8,
+    "end": 6.28,
+    "id": "w10"
+  },
+  {
+    "text": "the",
+    "start": 6.55,
+    "end": 6.76,
+    "id": "w11"
+  },
+  {
+    "text": "feet",
+    "start": 6.76,
+    "end": 6.96,
+    "id": "w12"
+  },
+  {
+    "text": "never",
+    "start": 6.96,
+    "end": 7.52,
+    "id": "w13"
+  },
+  {
+    "text": "cause",
+    "start": 7.52,
+    "end": 7.78,
+    "id": "w14"
+  },
+  {
+    "text": "an",
+    "start": 7.78,
+    "end": 7.98,
+    "id": "w15"
+  },
+  {
+    "text": "LLM",
+    "start": 8.15,
+    "end": 8.7,
+    "id": "w16"
+  },
+  {
+    "text": "fast",
+    "start": 9.62,
+    "end": 9.67,
+    "id": "w17"
+  },
+  {
+    "text": "and",
+    "start": 10.08,
+    "end": 10.4,
+    "id": "w18"
+  },
+  {
+    "text": "cheap",
+    "start": 10.4,
+    "end": 11.62,
+    "id": "w19"
+  }
+]

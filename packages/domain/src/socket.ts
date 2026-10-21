@@ -12,6 +12,8 @@ export const SessionStartEvent = z.object({
   country: Country,
   services: z.array(z.number().int()),
   hasMic: z.boolean(),
+  /** The title on screen when the session starts, e.g. a taste pick after a fallback. */
+  current: TitleCard.optional(),
 });
 
 export const AudioStartEvent = z.object({

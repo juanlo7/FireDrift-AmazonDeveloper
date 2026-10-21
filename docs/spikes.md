@@ -43,6 +43,11 @@ Setup: Vega SDK 0.24.12112, Vega CLI 1.4.4, VVD on an Apple Silicon Mac
 - **Decision:** V5 stays **unverified**. The sprite-sheet plan B of the butler
   clips is still the fallback. Test on a Vega device: loop the clip, then
   measure memory with `vega device` memory tools before any release (NFR-2).
+- **Update (Oct 19, #137):** the VVD decodes the clips. The player opens the
+  URL string as a file name, so `file:///pkg/...` gives `No such file` in the
+  GStreamer log and `MediaError` code 4 in the app. The plain path
+  `/pkg/assets/butler/idle.mp4` plays and loops on the Apple Silicon VVD.
+  Memory is still not measured.
 - Test clip: `ffmpeg -f lavfi -i testsrc2=size=1280x720:rate=24 -t 3 -c:v libx264
   -profile:v main -pix_fmt yuv420p -an -movflags +faststart clip_test.mp4`, then
   copy it to `app/assets/`.

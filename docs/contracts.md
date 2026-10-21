@@ -96,11 +96,11 @@ are JSON `{ "t": <event>, ...fields }`. Audio goes in binary frames.
 
 | Event | Fields | Notes |
 |---|---|---|
-| `session.start` | `profileId, country, services, hasMic` | First frame |
+| `session.start` | `profileId, country, services, hasMic`, optional `current: TitleCard` | First frame. `current` is the title on screen when the session starts (a taste pick after a fallback), so chips act on it |
 | `audio.start` | `format: "pcm16", sampleRate: 16000` | Talk button pressed |
 | *(binary)* | PCM 16-bit mono chunks | While the button is held |
 | `audio.end` | — | Button released |
-| `chip.select` | `chipId` | Chip chosen with the D-pad |
+| `chip.select` | `chipId` | Chip chosen with the D-pad. A `say:<text>` chip counts as the user saying `<text>`, only if the agent offered it in its last `chips` |
 | `suggestion.feedback` | `tmdbId, type, kind: "like" \| "skip" \| "watch_now"` | Context for the agent; the app also queues the Signal |
 | `session.end` | — | Leaving the butler screen |
 
@@ -113,7 +113,7 @@ are JSON `{ "t": <event>, ...fields }`. Audio goes in binary frames.
 | `answer.delta` | `text` | Streamed answer text |
 | `speech` | `audioUrl` or binary frames, `format: "mp3"`, `marks: { timeMs, type, value }[]`, `gestures: { name: Gesture, timeMs }[]` | One per sentence; app plays it in order and shows `speaking`. Each gesture plays once at its `timeMs` (section 6) |
 | `suggestion` | `title: TitleCard, reason` | Only TMDB-resolved titles |
-| `chips` | `chips: Chip[]` | Next quick replies |
+| `chips` | `chips: Chip[]` | Next quick replies. Up to three come from the model as `{ id: "say:<text>", label: "<text>" }`, then the chips for the title on screen; with no model reply, the fixed chips (section 6) |
 | `weights.changed` | `change: WeightChange` | Shown with the Undo action |
 | `answer.done` | — | Back to `idle` after the audio ends |
 | `fallback` | `reason: "cap" \| "disabled" \| "error", message, chips: Chip[]` | App switches to chips + algorithm |
@@ -126,20 +126,20 @@ The app owns the character state: `listening` on `audio.start`, `thinking` on
 
 | File | State | Spec |
 |---|---|---|
-| `assets/butler/idle.mp4` | `idle`, `fallback` | Seamless loop, 2–6 s |
-| `assets/butler/listening.mp4` | `listening` | Seamless loop, 2–4 s |
-| `assets/butler/thinking.mp4` | `thinking` | Seamless loop, 2–4 s |
-| `assets/butler/speaking.mp4` | `speaking` | Seamless loop, 2–4 s, mouth moving |
+| `app/assets/butler/idle.mp4` | `idle`, `fallback` | Seamless loop, 2–6 s |
+| `app/assets/butler/listening.mp4` | `listening` | Seamless loop, 2–4 s |
+| `app/assets/butler/thinking.mp4` | `thinking` | Seamless loop, 2–4 s |
+| `app/assets/butler/speaking.mp4` | `speaking` | Seamless loop, 2–4 s, mouth moving |
 
 **Gestures** (one-shot, played once over the current state, then back to its loop):
 
 | File | Gesture | Use |
 |---|---|---|
-| `assets/butler/gesture-nod.mp4` | `nod` | Agrees, confirms a pick |
-| `assets/butler/gesture-shrug.mp4` | `shrug` | Not sure, nothing found |
-| `assets/butler/gesture-shiver.mp4` | `shiver` | Scary or dark title |
-| `assets/butler/gesture-excited.mp4` | `excited` | Strong match, big recommendation |
-| `assets/butler/gesture-bow.mp4` | `bow` | Greeting, goodbye |
+| `app/assets/butler/gesture-nod.mp4` | `nod` | Agrees, confirms a pick |
+| `app/assets/butler/gesture-shrug.mp4` | `shrug` | Not sure, nothing found |
+| `app/assets/butler/gesture-shiver.mp4` | `shiver` | Scary or dark title |
+| `app/assets/butler/gesture-excited.mp4` | `excited` | Strong match, big recommendation |
+| `app/assets/butler/gesture-bow.mp4` | `bow` | Greeting, goodbye |
 
 Gestures are 1–2 s, start and end on the same pose as the loops, and play in the
 same clip player (one clip player only, NFR-2).
@@ -160,8 +160,8 @@ failure it returns `{ "error": { "code", "message" } }`.
 | `get_weights` | `profileId` | `WeightsSummary` |
 | `update_weights` | `profileId, changes: { feature, delta }[], reason` | `{ change: WeightChange, clamped: string[] }` |
 | `resolve_titles` | `profileId, proposals: { title, year, type }[]` (max 5) | `{ resolved: TitleCard[], dropped: { proposal, reason: "no_match" \| "not_on_my_services" }[] }` |
-| `similar` | `profileId, type, tmdbId, count` | `{ titles: TitleCard[] }` |
-| `ranked_picks` | `profileId, count` | `{ titles: TitleCard[] }` |
+| `similar` | `profileId, type, tmdbId, count`, optional `exclude: { type, tmdbId }[]` | `{ titles: TitleCard[] }` |
+| `ranked_picks` | `profileId, count`, optional `exclude: { type, tmdbId }[]` | `{ titles: TitleCard[] }` |
 
 Limits enforced by the tools, not by the prompt (values in the taste config):
 
@@ -172,6 +172,11 @@ Limits enforced by the tools, not by the prompt (values in the taste config):
   `invalid_change`.
 - `ranked_picks`: `count` up to 10.
 - `resolve_titles`: at most 5 proposals per call.
+- `similar` and `ranked_picks`: `exclude` (at most 50) holds the titles the
+  butler already showed in this visit; the tool never returns them.
+- `ranked_picks` on a new profile (the cold start): a main genre with a
+  negative weight is left out, so "I'm tired of action" works from the first
+  turn.
 
 ## 6. Gesture cues (agent → character)
 
@@ -184,6 +189,11 @@ type Gesture = "nod" | "shrug" | "shiver" | "excited" | "bow";
 
 - **Marker:** `{{gesture}}` placed right before the word it goes with, for
   example `Then try this one. {{shiver}} It is creepy, but not gory.`
+- **Reply marker:** `{{reply: <text>}}` at the end of the answer, up to three,
+  each under 28 characters. The brain takes them out of the text before
+  `answer.delta`, so they are never shown or spoken, and sends them as the
+  first `chips`. With no valid reply, the chips are the fixed set of
+  `agent/brain/chips.py`.
 - **Parser (agent server):** strips every `{{...}}` from the text before
   `answer.delta` and Polly, so markers are never shown or spoken. A marker with
   a name outside `Gesture` is dropped. Max one gesture per sentence and two per

@@ -6,7 +6,7 @@ JSON text content.
 
 import json
 import uuid
-from collections.abc import Callable, Generator
+from collections.abc import Callable, Generator, Sequence
 from typing import Any
 
 import httpx2
@@ -24,7 +24,8 @@ from domain.models import (
     WeightsSummary,
 )
 
-from .tool_client import ToolError, _check, _dump
+from .session import TitleKey
+from .tool_client import ToolError, _check, _dump, exclude_payload
 
 # Gateway target name of each tool (backend/infra/lib/butler-construct.ts).
 TARGETS = {
@@ -79,8 +80,9 @@ class McpToolClient:
         payload = {"profileId": profile_id, "changes": _dump(changes), "reason": reason}
         return UpdateWeightsOutput.model_validate(self._call("update_weights", payload))
 
-    def ranked_picks(self, profile_id: str, count: int) -> TitlesOutput:
-        return TitlesOutput.model_validate(self._call("ranked_picks", {"profileId": profile_id, "count": count}))
+    def ranked_picks(self, profile_id: str, count: int, exclude: Sequence[TitleKey] = ()) -> TitlesOutput:
+        payload = {"profileId": profile_id, "count": count, "exclude": exclude_payload(exclude)}
+        return TitlesOutput.model_validate(self._call("ranked_picks", payload))
 
     def resolve_titles(self, profile_id: str, proposals: list[Proposal]) -> ResolveTitlesOutput:
         # The Gateway schema types `year` as an integer, so an unknown year is left out
@@ -89,9 +91,11 @@ class McpToolClient:
         payload = {"profileId": profile_id, "proposals": dumped}
         return ResolveTitlesOutput.model_validate(self._call("resolve_titles", payload))
 
-    def similar(self, profile_id: str, type: TitleType, tmdb_id: int, count: int) -> TitlesOutput:
+    def similar(
+        self, profile_id: str, type: TitleType, tmdb_id: int, count: int, exclude: Sequence[TitleKey] = ()
+    ) -> TitlesOutput:
         payload = {"profileId": profile_id, "type": type, "tmdbId": tmdb_id, "count": count}
-        return TitlesOutput.model_validate(self._call("similar", payload))
+        return TitlesOutput.model_validate(self._call("similar", {**payload, "exclude": exclude_payload(exclude)}))
 
 
 def gateway_mcp_client(gateway_url: str, region: str) -> Any:

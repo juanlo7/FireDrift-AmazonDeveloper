@@ -191,9 +191,13 @@ series one at a time and talks with the user: "something like Dark",
 - **Push to talk:** the user holds a remote button to speak. The character
   shows the *listening* state. On release, the audio is transcribed and the
   agent answers by voice.
-- **Chips:** every answer comes with quick replies chosen by the D-pad ("More
-  like this", "Shorter", "Different genre", "Tell me more", "Watch now"). Chips
-  always work, with or without a microphone (D13).
+- **Chips:** every answer comes with quick replies chosen by the D-pad. The
+  model proposes up to three that fit its answer (after a question, they
+  answer it). With a title on screen, "More like this" and "Watch now" stay.
+  With no model reply, or in a fallback, the fixed chips stay ("More like
+  this", "Shorter", "Different genre", "Tell me more", "Watch now"). Chips
+  always work, with or without a microphone (D13). Changed on Oct 19, after
+  the feature freeze (#141): fixed chips did not match the butler's questions.
 - The answer is **spoken** (Polly) and shown as short text. The character plays
   the clip of its current state: *idle*, *listening*, *thinking*, *speaking*.
   The *speaking* clip follows the Polly speech marks.

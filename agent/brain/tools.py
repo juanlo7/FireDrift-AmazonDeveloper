@@ -58,6 +58,8 @@ def build_tools(session: Session, client: ToolClient, emit: Callable[[BaseModel]
 
     def remember(titles: list[TitleCard], raw: Any) -> list[dict[str, Any]]:
         session.turn.tool_results.append(raw)
+        # A title shown earlier in this visit is never offered again, so the model cannot pick it.
+        titles = [t for t in titles if title_key(t) not in session.suggested]
         for title in titles:
             session.turn.grounded[title_key(title)] = title
         return [_compact(t) for t in titles]
@@ -130,7 +132,8 @@ def build_tools(session: Session, client: ToolClient, emit: Callable[[BaseModel]
             count: How many, up to 10.
         """
         try:
-            result = client.similar(session.profile_id, type, tmdbId, max(1, min(count, 10)))
+            wanted = max(1, min(count, 10))
+            result = client.similar(session.profile_id, type, tmdbId, wanted, session.suggested)
         except (ToolError, ValidationError) as cause:
             return failure(cause)
         return {"titles": remember(result.titles, result)}
@@ -143,7 +146,8 @@ def build_tools(session: Session, client: ToolClient, emit: Callable[[BaseModel]
             count: How many, up to 10.
         """
         try:
-            result = client.ranked_picks(session.profile_id, max(1, min(count, 10)))
+            wanted = max(1, min(count, 10))
+            result = client.ranked_picks(session.profile_id, wanted, session.suggested)
         except (ToolError, ValidationError) as cause:
             return failure(cause)
         return {"titles": remember(result.titles, result)}
@@ -157,16 +161,16 @@ def build_tools(session: Session, client: ToolClient, emit: Callable[[BaseModel]
             tmdbId: TMDB ID from find_titles, similar_titles or ranked_picks in this turn.
             reason: One short line on why it fits the user.
         """
+        if (type, tmdbId) in session.suggested:
+            return {"error": "already_suggested", "message": "You showed that title in this visit. Pick a different one."}
         title = session.turn.grounded.get((type, tmdbId))
         if title is None:
             return {"error": "not_grounded", "message": "That title is not in a tool result of this turn."}
-        on_screen = session.turn.on_screen
-        if on_screen is not None and title_key(on_screen) == (type, tmdbId):
-            return {"error": "already_shown", "message": "That title is already on screen. Pick a different one."}
         if session.turn.suggestion is not None:
             return {"error": "limit", "message": "One title per answer is already on screen."}
         session.turn.suggestion = title
         session.current = title
+        session.suggested.append((type, tmdbId))
         emit(SuggestionEvent(t="suggestion", title=title, reason=reason.strip()))
         return {"shown": title.name}
 

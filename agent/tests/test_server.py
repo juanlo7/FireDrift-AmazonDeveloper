@@ -6,7 +6,7 @@ import pytest
 from starlette.testclient import TestClient
 
 from brain.brain import Brain
-from brain.fixture_tools import FixtureToolClient
+from brain.fixture_tools import FixtureToolClient, title_from_fixtures
 from domain.models import agent_to_app_event
 from server import app as server_app
 from server.app import create_app
@@ -210,3 +210,15 @@ def test_the_fake_app_client_plays_fixtures_against_a_real_server():
         server.should_exit = True
         thread.join(timeout=5)
     assert events[0].t == "thinking" and events[-1].t == "answer.done"
+
+
+def test_session_start_can_bring_the_title_on_screen_for_the_chips():
+    on_screen = title_from_fixtures(90669).model_dump(by_alias=True, mode="json")
+    client, model, _ = client_for([Step(text=["Try another one."])])
+    with client.websocket_connect("/ws") as ws:
+        ws.send_json({**START, "current": on_screen})
+        ws.send_json({"t": "chip.select", "chipId": "more_like_this"})
+        receive_turn(ws)
+
+    prompt = json.dumps(model.requests[0]["messages"])
+    assert '\\"1899\\" (series, tmdbId 90669)' in prompt

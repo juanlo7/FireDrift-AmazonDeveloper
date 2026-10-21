@@ -42,3 +42,9 @@ class Session:
     notes: list[str] = field(default_factory=list)
     turn: TurnState = field(default_factory=TurnState)
     last_chips: list[Chip] = field(default_factory=list)
+    # Every title the butler put on screen in this visit, oldest first: never shown twice.
+    suggested: list[TitleKey] = field(default_factory=list)
+
+    def __post_init__(self) -> None:
+        if self.current and title_key(self.current) not in self.suggested:
+            self.suggested.append(title_key(self.current))

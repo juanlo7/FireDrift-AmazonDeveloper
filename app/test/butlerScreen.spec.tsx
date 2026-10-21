@@ -2,10 +2,13 @@ import { fireEvent, screen, waitFor } from '@testing-library/react-native';
 import type { AgentToAppEvent, TitleCard } from '@firedrift/domain';
 import {
   butlerReducer,
+  canRetryAgent,
   characterState,
   createSpeechPlayer,
+  SPEECH_GAP_MS,
   initialView,
   pickFromPool,
+  RETRY_MS,
   STARTER_CHIPS,
   type AudioLike,
   type ButlerView,
@@ -42,11 +45,25 @@ describe('butler view', () => {
     expect(characterState(butlerReducer(talking, { t: 'listening', listening: true }))).toBe('listening');
   });
 
-  it('keeps the fallback and its chips, and answers the next chips locally', () => {
+  it('shows the fallback with its chips until the next turn goes to the agent, then returns to idle', () => {
     const view = play(fixture('fallback'));
     expect(characterState(view)).toBe('fallback');
     expect(view.answer).toBe((fixture('fallback') as { message: string }).message);
-    expect(butlerReducer(view, { t: 'asked' })).toBe(view);
+
+    const retried = butlerReducer(view, { t: 'asked' });
+    expect(retried.fallback).toBeNull();
+    expect(characterState(retried)).toBe('thinking');
+    const done = [fixture('answer-delta'), fixture('chips'), fixture('answer-done')]
+      .reduce<ButlerView>((v, event) => butlerReducer(v, { t: 'agent', event }), retried);
+    expect(characterState(done)).toBe('idle');
+  });
+
+  it('tries the agent again after a fallback, but not over a cap and not too soon', () => {
+    const fallback = (reason: 'cap' | 'disabled' | 'error') => ({ reason, message: '' });
+    expect(canRetryAgent(fallback('error'), RETRY_MS)).toBe(true);
+    expect(canRetryAgent(fallback('disabled'), RETRY_MS + 1)).toBe(true);
+    expect(canRetryAgent(fallback('error'), RETRY_MS - 1)).toBe(false);
+    expect(canRetryAgent(fallback('cap'), RETRY_MS * 10)).toBe(false);
   });
 
   it('starts with chips that need no title on screen, and shows taste changes until cleared', () => {
@@ -133,8 +150,39 @@ describe('speech player', () => {
     await flush();
     expect(audio.played).toEqual(['https://a/1.mp3', 'https://a/3.mp3']);
     audio.fire('error');
-    expect(talking).toEqual([true, false]);
     expect(onIdle).toHaveBeenCalledTimes(1);
+    await new Promise<void>(resolve => setTimeout(resolve, SPEECH_GAP_MS + 20));
+    expect(talking).toEqual([true, false]);
+  });
+
+  it('keeps talking through the whole answer, also when the next sentence comes a moment late', async () => {
+    const audio = fakeAudio();
+    const talking: boolean[] = [];
+    const player = createSpeechPlayer({ onTalking: t => talking.push(t) }, () => audio);
+
+    player.enqueue(speech('https://a/1.mp3'));
+    player.enqueue(speech('https://a/2.mp3'));
+    await flush();
+    audio.time = 0.3;
+    audio.fire('timeupdate');
+    audio.time = 30; // after the last word of the sentence
+    audio.fire('timeupdate');
+    audio.fire('ended');
+    await flush();
+    audio.time = 0;
+    audio.fire('timeupdate'); // before the first word of sentence 2
+    audio.fire('ended');
+    await flush();
+
+    // The agent sends sentence 3 just after sentence 2 ends.
+    player.enqueue(speech('https://a/3.mp3'));
+    await flush();
+    expect(audio.played).toEqual(['https://a/1.mp3', 'https://a/2.mp3', 'https://a/3.mp3']);
+    expect(talking).toEqual([true]);
+
+    audio.fire('ended');
+    await new Promise<void>(resolve => setTimeout(resolve, SPEECH_GAP_MS + 20));
+    expect(talking).toEqual([true, false]);
   });
 });
 

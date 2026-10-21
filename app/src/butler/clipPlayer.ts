@@ -1,4 +1,4 @@
-import type { Clip } from './clips';
+import type { Clip, ClipName } from './clips';
 
 /** The part of the W3C media `VideoPlayer` the clip player uses, so tests can pass a fake. */
 export interface VideoLike {
@@ -15,8 +15,8 @@ export interface VideoLike {
 }
 
 export interface ClipPlayerHandlers {
-  /** A clip is on screen: the placeholder can go. */
-  onPlaying(): void;
+  /** A clip is on screen: the placeholder or the still over it can go. */
+  onPlaying(name: ClipName | null): void;
   /** A one-shot clip ended. */
   onEnded(): void;
   /** The player or a clip failed (for example the VVD cannot decode video, spike V5). */
@@ -36,6 +36,8 @@ const createW3cVideo = (): VideoLike => {
 export const createClipPlayer = (handlers: ClipPlayerHandlers, createVideo: () => VideoLike = createW3cVideo) => {
   let video: VideoLike | null = null;
   let surface: string | null = null;
+  /** The surface whose player is still starting. */
+  let attaching: string | null = null;
   let wanted: Clip | null = null;
   let shown: Clip | null = null;
   let disposed = false;
@@ -64,6 +66,9 @@ export const createClipPlayer = (handlers: ClipPlayerHandlers, createVideo: () =
   };
 
   const attach = async (handle: string) => {
+    // Vega reports one surface twice; a second player on it fights the first for the frames.
+    if (handle === surface || handle === attaching) return;
+    attaching = handle;
     try {
       const created = createVideo();
       await created.initialize();
@@ -74,7 +79,7 @@ export const createClipPlayer = (handlers: ClipPlayerHandlers, createVideo: () =
       created.setSurfaceHandle(handle);
       created.autoplay = true;
       created.muted = true;
-      created.addEventListener('playing', () => handlers.onPlaying());
+      created.addEventListener('playing', () => handlers.onPlaying(shown?.name ?? null));
       created.addEventListener('ended', () => handlers.onEnded());
       created.addEventListener('error', () => {
         console.warn('[butler] clip player error; showing the placeholder');
@@ -87,6 +92,8 @@ export const createClipPlayer = (handlers: ClipPlayerHandlers, createVideo: () =
     } catch (cause) {
       console.warn('[butler] clip player unavailable', cause);
       handlers.onError();
+    } finally {
+      attaching = null;
     }
   };
 

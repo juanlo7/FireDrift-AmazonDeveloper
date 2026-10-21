@@ -1,0 +1,44 @@
+<!doctype html>
+<html>
+  <head><meta charset="UTF-8" /></head>
+  <body>
+    <template>
+      <link rel="stylesheet" href="styles/brand.css" />
+      <style>
+        #root { position: absolute; inset: 0; }
+        #root .vid { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; object-fit: cover; display: block; }
+        #root .cam { position: absolute; inset: 0; }
+        #root .pst { position: absolute; left: 786px; top: 0; width: 184px; height: 277px; object-fit: cover; border-radius: 6px; opacity: 0; display: block; }
+        #root .pst-fit { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; transform: scale(0.40625); transform-origin: 0 0; }
+        .f08-cam { position: absolute; inset: 0; }
+        .f08-iris { position: absolute; inset: 0; background: radial-gradient(circle at 26% 50%, rgba(13,12,11,0) 0px, rgba(13,12,11,0) 380px, rgba(13,12,11,1) 470px); }
+        .f08-black { position: absolute; inset: 0; background: var(--bg); }
+        .f08-copy { position: absolute; left: 1040px; top: 340px; }
+        .f08-title { font-size: 210px; }
+        .f08-sub { margin-bottom: 26px; }
+      </style>
+      <div id="root" data-composition-id="f08" data-width="1920" data-height="1080">
+        <div class="fd-scene" id="f08-scene">
+
+          <div class="f08-cam" id="f08-cam"><video id="f08-v" class="clip vid" src="assets/footage/butler-open.mp4" muted playsinline data-start="0.000" data-duration="4.386" data-media-start="4.000" data-track-index="0"></video></div>
+          <div class="f08-iris" id="f08-iris"></div>
+          <div class="f08-black" id="f08-black"></div>
+          <div class="f08-copy"><div class="fd-label f08-sub" id="f08-sub">Still can't decide?</div><div class="fd-marquee f08-title" id="f08-title">Your <span class="fd-amber">butler</span></div></div>
+        </div>
+      </div>
+      <script>
+        const tl = gsap.timeline({ paused: true });
+        const D = 4.386;
+        // Every scene enters with a small settle (one soft camera move per cut).
+        tl.fromTo("#f08-scene", { scale: 1.02 }, { scale: 1, duration: 0.6, ease: "power2.out" }, 0);
+
+        tl.fromTo("#f08-cam", { scale: 1.15 }, { scale: 1.1, duration: D, ease: "none", transformOrigin: "20% 50%" }, 0);
+        tl.fromTo("#f08-black", { opacity: 1 }, { opacity: 0, duration: 0.5, ease: "power2.out" }, 0.1);
+        tl.fromTo("#f08-iris", { scale: 0.2, transformOrigin: "26% 50%" }, { scale: 1, duration: 0.7, ease: "expo.out" }, 0.1);
+        tl.fromTo("#f08-sub", { opacity: 0 }, { opacity: 1, duration: 0.3 }, 0.3);
+        tl.fromTo("#f08-title", { y: 120, opacity: 0 }, { y: 0, opacity: 1, duration: 0.45, ease: "power4.out" }, 2.390);
+        window.__timelines["f08"] = tl;
+      </script>
+    </template>
+  </body>
+</html>

@@ -1,0 +1,51 @@
+<!doctype html>
+<html>
+  <head><meta charset="UTF-8" /></head>
+  <body>
+    <template>
+      <link rel="stylesheet" href="styles/brand.css" />
+      <style>
+        #root { position: absolute; inset: 0; }
+        #root .vid { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; object-fit: cover; display: block; }
+        #root .cam { position: absolute; inset: 0; }
+        #root .pst { position: absolute; left: 786px; top: 0; width: 184px; height: 277px; object-fit: cover; border-radius: 6px; opacity: 0; display: block; }
+        #root .pst-fit { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; transform: scale(0.40625); transform-origin: 0 0; }
+        .f09-tag { position: absolute; left: 60px; top: 30px; padding: 14px 24px; border-radius: 12px; background: rgba(13,12,11,0.85); border: 2px solid rgba(255,181,71,0.5); }
+        .f09-quote { position: absolute; left: 200px; right: 200px; bottom: 50px; text-align: center; font-size: 50px; font-weight: 600; font-style: italic; color: var(--glow); background: rgba(13,12,11,0.88); border-radius: 18px; padding: 16px 30px; }
+      </style>
+      <div id="root" data-composition-id="f09" data-width="1920" data-height="1080">
+        <div class="fd-scene" id="f09-scene">
+
+          <div class="cam" id="f09-a-cam"><video id="f09-a" class="clip vid" src="assets/footage/butler-surprise.mp4" muted playsinline data-start="0.000" data-duration="1.800" data-media-start="1.780" data-track-index="0"></video><img class="pst" id="f09-a-pst" src="assets/stills/poster-missing.jpg" /></div><div class="cam" id="f09-b-cam"><video id="f09-b" class="clip vid" src="assets/footage/butler-surprise.mp4" muted playsinline data-start="1.800" data-duration="2.416" data-media-start="12.000" data-track-index="0"></video><img class="pst" id="f09-b-pst" src="assets/stills/poster-missing.jpg" /></div><div class="cam" id="f09-c-cam"><video id="f09-c" class="clip vid" src="assets/footage/butler-surprise.mp4" muted playsinline data-start="4.216" data-duration="6.309" data-media-start="13.950" data-track-index="0"></video><img class="pst" id="f09-c-pst" src="assets/stills/poster-missing.jpg" /></div><div class="cam" id="f09-d-cam"><video id="f09-d" class="clip vid" src="assets/footage/butler-surprise.mp4" muted playsinline data-start="10.525" data-duration="7.741" data-media-start="20.600" data-track-index="0" data-playback-rate="0.687"></video><img class="pst" id="f09-d-pst" src="assets/stills/poster-missing.jpg" /></div>
+          <div class="fd-label f09-tag" id="f09-tag">Live answer · Claude Haiku 4.5 · Amazon Polly</div>
+          <div class="f09-quote" id="f09-quote">“How about this one? A clever mystery series with plenty of twists.”</div>
+        </div>
+      </div>
+      <script>
+        const tl = gsap.timeline({ paused: true });
+        const D = 18.266;
+        // Every scene enters with a small settle (one soft camera move per cut).
+        tl.fromTo("#f09-scene", { scale: 1.02 }, { scale: 1, duration: 0.6, ease: "power2.out" }, 0);
+
+        tl.fromTo("#f09-a-cam", { scale: 1 }, { scale: 1.08, duration: 1.800, ease: "power1.inOut", transformOrigin: "55% 40%" }, 0);
+        tl.fromTo("#f09-b-cam", { scale: 1.12 }, { scale: 1.15, duration: 2.416, ease: "none", transformOrigin: "22% 45%" }, 1.800);
+        tl.fromTo("#f09-c-cam", { scale: 1 }, { scale: 1.04, duration: 6.309, ease: "none", transformOrigin: "60% 40%" }, 4.216);
+        tl.fromTo("#f09-d-cam", { scale: 1.04 }, { scale: 1.1, duration: 1.2, ease: "power1.inOut", transformOrigin: "70% 75%" }, 13.725);
+        tl.set("#f09-a-pst", { opacity: 0 }, 0.000);
+        tl.set("#f09-a-pst", { opacity: 0 }, 1.800);
+        tl.set("#f09-b-pst", { opacity: 0 }, 1.800);
+        tl.set("#f09-b-pst", { opacity: 1, top: "364px" }, 3.850);
+        tl.set("#f09-b-pst", { opacity: 0 }, 4.216);
+        tl.set("#f09-c-pst", { opacity: 0 }, 4.216);
+        tl.set("#f09-c-pst", { opacity: 1, top: "364px" }, 4.316);
+        tl.set("#f09-c-pst", { opacity: 1, top: "264px" }, 4.716);
+        tl.set("#f09-c-pst", { opacity: 0 }, 10.525);
+        tl.set("#f09-d-pst", { opacity: 1, top: "264px" }, 10.525);
+        tl.set("#f09-d-pst", { opacity: 0 }, 18.266);
+        tl.fromTo("#f09-tag", { opacity: 0, y: -30 }, { opacity: 1, y: 0, duration: 0.3 }, 4.416);
+        tl.fromTo("#f09-quote", { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.3 }, 4.666).to("#f09-quote", { opacity: 0, duration: 0.25 }, 10.325);
+        window.__timelines["f09"] = tl;
+      </script>
+    </template>
+  </body>
+</html>

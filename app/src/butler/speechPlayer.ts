@@ -17,8 +17,14 @@ export interface AudioLike {
   addEventListener(type: string, listener: () => void): void;
 }
 
+/**
+ * After the last queued sentence, talking stops only when no new sentence comes within
+ * this long: the agent sends the next sentence while Polly reads the one before.
+ */
+export const SPEECH_GAP_MS = 700;
+
 export interface SpeechPlayerHandlers {
-  /** Words are being said: the character shows `speaking`. */
+  /** An answer is being said, from its first word to its last sentence: the character shows `speaking`. */
   onTalking(talking: boolean): void;
   onGesture?(gesture: Gesture): void;
   /** Every queued sentence has played (or failed). */
@@ -46,16 +52,24 @@ export const createSpeechPlayer = (
   let current: ReturnType<typeof createSpeechSync> | null = null;
   let talking = false;
   let disposed = false;
+  let quiet: ReturnType<typeof setTimeout> | undefined;
 
   const setTalking = (value: boolean) => {
+    if (quiet) clearTimeout(quiet);
+    quiet = undefined;
     if (value === talking) return;
     talking = value;
     handlers.onTalking(value);
   };
 
+  /** Each clip change shows on screen, so the pauses between sentences keep `speaking`. */
+  const stopTalkingSoon = () => {
+    if (!talking || quiet) return;
+    quiet = setTimeout(() => setTalking(false), SPEECH_GAP_MS);
+  };
+
   const finish = () => {
     current = null;
-    setTalking(false);
     playNext();
   };
 
@@ -68,7 +82,7 @@ export const createSpeechPlayer = (
         created.addEventListener('timeupdate', () => {
           if (!current) return;
           const moment = current.at(created.currentTime * 1000);
-          setTalking(moment.talking);
+          if (moment.talking) setTalking(true);
           moment.gestures.forEach(gesture => handlers.onGesture?.(gesture));
         });
         created.addEventListener('ended', finish);
@@ -88,6 +102,7 @@ export const createSpeechPlayer = (
     if (disposed || current) return;
     const next = queue.shift();
     if (!next) {
+      stopTalkingSoon();
       handlers.onIdle?.();
       return;
     }
@@ -115,6 +130,9 @@ export const createSpeechPlayer = (
 
   return {
     enqueue: (speech: SpeechEvent) => {
+      // The answer goes on: keep `speaking` while this sentence loads.
+      if (quiet) clearTimeout(quiet);
+      quiet = undefined;
       queue.push(speech);
       playNext();
     },
@@ -124,11 +142,12 @@ export const createSpeechPlayer = (
       if (current) {
         current = null;
         audio?.pause();
-        setTalking(false);
       }
+      setTalking(false);
     },
     dispose: () => {
       disposed = true;
+      if (quiet) clearTimeout(quiet);
       queue.length = 0;
       current = null;
       audio?.pause();

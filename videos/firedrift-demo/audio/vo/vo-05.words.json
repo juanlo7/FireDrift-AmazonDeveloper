@@ -1,0 +1,98 @@
+[
+  {
+    "text": "One",
+    "start": 0.44,
+    "end": 0.67,
+    "id": "w0"
+  },
+  {
+    "text": "title,",
+    "start": 0.8,
+    "end": 2.14,
+    "id": "w1"
+  },
+  {
+    "text": "full",
+    "start": 2.14,
+    "end": 2.43,
+    "id": "w2"
+  },
+  {
+    "text": "screen,",
+    "start": 2.43,
+    "end": 3.07,
+    "id": "w3"
+  },
+  {
+    "text": "right,",
+    "start": 3.07,
+    "end": 3.75,
+    "id": "w4"
+  },
+  {
+    "text": "like,",
+    "start": 3.94,
+    "end": 4.26,
+    "id": "w5"
+  },
+  {
+    "text": "left,",
+    "start": 4.79,
+    "end": 5.03,
+    "id": "w6"
+  },
+  {
+    "text": "skip.",
+    "start": 5.48,
+    "end": 6.07,
+    "id": "w7"
+  },
+  {
+    "text": "Every",
+    "start": 6.76,
+    "end": 6.84,
+    "id": "w8"
+  },
+  {
+    "text": "press",
+    "start": 6.84,
+    "end": 7.34,
+    "id": "w9"
+  },
+  {
+    "text": "teaches",
+    "start": 7.34,
+    "end": 8.11,
+    "id": "w10"
+  },
+  {
+    "text": "it",
+    "start": 8.11,
+    "end": 8.34,
+    "id": "w11"
+  },
+  {
+    "text": "your",
+    "start": 8.34,
+    "end": 8.64,
+    "id": "w12"
+  },
+  {
+    "text": "taste.",
+    "start": 8.64,
+    "end": 9,
+    "id": "w13"
+  },
+  {
+    "text": "No",
+    "start": 9.44,
+    "end": 9.85,
+    "id": "w14"
+  },
+  {
+    "text": "login.",
+    "start": 9.85,
+    "end": 12,
+    "id": "w15"
+  }
+]

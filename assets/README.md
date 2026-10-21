@@ -2,14 +2,15 @@
 
 | Path | What |
 |---|---|
-| `butler/` | The nine butler clips the app plays (four loops, five gestures). |
 | `blender/` | The design brief and the tools that make the clips. |
 | `fonts/` | Bundled fonts (SIL Open Font License), if present. |
 
 ## Butler clips
 
-The nine clips in `butler/` are the final renders of the butler: four seamless
-loops and five one-shot gestures. A Blender script builds the model, the rig
+The nine clips in `app/assets/butler/` are the final renders of the butler: four
+seamless loops and five one-shot gestures. They live in the app, not here, because
+the Vega build packages only `app/assets/` (the app plays
+`/pkg/assets/butler/<name>.mp4`, a plain path: a `file://` URL fails). A Blender script builds the model, the rig
 and the animation from code, so anyone can change and render them again.
 
 | Item | Value |
@@ -28,7 +29,9 @@ assets/blender/render.sh idle speaking   # only these clips
 
 It needs Blender 5.2 LTS and `ffmpeg` with `libx264`. Set `BLENDER=...` or
 `FFMPEG=...` if they are not on your `PATH`. The PNG frames go to `build/butler/`
-(not in git). The script overwrites the clips in `butler/`.
+(not in git). The script overwrites the clips in `app/assets/butler/` and their
+first frames in `app/assets/butler/stills/`. The app shows the still while a clip
+starts, because a new clip leaves the video surface black for a moment.
 
 To check a pose before a full render, render one middle frame per clip:
 

@@ -5,6 +5,7 @@ import { api } from '../api';
 import {
   butlerReducer,
   butlerSessionInfo,
+  canRetryAgent,
   characterState,
   CharacterSlot,
   createPushToTalk,
@@ -16,7 +17,10 @@ import {
   openSilentMic,
   openVegaMic,
   pickFromPool,
+  type ButlerHandlers,
   type ButlerSession,
+  type ButlerSessionInfo,
+  type ButlerView,
 } from '../butler';
 import { FocusableButton, Screen } from '../components';
 import { config } from '../config';
@@ -39,7 +43,8 @@ const titleKey = (title: TitleCard) => `${title.type}:${title.tmdbId}`;
  * FR-5: the butler. One session per visit (the feed warms it up). Chips with
  * the D-pad; the answer is shown and spoken; a suggestion card with Watch now;
  * Undo and Reset for taste changes. When the agent is off or over a cap, the
- * chips are answered from the taste algorithm, so the screen is never blank.
+ * chips are answered from the taste algorithm, so the screen is never blank;
+ * after a fallback, the next input tries the agent again in a new session.
  */
 export const ButlerScreen = () => {
   const [view, dispatch] = useReducer(butlerReducer, initialView);
@@ -50,22 +55,38 @@ export const ButlerScreen = () => {
   const speech = useRef<ReturnType<typeof createSpeechPlayer> | null>(null);
   const shown = useRef(new Set<string>());
   const pool = useRef<TitleCard[]>([]);
-  const fallback = useRef(false);
-  fallback.current = view.fallback !== null;
+  const sessionInfo = useRef<ButlerSessionInfo | null>(null);
+  const handlers = useRef<ButlerHandlers | null>(null);
+  const fallback = useRef<{ state: NonNullable<ButlerView['fallback']>; at: number } | null>(null);
+  const onScreen = useRef<TitleCard | null>(null);
+  onScreen.current = view.suggestion?.title ?? null;
+
+  /** The session for the next input, or null to answer from the taste algorithm. */
+  const agentSession = useCallback((): ButlerSession | null => {
+    const off = fallback.current;
+    if (!off) return session.current;
+    if (!sessionInfo.current || !handlers.current || !canRetryAgent(off.state, Date.now() - off.at)) return null;
+    session.current?.end();
+    // The new session must know the taste pick on screen, or its chips act on nothing.
+    const current = onScreen.current ?? undefined;
+    session.current = openButlerSession({ ...sessionInfo.current, current }, handlers.current);
+    fallback.current = null;
+    return session.current;
+  }, []);
 
   // Hold to talk. `listening` shows before the mic opens; no mic leaves the chips working.
   const talk = useMemo(
     () =>
       createPushToTalk({
         openMic,
-        getSession: () => (fallback.current ? null : session.current),
+        getSession: agentSession,
         onListening: listening => {
           if (listening) speech.current?.stop();
           dispatch({ t: 'listening', listening });
         },
         onSent: () => dispatch({ t: 'asked' }),
       }),
-    [],
+    [agentSession],
   );
   useRemoteKeys(event => {
     if (!TALK_KEYS.includes(event.eventType)) return;
@@ -85,18 +106,23 @@ export const ButlerScreen = () => {
       },
     });
     speech.current = player;
+    handlers.current = {
+      onEvent: event => {
+        if (event.t === 'speech') player.enqueue(event);
+        else dispatch({ t: 'agent', event });
+        if (event.t === 'suggestion') shown.current.add(titleKey(event.title));
+        if (event.t === 'fallback') {
+          fallback.current = { state: { reason: event.reason, message: event.message }, at: Date.now() };
+        }
+      },
+    };
     butlerSessionInfo()
       .then(info => {
-        if (left) return;
-        session.current = openButlerSession(info, {
-          onEvent: event => {
-            if (event.t === 'speech') player.enqueue(event);
-            else dispatch({ t: 'agent', event });
-            if (event.t === 'suggestion') shown.current.add(titleKey(event.title));
-          },
-        });
+        if (left || !handlers.current) return;
+        sessionInfo.current = info;
+        session.current = openButlerSession(info, handlers.current);
       })
-      .catch(() => dispatch({ t: 'agent', event: fallbackEvent() }));
+      .catch(() => handlers.current?.onEvent(fallbackEvent()));
     return () => {
       left = true;
       talk.release();
@@ -129,13 +155,14 @@ export const ButlerScreen = () => {
       openWatchNow(view.suggestion.title);
       return;
     }
-    if (view.fallback || !session.current) {
+    const target = agentSession();
+    if (!target) {
       answerFromTaste(chip, view.suggestion?.title ?? null);
       return;
     }
     speech.current?.stop();
     dispatch({ t: 'asked' });
-    session.current.send({ t: 'chip.select', chipId: chip.id });
+    target.send({ t: 'chip.select', chipId: chip.id });
   };
 
   const openWatchNow = (title: TitleCard) => {
@@ -219,7 +246,7 @@ export const ButlerScreen = () => {
                 testID={`butler-chip-${chip.id}`}
               />
             ))}
-            {view.fallback ? null : (
+            {view.fallback?.reason === 'cap' ? null : (
               <FocusableButton
                 label={view.listening ? 'Listening…' : 'Hold to talk'}
                 onPressIn={() => talk.press({ autoRelease: false })}

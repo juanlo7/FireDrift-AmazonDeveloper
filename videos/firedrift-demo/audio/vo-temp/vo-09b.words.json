@@ -1,0 +1,86 @@
+[
+  {
+    "text": "He",
+    "start": 0.04,
+    "end": 0.16,
+    "id": "w0"
+  },
+  {
+    "text": "picks",
+    "start": 0.27,
+    "end": 0.56,
+    "id": "w1"
+  },
+  {
+    "text": "one",
+    "start": 0.56,
+    "end": 0.7,
+    "id": "w2"
+  },
+  {
+    "text": "title,",
+    "start": 0.8,
+    "end": 1.35,
+    "id": "w3"
+  },
+  {
+    "text": "tells",
+    "start": 1.41,
+    "end": 1.76,
+    "id": "w4"
+  },
+  {
+    "text": "you",
+    "start": 1.76,
+    "end": 2,
+    "id": "w5"
+  },
+  {
+    "text": "why,",
+    "start": 2,
+    "end": 2.39,
+    "id": "w6"
+  },
+  {
+    "text": "and",
+    "start": 2.39,
+    "end": 2.55,
+    "id": "w7"
+  },
+  {
+    "text": "the",
+    "start": 2.6,
+    "end": 2.73,
+    "id": "w8"
+  },
+  {
+    "text": "chips",
+    "start": 2.73,
+    "end": 3,
+    "id": "w9"
+  },
+  {
+    "text": "change",
+    "start": 3.03,
+    "end": 3.36,
+    "id": "w10"
+  },
+  {
+    "text": "with",
+    "start": 3.36,
+    "end": 3.58,
+    "id": "w11"
+  },
+  {
+    "text": "every",
+    "start": 3.58,
+    "end": 3.85,
+    "id": "w12"
+  },
+  {
+    "text": "answer.",
+    "start": 3.85,
+    "end": 4.32,
+    "id": "w13"
+  }
+]

@@ -37,6 +37,8 @@ export interface TastePoolInput {
   config: TasteConfig;
   size: number;
   now: number;
+  /** Titles the butler already showed in this visit (`ranked_picks`). */
+  exclude?: { type: TitleType; tmdbId: number }[];
 }
 
 export interface TastePoolDeps {
@@ -226,7 +228,7 @@ const interleave = (byBucket: Candidate[][]) => {
 
 /** The taste algorithm (requirements 4.1), version `taste-1`. */
 export const buildTastePool = async (deps: TastePoolDeps, input: TastePoolInput): Promise<TastePoolResult> => {
-  const { profile, signals, recentPools, layers, config, size, now } = input;
+  const { profile, signals, recentPools, layers, config, size, now, exclude = [] } = input;
 
   // 1. Learned layer from the signals' title features.
   const signalTitles = [
@@ -253,9 +255,10 @@ export const buildTastePool = async (deps: TastePoolDeps, input: TastePoolInput)
   const seen = new Set([
     ...signals.map((s) => titleKey(s.type, s.tmdbId)),
     ...recentPools.flatMap((pool) => pool.titles.map((t) => titleKey(t.type, t.tmdbId))),
+    ...exclude.map((t) => titleKey(t.type, t.tmdbId)),
   ]);
   if (!Object.values(weights).some((w) => w > 0)) {
-    const titles = await buildColdStartPool(deps, { profile, seen, size });
+    const titles = await buildColdStartPool(deps, { profile, seen, size, weights });
     return { algorithmVersion: COLD_START_VERSION, titles, learned };
   }
 

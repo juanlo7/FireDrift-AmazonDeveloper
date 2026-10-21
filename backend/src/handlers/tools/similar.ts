@@ -23,10 +23,11 @@ interface SimilarDeps {
 /**
  * `similar` → `{ titles }` for "More like this": TMDB recommendations for one
  * title (then TMDB "similar" if they are not enough), as full title cards,
- * keeping only titles on the profile's services. Never the seed or a repeat.
+ * keeping only titles on the profile's services. Never the seed, a repeat, or a
+ * title the butler already showed (`exclude`).
  */
 export const createSimilarTool = (deps: () => SimilarDeps) =>
-  createToolHandler<SimilarInput, SimilarOutput>(SimilarInput, async ({ profileId, type, tmdbId, count }) => {
+  createToolHandler<SimilarInput, SimilarOutput>(SimilarInput, async ({ profileId, type, tmdbId, count, exclude = [] }) => {
     const { tmdb, catalog, profiles } = deps();
     const wanted = Math.min(count, MAX_SIMILAR);
     const visibility = await loadVisibility(profiles, profileId);
@@ -38,9 +39,12 @@ export const createSimilarTool = (deps: () => SimilarDeps) =>
 
     const titles: TitleCard[] = [];
     const tried = new Set([tmdbId]);
+    const shown = new Set(exclude.filter((t) => t.type === type).map((t) => t.tmdbId));
     for (const source of sources) {
       if (titles.length >= wanted || tried.size > MAX_SIMILAR_LOOKUPS) break;
-      const ids = [...new Set((await source()).results.map((item: TmdbListItem) => item.id))].filter((id) => !tried.has(id));
+      const ids = [...new Set((await source()).results.map((item: TmdbListItem) => item.id))].filter(
+        (id) => !tried.has(id) && !shown.has(id),
+      );
       for (let i = 0; i < ids.length && titles.length < wanted; i += LOOKUP_BATCH) {
         const batch = ids.slice(i, i + LOOKUP_BATCH).slice(0, MAX_SIMILAR_LOOKUPS + 1 - tried.size);
         if (batch.length === 0) break;

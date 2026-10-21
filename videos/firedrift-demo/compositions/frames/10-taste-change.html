@@ -1,0 +1,57 @@
+<!doctype html>
+<html>
+  <head><meta charset="UTF-8" /></head>
+  <body>
+    <template>
+      <link rel="stylesheet" href="styles/brand.css" />
+      <style>
+        #root { position: absolute; inset: 0; }
+        #root .vid { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; object-fit: cover; display: block; }
+        #root .cam { position: absolute; inset: 0; }
+        #root .pst { position: absolute; left: 786px; top: 0; width: 184px; height: 277px; object-fit: cover; border-radius: 6px; opacity: 0; display: block; }
+        #root .pst-fit { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; transform: scale(0.40625); transform-origin: 0 0; }
+        .f10-ring { position: absolute; left: 1440px; top: 652px; width: 196px; height: 102px; border: 6px solid var(--glow); border-radius: 52px; box-shadow: 0 0 50px rgba(255,217,160,0.9); }
+        .f10-meter { position: absolute; left: 120px; top: 90px; width: 640px; padding: 28px 34px; border-radius: 22px; background: rgba(13,12,11,0.9); border: 3px solid rgba(255,181,71,0.5); }
+        .f10-row { display: flex; align-items: center; gap: 24px; margin-top: 14px; }
+        .f10-name { width: 190px; font-size: 52px; }
+        .f10-track { flex: 1; height: 28px; border-radius: 14px; background: var(--raised); overflow: hidden; }
+        .f10-fill { width: 100%; height: 100%; display: block; transform-origin: left center; }
+        .f10-down { background: var(--red); } .f10-up { background: var(--amber); }
+      </style>
+      <div id="root" data-composition-id="f10" data-width="1920" data-height="1080">
+        <div class="fd-scene" id="f10-scene">
+
+          <div class="cam" id="f10-a-cam"><video id="f10-a" class="clip vid" src="assets/footage/butler-lighter.mp4" muted playsinline data-start="0.000" data-duration="3.563" data-media-start="0.310" data-track-index="0"></video><img class="pst" id="f10-a-pst" src="assets/stills/poster-missing.jpg" /></div><div class="cam" id="f10-b-cam"><video id="f10-b" class="clip vid" src="assets/footage/butler-lighter.mp4" muted playsinline data-start="3.563" data-duration="4.647" data-media-start="5.900" data-track-index="0"></video><img class="pst" id="f10-b-pst" src="assets/stills/poster-missing.jpg" /><div class="f10-ring" id="f10-ring"></div></div><div class="cam" id="f10-c-cam"><video id="f10-c" class="clip vid" src="assets/footage/butler-lighter.mp4" muted playsinline data-start="8.210" data-duration="2.060" data-media-start="11.600" data-track-index="0"></video><img class="pst" id="f10-c-pst" src="assets/stills/poster-missing.jpg" /></div>
+          <div class="f10-meter" id="f10-meter">
+            <div class="fd-label">Your taste</div>
+            <div class="f10-row"><span class="fd-marquee f10-name">Heavy</span><span class="f10-track"><span class="f10-fill f10-down" id="f10-down"></span></span></div>
+            <div class="f10-row"><span class="fd-marquee f10-name">Lighter</span><span class="f10-track"><span class="f10-fill f10-up" id="f10-up"></span></span></div>
+          </div>
+        </div>
+      </div>
+      <script>
+        const tl = gsap.timeline({ paused: true });
+        const D = 10.27;
+        // Every scene enters with a small settle (one soft camera move per cut).
+        tl.fromTo("#f10-scene", { scale: 1.02 }, { scale: 1, duration: 0.6, ease: "power2.out" }, 0);
+
+        tl.fromTo("#f10-a-cam", { scale: 1.04 }, { scale: 1.08, duration: 3.563, ease: "none", transformOrigin: "62% 40%" }, 0);
+        tl.fromTo("#f10-b-cam", { scale: 1 }, { scale: 1.12, duration: 1.2, ease: "power1.inOut", transformOrigin: "72% 65%" }, 5.610);
+        tl.fromTo("#f10-ring", { opacity: 0, scale: 1.4 }, { opacity: 1, scale: 1, duration: 0.3, ease: "back.out(2)" }, 6.760).to("#f10-ring", { opacity: 0, duration: 0.2 }, 8.110);
+        tl.fromTo("#f10-meter", { x: -760 }, { x: 0, duration: 0.45, ease: "expo.out" }, 3.763).to("#f10-meter", { x: -760, duration: 0.3, ease: "power2.in" }, 5.910);
+        tl.fromTo("#f10-down", { scaleX: 0.75 }, { scaleX: 0.3, duration: 0.6, ease: "power2.inOut" }, 4.163);
+        tl.fromTo("#f10-up", { scaleX: 0.35 }, { scaleX: 0.85, duration: 0.6, ease: "power2.inOut" }, 4.163);
+        tl.fromTo("#f10-c-cam", { scale: 1.04 }, { scale: 1.1, duration: 2.060, ease: "none", transformOrigin: "75% 30%" }, 8.210);
+        tl.set("#f10-a-pst", { opacity: 1, top: "264px" }, 0.000);
+        tl.set("#f10-a-pst", { opacity: 1, top: "364px" }, 2.790);
+        tl.set("#f10-a-pst", { opacity: 0 }, 3.563);
+        tl.set("#f10-b-pst", { opacity: 1, top: "364px" }, 3.563);
+        tl.set("#f10-b-pst", { opacity: 1, top: "310px" }, 3.813);
+        tl.set("#f10-b-pst", { opacity: 0 }, 8.210);
+        tl.set("#f10-c-pst", { opacity: 0 }, 8.210);
+        tl.set("#f10-c-pst", { opacity: 0 }, 10.270);
+        window.__timelines["f10"] = tl;
+      </script>
+    </template>
+  </body>
+</html>

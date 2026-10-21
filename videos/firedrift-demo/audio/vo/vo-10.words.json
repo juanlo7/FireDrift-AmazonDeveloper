@@ -1,0 +1,110 @@
+[
+  {
+    "text": "Ask",
+    "start": 0.4,
+    "end": 0.45,
+    "id": "w0"
+  },
+  {
+    "text": "for",
+    "start": 0.45,
+    "end": 0.76,
+    "id": "w1"
+  },
+  {
+    "text": "something",
+    "start": 1.23,
+    "end": 2.02,
+    "id": "w2"
+  },
+  {
+    "text": "lighter",
+    "start": 2.02,
+    "end": 2.45,
+    "id": "w3"
+  },
+  {
+    "text": "and",
+    "start": 2.88,
+    "end": 3.28,
+    "id": "w4"
+  },
+  {
+    "text": "hit",
+    "start": 3.28,
+    "end": 3.55,
+    "id": "w5"
+  },
+  {
+    "text": "change",
+    "start": 3.68,
+    "end": 4.13,
+    "id": "w6"
+  },
+  {
+    "text": "your",
+    "start": 4.13,
+    "end": 4.45,
+    "id": "w7"
+  },
+  {
+    "text": "taste",
+    "start": 4.58,
+    "end": 4.87,
+    "id": "w8"
+  },
+  {
+    "text": "life",
+    "start": 5.46,
+    "end": 5.64,
+    "id": "w9"
+  },
+  {
+    "text": "with",
+    "start": 5.64,
+    "end": 5.76,
+    "id": "w10"
+  },
+  {
+    "text": "an",
+    "start": 6.24,
+    "end": 6.31,
+    "id": "w11"
+  },
+  {
+    "text": "under",
+    "start": 6.31,
+    "end": 6.87,
+    "id": "w12"
+  },
+  {
+    "text": "button",
+    "start": 6.87,
+    "end": 7.56,
+    "id": "w13"
+  },
+  {
+    "text": "you",
+    "start": 7.56,
+    "end": 7.67,
+    "id": "w14"
+  },
+  {
+    "text": "stay",
+    "start": 7.97,
+    "end": 7.98,
+    "id": "w15"
+  },
+  {
+    "text": "in",
+    "start": 7.98,
+    "end": 8.1,
+    "id": "w16"
+  },
+  {
+    "text": "control",
+    "start": 8.11,
+    "end": 8.49,
+    "id": "w17"
+  }
+]

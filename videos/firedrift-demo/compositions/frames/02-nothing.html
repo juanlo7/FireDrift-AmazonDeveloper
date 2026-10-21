@@ -1,0 +1,41 @@
+<!doctype html>
+<html>
+  <head><meta charset="UTF-8" /></head>
+  <body>
+    <template>
+      <link rel="stylesheet" href="styles/brand.css" />
+      <style>
+        #root { position: absolute; inset: 0; }
+        #root .vid { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; object-fit: cover; display: block; }
+        #root .cam { position: absolute; inset: 0; }
+        #root .pst { position: absolute; left: 786px; top: 0; width: 184px; height: 277px; object-fit: cover; border-radius: 6px; opacity: 0; display: block; }
+        #root .pst-fit { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; transform: scale(0.40625); transform-origin: 0 0; }
+        .f02 { position: absolute; inset: 0; background: #050404; display: flex; align-items: center; justify-content: center; }
+        .f02-word { font-size: 330px; color: var(--red); text-shadow: 0 0 80px rgba(255,107,94,0.35); }
+        .f02-line { position: absolute; left: 0; right: 0; top: 538px; height: 4px; background: rgba(246,239,228,0.85); }
+        .f02-tag { position: absolute; left: 120px; bottom: 100px; }
+      </style>
+      <div id="root" data-composition-id="f02" data-width="1920" data-height="1080">
+        <div class="fd-scene" id="f02-scene">
+
+          <div class="f02">
+            <div class="f02-line" id="f02-line"></div>
+            <div class="fd-marquee f02-word" id="f02-word">Nothing.</div>
+            <div class="fd-label f02-tag" id="f02-tag">Watch time tonight: 0 min</div>
+          </div>
+        </div>
+      </div>
+      <script>
+        const tl = gsap.timeline({ paused: true });
+        const D = 4.872;
+        // Every scene enters with a small settle (one soft camera move per cut).
+        tl.fromTo("#f02-scene", { scale: 1.02 }, { scale: 1, duration: 0.6, ease: "power2.out" }, 0);
+
+        tl.fromTo("#f02-line", { scaleX: 1, opacity: 1 }, { scaleX: 0, opacity: 0.2, duration: 0.45, ease: "power3.in" }, 0);
+        tl.fromTo("#f02-word", { scale: 1.2, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.3, ease: "power3.out" }, 3.270);
+        tl.fromTo("#f02-tag", { opacity: 0 }, { opacity: 1, duration: 0.3 }, 3.670);
+        window.__timelines["f02"] = tl;
+      </script>
+    </template>
+  </body>
+</html>

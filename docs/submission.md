@@ -1,231 +1,319 @@
-# Submission text (draft)
+# Submission text
 
-Draft for the Devpost form. The final text comes after the feature freeze
-(Oct 18) and after each teammate adds their product feedback. Items marked
-**TODO** need a person. Do not state a feature here until it runs on the
-simulator or device (`CLAUDE.md`, "Done means checked").
+The text of the Devpost form, field by field, in the order of the form. Edit it
+here first, then copy it to Devpost. Devpost keeps the submission editable until
+the deadline (Fri, Oct 23, 2026, 12:00 pm PT). Only state a feature here when it
+runs on the simulator or device (`CLAUDE.md`, "Done means checked").
 
-Track: Fire TV. Mini challenge: AWS Builder.
-Repository: `juanlo7/FireDrift-AmazonDeveloper` (public, MIT).
+- Devpost project: `FireDrift` (team: juanlo7, JJavierBS, wall3n).
+- Track: Fire TV. Mini challenges: AWS Builder and Open Source.
+- Repository: <https://github.com/juanlo7/FireDrift-AmazonDeveloper> (public, MIT).
+- Demo video: **TODO** YouTube link.
 
-## Elevator pitch
+## 1. Project overview
 
-FireDrift helps people who do not know what to watch. Browse covers with the
-remote, or talk to an animated butler. It learns your taste from what you like
-and skip, then opens the streaming app that has the title.
+**Project name:** FireDrift
+
+**Elevator pitch** (200 characters at most):
+
+> Can't pick what to watch? FireDrift is a Fire TV feed that learns your taste
+> from the remote, plus an animated AI butler you talk to. Then one button opens
+> the app that streams it.
+
+## 2. Project details
+
+### About the project (Markdown)
+
+```markdown
+## Inspiration
+
+You sit down to watch something, scroll catalog rows across five streaming apps, and twenty minutes later you still have not picked. It is not a content problem. It is a choosing problem.
+
+We wanted the opposite on the TV: one title at a time that gets closer to your taste with every press of the remote, and, when you would rather ask, a butler who knows your taste and answers out loud. FireDrift helps you pick, then hands you over to the app that streams the title. It complements streaming services; it does not compete with them.
 
 ## What it does
 
-- **Cover feed.** One title at a time, full screen, with a slow animated
-  backdrop, synopsis, rating and genres. Up and Down move between titles.
-  Right is Like. Left is Skip. OK is Watch now. (FR-1)
-- **Taste learning.** Like, skip, watch now and time on a cover change the
-  taste weights. The ranking is our own algorithm in Lambda. The feed never
-  calls an LLM. (FR-2)
-- **Watch now.** The app shows which of your services stream the title and
-  opens that app. TMDB and JustWatch supply the availability. (FR-3)
-- **My services and country.** The feed shows only your services by default.
-  Country comes from the device region and can be changed. (FR-4)
-- **The butler.** An animated character that suggests titles, says why, and
-  changes your taste when you ask ("I am tired of horror"). Every change has
-  Undo. (FR-5)
-  - It listens with push to talk (Amazon Transcribe streaming) and speaks with
-    Amazon Polly. Quick-reply chips always work, with or without a microphone.
-  - The model proposes `{title, year, type}`. TMDB must confirm each title
-    before it shows. All metadata, links and availability come from TMDB, not
-    from the model text.
-  - If the agent, the voice or a spending cap fails, the butler falls back to
-    chips backed by the ranking algorithm. The feed is not affected.
-- **D-pad first.** Every screen works with the remote and shows focus.
-- **Private.** No account. A random device ID, a country, your services and
-  your signals. Voice audio is never stored.
+FireDrift is a React Native for Vega app for Fire TV with two ways in, both driven by the remote.
 
-**TODO (team):** list only what is verified on the simulator or device on
-Oct 19. Remove any item above that is not. Known open items on Oct 16: the
-microphone capture in the app (#60), the character clips and the video
-playback on a real Vega device (spike V5), the cover feed without a trailer
-player (D8 plan B).
+**The cover feed**
+- One title at a time, full screen, with a slow animated backdrop, synopsis, rating and genres.
+- **Right** is Like, **Left** is Skip, **Up/Down** browse, **OK** is Watch now.
+- Every press, and the time you spend on a cover, changes your taste weights. The ranking is our own algorithm in AWS Lambda: **the feed never calls an LLM**, so it is fast and costs almost nothing.
+- **Watch now** shows which of your services stream the title (TMDB + JustWatch data) and opens that app.
+- You pick your services and country once. The feed shows only what you can watch.
+
+**The butler**
+- An animated character, modeled, rigged and animated by us in Blender, with idle, listening, thinking and speaking states.
+- Press "Surprise me" or a chip, or hold to talk. He proposes one title, says why in his own voice (Amazon Polly), and offers the next replies as chips.
+- Ask for "something lighter" and he **changes your taste weights live** through a tool call, with **Undo** and **Reset** on screen.
+- **Propose freely, TMDB confirms.** The model proposes `{title, year, type}`; nothing reaches the screen unless TMDB resolves it. Every poster, synopsis, link and service comes from TMDB, never from the model text.
+- Polly speech marks time each gesture, so the character gestures on the right word.
+- If the agent, the voice or a spending cap fails, the butler falls back to chips backed by the ranking algorithm, and tries the agent again on the next visit. The feed is never affected.
+
+**Built for the TV**
+- D-pad first: every screen works with the remote and shows focus.
+- One cover in memory at a time; the butler adds at most one clip player.
+- No account and no personal data: a random device ID, your country, your services and your signals. Voice audio is never stored.
 
 ## How we built it
 
-- **App.** React Native for Vega, TypeScript strict, in `app/`. It runs on the
-  Vega Virtual Device. A mock mode reads shared fixtures, so the app works
-  without a backend.
-- **Backend.** AWS serverless: HTTP API Gateway, Lambda (TypeScript, ARM,
-  Node.js 22) and DynamoDB on demand. TMDB data is cached. The whole stack is
-  one AWS CDK app in `backend/infra/`.
-- **Butler agent.** A Strands agent in Python on Amazon Bedrock AgentCore
-  Runtime, over a WebSocket. Model: Claude Haiku 4.5, with Amazon Nova 2 Lite as
-  a config fallback. The tools are our Lambdas, exposed through AgentCore
-  Gateway.
-- **Voice.** Transcribe streaming for speech in. Polly neural voice for speech
-  out. Polly speech marks give the time of each gesture cue, so the character
-  gestures on the right word.
-- **Contracts first.** `packages/domain` holds zod schemas and fixtures. The
-  three of us built against them without waiting for each other.
-- **CI.** Typecheck, lint, tests and a TV UI audit run on every pull request.
-- **AI tools.** We wrote code, tests and docs with Claude and Claude Code. We
-  reviewed and tested all of it. The Blender `bpy` scripts for the butler are
-  AI-assisted. At run time only the butler uses AI models.
+- **App:** React Native for Vega (RN 0.83), TypeScript strict. A mock mode reads shared fixtures, so the app runs without a backend.
+- **Backend:** HTTP API Gateway, Lambda (TypeScript, ARM, Node.js 22) and DynamoDB on demand, with the TMDB data cached. One AWS CDK app deploys the whole stack, one construct per teammate.
+- **Butler agent:** a Strands agent in Python on Amazon Bedrock AgentCore Runtime, over a WebSocket. Model: Claude Haiku 4.5 on Bedrock, with Amazon Nova 2 Lite as a config fallback. AgentCore Gateway turns our Lambdas into tools (`get_weights`, `update_weights`, `ranked_picks`, `resolve_titles`, `similar`).
+- **Voice:** push to talk streams 16 kHz PCM to the agent, which sends it to Amazon Transcribe streaming. Answers come back as Amazon Polly neural speech with speech marks. Anonymous device sign-in with Amazon Cognito; the app holds no secret.
+- **Cost by design:** no NAT Gateway, no VPC Lambda, no always-on resource. The butler has per-session and daily caps and a kill switch in DynamoDB.
+- **Contracts first:** `packages/domain` holds zod schemas and fixtures for the REST API, the butler socket and the agent tools. The three of us built against them without waiting for each other.
+- **Quality:** typecheck, lint, Jest, pytest and a TV UI audit (focus and input) run on every pull request.
+- **AI tools:** we wrote code, tests and docs with Claude Code and reviewed and tested all of it. At run time only the butler uses AI models.
 
-## AWS services and why (AWS Builder)
+## Challenges we ran into
 
-| Service | What it does in FireDrift | Why this one |
-|---|---|---|
-| Amazon Bedrock (Claude Haiku 4.5, Nova 2 Lite) | The butler's language model. Haiku 4.5 is the default; Nova 2 Lite is the fallback | We compared both on the demo prompts (#51): Haiku's picks fit the request, with the same time to first word. The model ID is a config value, so we can switch without a deploy |
-| Amazon Bedrock AgentCore Runtime | Hosts the Strands agent and the butler WebSocket | Managed runtime for streaming sessions; no server to run |
-| Amazon Bedrock AgentCore Gateway | Exposes our Lambdas to the agent as tools (`get_weights`, `update_weights`, `ranked_picks`) | One tool interface with IAM auth |
-| Strands Agents | The agent loop and tool calls | Open source agent SDK that runs on AgentCore |
-| AWS Lambda | REST routes, TMDB catalog, taste ranking, agent tools | Pay per call; ARM |
-| Amazon API Gateway (HTTP API) | REST API for the feed, profile and signals | Cheap, with a rate limit per route |
-| Amazon DynamoDB | Device profile, taste weights, signals, TMDB cache, butler caps and kill switch | On demand; TTL removes old items |
-| Amazon Cognito | Anonymous device sign-in for the butler socket | The app has no login and no secret |
-| Amazon Transcribe (streaming) | Push-to-talk speech to text | Streaming, so the text comes back about 0.3 s after release |
-| Amazon Polly (neural) | The butler's voice and speech marks | Speech marks sync the animation |
-| Amazon S3 | Private bucket for the MP3 of each butler answer, read through short-lived presigned URLs | The TV app plays audio from a URL. Only the butler's answers go there, never the user's voice |
-| AWS Secrets Manager | The TMDB token | The secret lives in the backend only |
-| AWS CDK | The whole stack as code | Repeatable deploy for judges |
+- **No WebView on the Vega Virtual Device on Ubuntu and Intel Mac.** Our first design was a trailer feed in a YouTube player. We moved to covers with an animated backdrop, which also fits the device memory better.
+- **No audio input on the Vega Virtual Device.** We could not record the microphone there, so we tested the agent end with a scripted client and made chips a full alternative to voice.
+- **The clip player and the character.** The player rejected `file://` URLs with a bare `MediaError`; a plain `/pkg/assets/...` path plays and loops.
+- **Claude Haiku 4.5 blocked on Bedrock** after it had worked (use case form). We ran on Nova 2 Lite through one config value, then picked the model with a small eval on the demo prompts.
+- **A model must not invent titles.** "Propose freely, TMDB confirms" fixed it: the model can be creative, the screen stays true.
+- **$150 of credits.** Caps per turn, per session and per day, a kill switch, and a feed that never calls a model.
+- We logged every tool problem as a friction-log issue with steps and a suggestion (18 issues).
 
-The stack has no NAT Gateway, no VPC Lambda, no provisioned capacity and no
-always-on resource. The butler has per-session and daily caps and a kill switch
-in DynamoDB. Cost plan: `docs/requirements.md`, section 7.
+## Accomplishments that we're proud of
 
-Measured cost: about **$0.013 per butler turn** for the model on Haiku 4.5
-(Nova 2 Lite: $0.004), so about $0.02 per voice turn with Transcribe and
-Polly, as planned. Total AWS spend from Oct 1 to Oct 19: **$0.35** before
-credits (Secrets Manager, Polly, DynamoDB, S3).
-
-**TODO (P2):** update the total spend from the AWS console on Oct 22.
-
-## Challenges
-
-- **No WebView on the Vega Virtual Device (Ubuntu, Intel Mac).** The trailer
-  player could not run. We changed the feed to covers with an animated backdrop
-  (D8 plan B) and kept the device-memory limit as a design rule.
-- **No audio input and no video decoding on the Vega Virtual Device.** We could
-  not test the microphone or the clips there. We built the agent end against a
-  fake client and kept chips as a full alternative.
-- **Claude Haiku 4.5 blocked on Bedrock** for our account (use case form). We
-  ran on Nova 2 Lite through one config value until the form unblocked Haiku,
-  then picked the model with a test on the demo prompts (#51).
-- **The model must not invent titles.** We made "propose freely, TMDB
-  confirms": nothing shows unless TMDB resolves it.
-- **Cost on $150 of credits.** We set caps per turn, per session and per day,
-  a kill switch, and a design where the feed never calls a model.
-- **Time.** Three people, no Vega device at first. We split the work by
-  contract and moved blocks between us (`docs/plan.md`).
+- **The butler never shows an invented title.** Every card comes from TMDB.
+- **The AI changes your taste and you stay in control:** validated, clamped tool calls with Undo.
+- **The feed works without any AI**, so the main screen has no model cost and no model latency.
+- **Cheap to run:** about $0.013 per butler turn on Claude Haiku 4.5 and $1.87 of total AWS spend from Oct 1 to Oct 21, before credits.
+- **A character, not a chat box:** our own Blender butler whose gestures land on the spoken word.
+- **Three people, no blocking**, thanks to shared schemas and fixtures.
 
 ## What we learned
 
-- A contract-first split (shared schemas and fixtures) lets three people work
-  without blocking each other.
-- Streaming Transcribe from Python needs a SigV4-signed WebSocket URL. boto3
-  has no streaming client for it.
-- A fallback path (chips) is cheaper than making the voice path perfect.
-- The Vega tools are young. Several problems had no documented answer. We kept
-  them in the friction log below.
+- A contract-first split lets three people work in parallel and plug in the real service later.
+- A fallback path (chips) is cheaper and more robust than a perfect voice path.
+- A scripted model behind the Strands `Model` interface tests the whole agent loop and our real tools without Bedrock, and the same prompts on Bedrock give a cheap model comparison.
+- Streaming Transcribe from Python needs a SigV4-signed WebSocket; boto3 has no streaming client for it.
+- The Vega tools are young: keep a friction log from day one.
 
-**TODO (team):** each person adds one or two lessons of their own.
+## What's next for FireDrift
 
-## What is next
-
-- Run push to talk and the character clips on a Vega device.
-- Add the trailer player when the Vega WebView works on our simulator.
+- Test push to talk and the character on a Vega device, then measure memory.
+- Add the trailer player when the Vega WebView runs on our simulators.
 - Conversation mode: the butler listens again after it speaks.
-- Household profiles and group mode.
-- Spanish UI and voice.
-- Prepare a Vega Appstore release.
+- Household profiles and a group mode.
+- Spanish UI and voice, then a Vega Appstore release.
+```
 
-## Product feedback and friction log
+### Built with (25 tags at most)
 
-The form asks, for each tool, API or SDK: what we used it for, what worked, what
-needs work, how onboarding went, and whether we would build with it again. The
-full friction log is `docs/feedback.md` (one line per problem, with the
-workaround). Summary of the Oct 4 to Oct 10 entries:
+react-native, vega-os, fire-tv, typescript, python, strands-agents,
+amazon-bedrock, bedrock-agentcore, claude-haiku-4.5, amazon-nova,
+aws-lambda, amazon-api-gateway, amazon-dynamodb, amazon-cognito,
+amazon-transcribe, amazon-polly, amazon-s3, aws-secrets-manager, aws-cdk,
+tmdb, blender, zod, jest, pytest, hyperframes
 
-**Vega SDK, Vega Virtual Device and CLI**
+### "Try it out" links
 
-- The Vega Virtual Device has no WebView on Ubuntu and Intel Mac. The WebView
-  guide does not say so.
-- On the Vega Virtual Device, the audio input and video decoding do not work.
-  The errors give no cause ("error in audio record stream read", `MediaError`
-  code 3 and 4).
-- `vega virtual-device start` reports a timeout and exits 0 when the emulator
-  crashed while loading Vulkan (NVIDIA, Ubuntu). It also stops by itself on
-  Apple Silicon. The docs do not mention either.
-- `vega device list`, `installed-apps` and `running-apps` hang. `vega run-app`
-  accepts `-d VirtualDevice` but not `-d emulator-5554`.
-- `react-native build-vega` writes `[[needs.module]]` entries into
-  `manifest.toml` and never removes them.
-- There is no documented command for a simulator screenshot. `screenshooter`
-  breaks the dev shell.
-- `inputd-cli button_press` key names are not documented.
-- The docs page `docs/vega/latest/install-vega-sdk.html` is an empty redirect.
+- <https://github.com/juanlo7/FireDrift-AmazonDeveloper>
 
-**Vega React Native libraries**
+### Image gallery (3:2)
 
-- The Jest preset's `BackHandler` and `Dimensions` mocks crash any app with
-  React Navigation.
-- `Linking.canOpenURL` throws when no app handles the URL, unlike the React
-  Native contract.
-- An `Image` inside an open `Modal` does not paint when its URL is not cached.
-- `useTVEventHandler` sends OK as `enter`, not `select`, from the VVD keyboard
-  and `inputd-cli`.
-- The async-storage package tagged for RN 0.83 fails the Vega build.
-- The `api-privileges-check` lint rule asks for the wrong privilege on the audio
-  library.
+Feed cover, Watch now panel, butler answer with chips, taste change with Undo,
+AWS architecture frame. Taken from `videos/firedrift-demo/assets/stills/` and
+the video.
 
-**AWS**
+### Video demo link
 
-- Bedrock `ConverseStream` for Claude Haiku 4.5 failed with a "use case details
-  not submitted" error, after a `converse` call had worked two days before.
-  No notice came in between.
-- boto3 with `aws login` credentials needs `botocore[crt]`, which plain `boto3`
-  does not install. The AWS CLI works with the same profile.
-- The AWS Price List API has no price for Claude models on Bedrock, so the
-  cost per turn needs the pricing web page.
+**TODO** YouTube link.
 
-Each entry is also a GitHub issue with steps, expected and actual results, and
-a suggestion: label
-[`friction-log`](https://github.com/juanlo7/FireDrift-AmazonDeveloper/issues?q=label%3Afriction-log).
+## 3. Additional info (for judges)
 
-**TODO (each teammate):** add your own product feedback here for the tools you
-used, in the five questions of the form. One short block per person.
+**Upload a file:** `firedrift-vpkg.zip` with the release app packages for
+`aarch64`, `x86_64` and `armv7` (device, not tested), built against the live
+stack, plus `INSTALL.txt`.
 
-| Person | Tools | Worked well | Needs work | Onboarding | Build again? |
-|---|---|---|---|---|---|
-| P1 | TODO | TODO | TODO | TODO | TODO |
-| P2 | Amazon Bedrock (Converse, Claude Haiku 4.5, Nova 2 Lite), Bedrock AgentCore Runtime and Gateway, Strands Agents, Lambda, API Gateway, DynamoDB, Cognito, AWS CDK | One Converse API for both models, so switching is one config value. Strands runs our tools with little code, and its `Model` interface let us test the agent loop with a scripted model, without Bedrock. AgentCore Runtime hosts the butler WebSocket with no server to run, and Gateway exposes our Lambdas as tools. CDK deployed the whole stack from one app, one construct per owner | The Bedrock use case form appeared with no notice after Haiku 4.5 already worked. The Price List API has no Claude prices. boto3 cannot read `aws login` credentials without `botocore[crt]` | Fast: a 20-line Strands script answered on Bedrock on day 3 (spike V4, Oct 3), and the CDK stack was deployed the next day (#71). | Yes: serverless and pay per call fit a $150 budget, and the agent stack (Strands, AgentCore) let one person build the butler backend |
-| P3 | TODO | TODO | TODO | TODO | TODO |
+| Field | Value |
+|---|---|
+| Submitter type | Team |
+| Organization name | N/A |
+| Country of residence | Spain |
+| Canada province | N/A |
+| Primary track | Fire TV |
+| Code repository | <https://github.com/juanlo7/FireDrift-AmazonDeveloper> |
+| New or existing | New |
+| AWS Builder mini challenge | Yes |
+| Open Source mini challenge | Yes |
+| Open Source contribution URL | <https://github.com/juanlo7/FireDrift-AmazonDeveloper> |
+| Open Source project repository URL | <https://github.com/juanlo7/FireDrift-AmazonDeveloper> |
+| GitHub username | juanlo7 |
 
-**TODO (P3, Apple Silicon Mac):** add the entries from the WebView, microphone
-and clip tests on the Mac, and add any new line to `docs/feedback.md`.
+### AWS Builder: which AWS services did you incorporate and how?
 
-## Links
+```text
+FireDrift is a multi-service pipeline: a Strands agent on Bedrock AgentCore that calls our own Lambdas as tools, with Transcribe for speech in and Polly for speech out. Everything is one AWS CDK app (backend/infra) in us-east-1.
 
-- Demo video (under 3 minutes, YouTube or Vimeo): **TODO** add the link after
-  the recording.
-- Repository: `https://github.com/juanlo7/FireDrift-AmazonDeveloper` (public
-  and `LICENSE` visible in "About": **TODO** check on Oct 22).
-- Primary track: Fire TV. Mini challenge: AWS Builder.
-- Optional feature requests for Amazon:
-  - **WebView, audio input and video decoding on the Vega Virtual Device on
-    Linux and Intel Mac** (Critical): without them, a team with no Vega device
-    or Apple Silicon Mac cannot test players, voice or WebView apps.
-  - **`vega device screenshot` and a detached `vega virtual-device start`**
-    (Important): screenshots for docs and reviews, and a simulator that
-    survives the shell that started it, for scripts and CI.
-  - **Notice before Bedrock model access changes** (Important): ask for the
-    use case form before the first call works, and say so in the console.
-  - **Claude prices in the AWS Price List API** (Nice-to-have): cost tooling
-    needs one source for every Bedrock model.
+- Amazon Bedrock (Claude Haiku 4.5; Amazon Nova 2 Lite as fallback): the butler's model, through the Converse API. The model ID is a config value in DynamoDB, so we switch models without a deploy. We chose Haiku 4.5 with a small eval on the demo prompts: its picks fit the request better, with the same time to first word.
+- Amazon Bedrock AgentCore Runtime: hosts the Strands agent and the butler WebSocket (one session per butler visit). No server to run.
+- Amazon Bedrock AgentCore Gateway: exposes our Lambdas to the agent as MCP tools with IAM auth: get_weights, update_weights (validated, clamped, undoable), ranked_picks, resolve_titles, similar.
+- Strands Agents (Python): the agent loop, streaming and tool calls. Its Model interface also lets us test the loop with a scripted model, without Bedrock.
+- Amazon Transcribe streaming: push-to-talk speech to text. The agent streams the PCM frames over a SigV4-signed WebSocket and keeps only the final text. Audio is never stored.
+- Amazon Polly (neural voice): the butler's voice. Speech marks time each gesture of the animated character to the spoken word.
+- Amazon S3: private bucket for the MP3 of each butler answer, read by the TV through short-lived presigned URLs, removed by a lifecycle rule.
+- Amazon Cognito: anonymous device sign-in for the butler socket. The app has no login and no secret.
+- AWS Lambda (TypeScript, ARM, Node.js 22): REST routes, TMDB catalog with cache, our taste-ranking algorithm, the agent tools.
+- Amazon API Gateway (HTTP API): REST API for the feed, profile and signals, with throttling per route.
+- Amazon DynamoDB (on demand, TTL): device profile, taste weights, signals, TMDB cache, butler caps and kill switch.
+- AWS Secrets Manager: the TMDB token. It lives only in the backend.
+- AWS CDK and CloudWatch Logs: the whole stack as code; logs kept 7 days.
 
-## Pending list before submission (Oct 22)
+Cost design: no NAT Gateway, no VPC Lambda, no provisioned capacity, no always-on resource. The feed never calls an LLM. The butler has per-session and daily turn caps and a kill switch. Measured: about $0.013 per butler turn on Claude Haiku 4.5 ($0.004 on Nova 2 Lite), about $0.02 per voice turn with Transcribe and Polly. Total AWS spend from Oct 1 to Oct 21: $1.87 before credits (Claude Haiku 4.5 $1.22, Secrets Manager $0.21, Polly $0.18, AgentCore $0.10, the rest under $0.10).
 
-- [ ] Demo video link.
-- [ ] Teammates' product feedback.
-- [ ] Features list checked against the simulator or device.
-- [x] Cost per voice turn (#51).
-- [ ] Total spend on Oct 22.
-- [ ] Repository public, `LICENSE` in "About".
-- [ ] README setup tested from a clean clone.
+Docs: README "How it works" and "AWS services", backend/README.md, agent/README.md, docs/contracts.md (REST, socket, tools), docs/requirements.md section 7 (cost).
+```
+
+### Open Source: what you did, how it works, and why it matters
+
+```text
+What: FireDrift is a new MIT-licensed, end-to-end open-source app for Fire TV built during the hackathon: a React Native for Vega client, a serverless AWS backend and a Strands agent on Bedrock AgentCore, with CI, tests and setup docs.
+
+How it works: the app talks to an HTTP API (Lambda + DynamoDB) for the feed and to a WebSocket on AgentCore Runtime for the butler. The agent calls our Lambdas as tools through AgentCore Gateway, and Transcribe and Polly carry the voice. packages/domain holds the shared zod schemas and fixtures, so the app runs fully in mock mode with no AWS account.
+
+Why it matters: there are few complete, public examples of React Native for Vega apps, and fewer that connect one to an AWS agent stack. Others can reuse:
+- the agent pattern "the model proposes, an API confirms" (no invented titles on screen), with validated and undoable tool calls;
+- Polly speech marks that drive a character's gestures on the TV;
+- a scripted Strands Model that tests the whole agent loop without Bedrock;
+- D-pad focus helpers and a TV UI audit (focus and input) that runs in CI;
+- a VVD toolbox: key presses and screenshots from the terminal, the Vulkan workaround for NVIDIA, and the clip-path fix for react-native-w3cmedia;
+- 18 friction-log issues with steps and suggestions for the Vega and AWS tools.
+```
+
+### Feature requests (optional)
+
+```text
+1. WebView, audio input and video decoding on the Vega Virtual Device on Linux and Intel Mac. Priority: Critical. Without them, a team with no Vega device or Apple Silicon Mac cannot test players, voice or WebView apps. We had to drop our trailer player and could not test push to talk.
+2. A screenshot command and a detached start for the Vega Virtual Device (vega device screenshot, vega virtual-device start --detach). Priority: Important. Screenshots for docs and reviews, and a simulator that survives the shell that started it, for scripts and CI.
+3. Clear errors from react-native-w3cmedia and keplerscript-audio-lib (which path, codec or device capability failed). Priority: Important. A bare MediaError code 3 or 4, or a stream that reports success and reads 0 bytes, cost us days.
+4. Notice before Bedrock model access changes: ask for the Anthropic use case form before the first call works, and show it in the console. Priority: Important. Our agent broke mid-sprint with no warning.
+5. Claude prices in the AWS Price List API. Priority: Nice-to-have. Cost tooling needs one source for every Bedrock model.
+```
+
+### Friction log (optional, up to 10% bonus)
+
+```text
+All 18 entries are GitHub issues with steps, expected and actual results and a suggestion: https://github.com/juanlo7/FireDrift-AmazonDeveloper/issues?q=label%3Afriction-log . One line per entry, with the workaround: docs/feedback.md.
+
+Format: task | steps | expected vs actual | severity | workaround | suggestion
+
+1. Run a WebView (YouTube player) on the Vega Virtual Device, Ubuntu 24.04 (#115) | install an app with @amazon-devices/webview 3.5 or 4.0 | expected it installs; actual "Module dependency not found: /com.amazon.kepler.webview_4@IWebview_4" | High | dropped the trailer player for covers (plan B) | say in the WebView guide that the VVD on Linux and Intel Mac has no WebView, or ship it.
+2. Record the microphone on the VVD (#123) | AudioRecordStreamBuilder.buildAsync, requestPrivilege, readAsync | expected audio or a clear "no input device"; actual buildAsync resolves and ALLOW, then initCheckAsync -3 and "error in audio record stream read" | High | chips as a full alternative; test on a device | report the missing input device in the API and the docs.
+3. Play a local MP4 with react-native-w3cmedia on the VVD (#124) | VideoPlayer in URL mode with file:///pkg/assets/clip.mp4 | expected it plays; actual MediaError code 4 with no detail (https gives code 3) | High | the plain path /pkg/assets/clip.mp4 plays | accept file:// URLs or document the path format, and put the cause in MediaError.
+4. Start the VVD on Ubuntu with an NVIDIA GPU (#83) | vega virtual-device start | expected a running device; actual "Deadline reached (60s)" and exit code 0; the emulator crashed loading Vulkan | High | ~/.android/advancedFeatures.ini with Vulkan = off and GLDirectMem = on | detect the crash, exit non-zero, document the workaround.
+5. Call Claude Haiku 4.5 on Bedrock with ConverseStream (#77) | same model that worked with converse two days before | expected a stream; actual "Model use case details have not been submitted" with no notice | High | Nova 2 Lite through one config value until the form was done | ask for the form before the first call works and show it in the console.
+6. Keep the VVD running from a script, Apple Silicon (#109) | start it from a shell, close the shell | expected it keeps running; actual it stops with no message | Medium | nohup vega virtual-device start & | a detached mode, or say it in the docs.
+7. List devices and apps with the Vega CLI (#121) | vega device list / installed-apps / running-apps; run-app -d emulator-5554 | expected output; actual they hang, and "Couldn't find device" | Medium | -d VirtualDevice | make the device names consistent and add a timeout.
+8. Take a screenshot of the VVD (#113) | vega device run-cmd 'screenshooter /tmp/x.png' | expected a PNG; actual "Permission denied", then every run-cmd fails until restart | Medium | emulator console "screenrecord screenshot <dir>" | add vega device screenshot.
+9. Uninstall a native package (#116) | remove the package, react-native build-vega | expected the manifest updated; actual stale [[needs.module]] entries stay and the app will not install | Medium | delete the entries by hand | write generated entries to a build file, or clean them.
+10. Check if a streaming app can open a URL (#117) | Linking.canOpenURL on the VVD | expected false; actual it throws "Can not open URL" | Medium | try/catch | follow the React Native contract.
+11. Show service logos in a Modal (#120) | Image with an uncached URL inside an open Modal | expected it paints; actual the slot stays empty and onError never fires | Medium | Image.prefetch when the cover shows | fix the paint or fire onError.
+12. Use AsyncStorage tagged for RN 0.83 (#82) | install the rn83-alpha tag, build-vega | expected a build; actual "not part of its kepler-compatibility.json" | Medium | use the latest tag | publish matching compatibility data.
+13. Test an app with React Navigation in Jest | the Vega jest preset | expected tests run; actual the BackHandler and Dimensions mocks crash | Medium | our own mocks in app/jest.setup.js | fix the preset mocks.
+14. Press keys from a script (#118, #119) | inputd-cli button_press dpad_right; KEY_ENTER | expected documented names and OK as "select"; actual names undocumented, OK arrives as "enter" | Low | KEY_RIGHT etc.; map select and enter to OK | document the key names and events.
+15. Lint an app that records audio (#122) | import keplerscript-audio-lib | expected the microphone privilege; actual the rule asks for audio.privilege.settings.control | Low | rule off for that file | align the rule with the AudioRecordStreamBuilder docs.
+16. Install the Vega SDK from the docs (#114) | open docs/vega/latest/install-vega-sdk.html | expected the guide; actual an empty redirect | Low | the versioned /0.24/ URL | fix the redirect.
+17. Run boto3 with aws login credentials (#78) | aws login, then Python with boto3 | expected it works like the CLI; actual MissingDependencyException (needs botocore[crt]) | Low | export the credentials to env vars | say it in the aws login docs or install crt.
+18. Price a Bedrock turn from the Price List API (#128) | get-products for AmazonBedrock | expected Claude Haiku 4.5 prices; actual no Anthropic model newer than Claude 3 Haiku | Low | prices from the web page | add all Bedrock models to the API.
+```
+
+### Project testing instructions (optional)
+
+```text
+Video: TODO. Repository: https://github.com/juanlo7/FireDrift-AmazonDeveloper (README, "Run the app on the Vega Virtual Device").
+
+Fastest way: install the prebuilt package from the attached firedrift-vpkg.zip on the Vega Virtual Device (Vega SDK 0.24):
+- Apple Silicon Mac: vega run-app app_aarch64.vpkg com.firedrift.app.main -d VirtualDevice
+- Linux or Intel Mac: vega run-app app_x86_64.vpkg com.firedrift.app.main -d VirtualDevice
+These builds talk to our live AWS stack, which stays up until Nov 20, 2026. No account or key is needed.
+
+Keys on the VVD: arrows = D-pad, Enter = OK, Esc = Back.
+0. First run: pick your services, or Skip (FireDrift then uses all of them).
+1. Feed: Up/Down browse, Right = Like, Left = Skip, OK = Watch now (your services for the title). Back opens the menu (Butler, Settings, About).
+2. Butler: open it from the menu. Press "Surprise me", then a chip such as "Something lighter": the butler answers out loud, changes your taste, and shows Undo and Reset.
+3. Settings: services and country.
+
+Notes: the VVD has no microphone, so use the chips (push to talk needs a Vega device). The VVD has no streaming apps, so Watch now shows the services but cannot open them. WebView is not used. From source, the app starts in mock mode (fixtures, no backend); set apiMode and butlerMode to 'real' in app/src/config.ts to use the live stack.
+```
+
+### Product feedback (the five questions)
+
+Each teammate checks the tools they used (P1: app, feed, voice, CI; P2: AWS,
+agent; P3: character, clips, video).
+
+**1. Which developer tools, APIs, and SDKs did you use and for what?**
+
+```text
+- Vega SDK 0.24, Vega CLI and the Vega Virtual Device (Ubuntu and Apple Silicon Mac): build, run and test the app.
+- React Native for Vega (RN 0.83) and its libraries: @amazon-devices/react-navigation for screens, react-native-w3cmedia for the butler's clips, keplerscript-audio-lib and security-manager-lib for push to talk, Linking for Watch now, the Kepler ESLint plugin and Jest preset.
+- Amazon Bedrock with Claude Haiku 4.5 and Amazon Nova 2 Lite: the butler's model.
+- Amazon Bedrock AgentCore Runtime and Gateway, and Strands Agents: the butler agent, its WebSocket and its tools.
+- Amazon Transcribe streaming and Amazon Polly: voice in and voice out with speech marks.
+- AWS Lambda, Amazon API Gateway, Amazon DynamoDB, Amazon Cognito, Amazon S3, AWS Secrets Manager, AWS CDK: the serverless backend.
+- TMDB API: catalog, posters and streaming availability (JustWatch data).
+- Also: Blender (the butler character), GitHub Actions (CI), Claude Code (coding help), HyperFrames (the demo video).
+```
+
+**2. What worked well?**
+
+```text
+- React Native for Vega: our React and TypeScript skills carried over; the focus model and TV event hooks made D-pad navigation simple, and the Amazon sample apps gave us focus helpers to start from.
+- Vega Virtual Device on Apple Silicon: the app and the butler's clips run there, so the whole demo was built without hardware.
+- Bedrock Converse: one API for Claude Haiku 4.5 and Nova 2 Lite, so switching models is one config value.
+- Strands Agents: little code for the agent loop and tools; the Model interface let us test the loop with a scripted model.
+- AgentCore Runtime: a streaming WebSocket agent with no server to run. AgentCore Gateway: our Lambdas became tools with IAM auth.
+- Polly: natural neural voice, and speech marks that make lip and gesture sync easy.
+- Transcribe streaming: final text about 0.3 s after the key is released.
+- Lambda, HTTP API, DynamoDB on demand and CDK: the whole stack cost under two dollars for the hackathon and deploys from one command.
+```
+
+**3. What needs work?**
+
+```text
+- Vega Virtual Device: no WebView, audio input or reliable video decoding on Linux and Intel Mac, and the docs do not say so; crashes silently with NVIDIA (Vulkan); stops when its shell exits; no screenshot command.
+- Vega CLI: device commands hang; device names differ between commands; build-vega leaves stale manifest entries.
+- React Native for Vega libraries: errors with no cause (MediaError 3 and 4, audio stream read errors); Linking.canOpenURL throws; Image in a Modal does not paint; Jest preset mocks crash React Navigation; the privilege lint rule asks for the wrong privilege; key names and events of inputd-cli are undocumented.
+- Bedrock: the Anthropic use case form appeared with no notice after Haiku 4.5 already worked; the Price List API has no Claude prices.
+- boto3 needs botocore[crt] for aws login credentials, unlike the AWS CLI.
+Full details and suggestions: 18 friction-log issues in our repository.
+```
+
+**4. How was your onboarding experience (zero to hello world)?**
+
+```text
+- Vega: the SDK installs with one script and the template app ran on the VVD in the first days. On Ubuntu with NVIDIA it took half a day to find the Vulkan workaround, and the "latest" install guide was an empty page.
+- React Native for Vega: fast for anyone who knows React Native; the hard part was learning what the VVD cannot do.
+- AWS: fast. A 20-line Strands script answered on Bedrock on day 3, and the CDK stack was deployed the next day. AgentCore needed a careful read of the docs for the WebSocket and Gateway auth, then worked.
+- Polly and Transcribe: Polly in minutes; Transcribe streaming from Python needed a SigV4-signed WebSocket because boto3 has no streaming client.
+```
+
+**5. Would you build with these devices and services again?**
+
+```text
+Yes. React Native for Vega let a three-person team build a real TV app with the remote, voice and an animated character in a few weeks, and the AWS agent stack (Bedrock, AgentCore, Strands, Transcribe, Polly) let one person build the whole butler backend, serverless and pay per call, within $150 of credits. We would ask for a Vega device or a fuller simulator on Linux first.
+```
+
+### AI tools used
+
+```text
+Claude Code (Claude models) to write and review code, tests and docs; everything was reviewed and tested by the team. Claude Haiku 4.5 and Amazon Nova 2 Lite on Amazon Bedrock at run time, only in the butler. HyperFrames with an AI agent to build the demo video. AI-assisted Blender bpy scripts for the butler's rig and render.
+```
+
+**Learning level and "AI value":** answered by the submitter on the form.
+
+**Eligibility checkboxes:** ticked by the submitter.
+
+## Pending before submitting
+
+- [x] Feature freeze and features checked on the simulator (Oct 19).
+- [x] Cost per butler turn (#51).
+- [x] Total AWS spend (Cost Explorer): $1.87, Oct 1 to Oct 21.
+- [ ] Demo video on YouTube, link here and in the README.
+- [ ] Prebuilt `.vpkg` against the live stack.
+- [ ] P1 and P3 check their product feedback.
+- [x] Repository public, `LICENSE` in "About".

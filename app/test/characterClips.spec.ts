@@ -1,3 +1,4 @@
+import { Gesture } from '@firedrift/domain';
 import {
   clipReducer,
   clipUrl,
@@ -5,6 +6,7 @@ import {
   currentClip,
   initialClipView,
   stateClip,
+  stillFor,
   type ClipView,
   type VideoLike,
 } from '../src/butler';
@@ -12,13 +14,30 @@ import {
 const run = (view: ClipView, ...actions: Parameters<typeof clipReducer>[1][]) =>
   actions.reduce(clipReducer, view);
 
+describe('clip files', () => {
+  it('packages every clip the app plays in app/assets/butler', () => {
+    const states = ['idle', 'listening', 'thinking', 'speaking', 'fallback'] as const;
+    const urls = [...states.map(state => clipUrl(stateClip(state))), ...Gesture.options.map(g => clipUrl(`gesture-${g}`))];
+    // The build packages app/assets/ as /pkg/assets/.
+    const missing = urls.filter(url => {
+      try {
+        require(url.replace('/pkg/', '../'));
+        return false;
+      } catch {
+        return true;
+      }
+    });
+    expect(missing).toEqual([]);
+  });
+});
+
 describe('clip selection', () => {
   it('maps each state to its looping clip, and fallback to idle', () => {
     expect(stateClip('listening')).toBe('listening');
     expect(stateClip('fallback')).toBe('idle');
     expect(currentClip({...initialClipView, state: 'speaking'})).toEqual({
       name: 'speaking',
-      url: 'file:///pkg/assets/butler/speaking.mp4',
+      url: '/pkg/assets/butler/speaking.mp4',
       loop: true,
     });
     expect(currentClip({...initialClipView, state: 'fallback'})?.url).toBe(
@@ -58,6 +77,16 @@ describe('clip selection', () => {
     expect(
       currentClip(run(failed, {t: 'state', state: 'listening'})),
     ).toBeNull();
+  });
+});
+
+describe('still over a clip change', () => {
+  it('shows the first frame of the clip asked for until that clip plays', () => {
+    const speaking = currentClip({...initialClipView, state: 'speaking'});
+    expect(stillFor(speaking, 'thinking')).toBe('speaking');
+    expect(stillFor(speaking, null)).toBe('speaking');
+    expect(stillFor(speaking, 'speaking')).toBeNull();
+    expect(stillFor(null, 'idle')).toBeNull();
   });
 });
 
@@ -112,6 +141,28 @@ describe('clip player', () => {
     expect(video.loads[1]).toBe(`${clipUrl('gesture-shrug')} loop=false`);
   });
 
+  it('says which clip is playing', async () => {
+    const video = fakeVideo();
+    const h = handlers();
+    const player = createClipPlayer(h, () => video);
+    player.play(currentClip({...initialClipView, state: 'thinking'})!);
+    await player.attach('s');
+    video.fire('playing');
+    expect(h.onPlaying).toHaveBeenLastCalledWith('thinking');
+  });
+
+  it('makes one player when the surface reports itself twice', async () => {
+    // Vega calls onSurfaceViewCreated twice for one surface, before initialize() ends.
+    let made = 0;
+    const player = createClipPlayer(handlers(), () => {
+      made += 1;
+      return fakeVideo();
+    });
+    player.play(currentClip(initialClipView)!);
+    await Promise.all([player.attach('surface-1'), player.attach('surface-1')]);
+    expect(made).toBe(1);
+  });
+
   it('reports playing, ended and errors, and reports a player that cannot start', async () => {
     const video = fakeVideo();
     const h = handlers();
@@ -121,6 +172,7 @@ describe('clip player', () => {
     video.fire('ended');
     video.fire('error');
     expect(h.onPlaying).toHaveBeenCalledTimes(1);
+    expect(h.onPlaying).toHaveBeenCalledWith(null);
     expect(h.onEnded).toHaveBeenCalledTimes(1);
     expect(h.onError).toHaveBeenCalledTimes(1);
 

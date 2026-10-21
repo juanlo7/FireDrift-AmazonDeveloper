@@ -236,6 +236,21 @@ describe("similar", () => {
     expect(output.titles.map((t) => t.tmdbId)).toEqual([90669]);
   });
 
+  it("leaves out the titles the butler already showed", async () => {
+    const fakes = createFakes({
+      recommendations: vi.fn(async () => page([item(27205, "Inception", "2010-07-15"), item(70523, "Dark", "2017-12-01")])),
+    });
+    await useNetflixProfile(fakes.profiles);
+    const result = await createSimilarTool(() => fakes)({
+      profileId: PROFILE_ID,
+      type: "movie",
+      tmdbId: 1,
+      count: 3,
+      exclude: [{ type: "movie", tmdbId: 27205 }],
+    });
+    expect(SimilarOutput.parse(result).titles.map((t) => t.tmdbId)).toEqual([70523]);
+  });
+
   it("fills up from TMDB similar when recommendations are not enough", async () => {
     const fakes = createFakes({
       recommendations: vi.fn(async () => page([item(27205, "Inception", "2010-07-15")])),

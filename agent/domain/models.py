@@ -93,6 +93,8 @@ class SessionStartEvent(CamelModel):
     country: Country
     services: list[int]
     has_mic: bool
+    # The title on screen when the session starts, e.g. a taste pick after a fallback.
+    current: TitleCard | None = None
 
 
 class AudioStartEvent(CamelModel):
@@ -248,16 +250,27 @@ class ResolveTitlesOutput(CamelModel):
     dropped: list[DroppedProposal]
 
 
+class TitleRef(CamelModel):
+    type: TitleType
+    tmdb_id: TmdbId
+
+
+# Titles the butler already showed in this visit: the tool never gives them again.
+Exclude = Annotated[list[TitleRef], Field(max_length=50)]
+
+
 class SimilarInput(CamelModel):
     profile_id: ProfileId
     type: TitleType
     tmdb_id: TmdbId
     count: Annotated[int, Field(gt=0)]
+    exclude: Exclude | None = None
 
 
 class RankedPicksInput(CamelModel):
     profile_id: ProfileId
     count: Annotated[int, Field(gt=0)]
+    exclude: Exclude | None = None
 
 
 class TitlesOutput(CamelModel):

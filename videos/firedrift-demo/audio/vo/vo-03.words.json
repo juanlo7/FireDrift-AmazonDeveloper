@@ -1,0 +1,80 @@
+[
+  {
+    "text": "5",
+    "start": 0.44,
+    "end": 0.45,
+    "id": "w0"
+  },
+  {
+    "text": "apps,",
+    "start": 0.94,
+    "end": 2.1,
+    "id": "w1"
+  },
+  {
+    "text": "10,000",
+    "start": 2.1,
+    "end": 2.96,
+    "id": "w2"
+  },
+  {
+    "text": "titles,",
+    "start": 2.96,
+    "end": 3.4,
+    "id": "w3"
+  },
+  {
+    "text": "0",
+    "start": 3.63,
+    "end": 3.81,
+    "id": "w4"
+  },
+  {
+    "text": "decisions,",
+    "start": 3.81,
+    "end": 4.79,
+    "id": "w5"
+  },
+  {
+    "text": "not",
+    "start": 5.25,
+    "end": 5.33,
+    "id": "w6"
+  },
+  {
+    "text": "a",
+    "start": 5.33,
+    "end": 5.44,
+    "id": "w7"
+  },
+  {
+    "text": "content",
+    "start": 5.44,
+    "end": 6.2,
+    "id": "w8"
+  },
+  {
+    "text": "problem,",
+    "start": 6.2,
+    "end": 7.19,
+    "id": "w9"
+  },
+  {
+    "text": "a",
+    "start": 7.19,
+    "end": 7.36,
+    "id": "w10"
+  },
+  {
+    "text": "choosing",
+    "start": 7.36,
+    "end": 8.08,
+    "id": "w11"
+  },
+  {
+    "text": "problem.",
+    "start": 8.08,
+    "end": 9.66,
+    "id": "w12"
+  }
+]
