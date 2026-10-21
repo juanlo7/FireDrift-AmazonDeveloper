@@ -328,3 +328,56 @@ def test_a_title_is_shown_once_per_visit_and_the_tools_stop_offering_it():
 def test_the_title_on_screen_at_session_start_counts_as_shown():
     dark = TitleCard.model_validate(load_fixture("ranked-picks.output.json")["titles"][0])
     assert Session(profile_id=PROFILE_ID, current=dark).suggested == [("series", 70523)]
+
+
+def test_a_named_pick_reaches_the_screen_when_the_model_does_not_show_it():
+    session, _, _ = start(
+        [
+            Step(tools=[("ranked_picks", {"count": 2})]),
+            Step(text=["{{excited}} Here is Arrival, a quiet puzzle about language."]),
+        ]
+    )
+    events = run(session, ChipInput(kind="chip", chip_id="surprise_me"))
+
+    suggestion = next(e for e in events if e.t == "suggestion")
+    assert suggestion.title.name == "Arrival"
+    assert suggestion.reason == "Here is Arrival, a quiet puzzle about language."
+    assert kinds(events).index("suggestion") < kinds(events).index("chips")
+    assert session.session.current.tmdb_id == 329865
+    assert session.session.suggested == [("movie", 329865)]
+
+
+def test_a_title_no_tool_returned_never_reaches_the_screen_by_name():
+    session, _, _ = start([Step(text=["Here is The Matrix."])])
+    events = run(session, ChipInput(kind="chip", chip_id="surprise_me"))
+
+    assert "suggestion" not in kinds(events)
+
+
+def test_a_title_already_shown_is_not_shown_again_by_name():
+    session, _, _ = start(
+        [
+            Step(tools=[("ranked_picks", {"count": 2})]),
+            Step(tools=[("show_suggestion", {"type": "series", "tmdbId": 70523, "reason": "Time travel."})]),
+            Step(text=["Try Dark."]),
+            Step(tools=[("ranked_picks", {"count": 2})]),
+            Step(text=["Dark is still my pick, or Arrival."]),
+        ]
+    )
+    run(session, ChipInput(kind="chip", chip_id="surprise_me"))
+    events = run(session, ChipInput(kind="chip", chip_id="surprise_me"))
+
+    assert [e.title.name for e in events if e.t == "suggestion"] == ["Arrival"]
+
+
+def test_a_shown_title_is_not_shown_twice_in_one_turn():
+    session, _, _ = start(
+        [
+            Step(tools=[("ranked_picks", {"count": 2})]),
+            Step(tools=[("show_suggestion", {"type": "series", "tmdbId": 70523, "reason": "Time travel."})]),
+            Step(text=["Try Dark, or Arrival another night."]),
+        ]
+    )
+    events = run(session, ChipInput(kind="chip", chip_id="surprise_me"))
+
+    assert [e.title.name for e in events if e.t == "suggestion"] == ["Dark"]

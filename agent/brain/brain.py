@@ -12,6 +12,7 @@ from pydantic import BaseModel
 from strands import Agent
 from strands.models.model import Model
 
+from character.cues import MARKER
 from domain.models import (
     AnswerDoneEvent,
     BrainAnswerDelta,
@@ -19,14 +20,15 @@ from domain.models import (
     ChipsEvent,
     FallbackEvent,
     TextInput,
+    TitleCard,
 )
 
 from . import caps
 from .chips import ReplyExtractor, chip_prompt, chips_for, fallback_chips
 from .config import BrainConfig
-from .session import Session, TurnState
+from .session import Session, TurnState, title_key
 from .tool_client import ToolClient
-from .tools import build_tools
+from .tools import build_tools, put_on_screen
 
 logger = logging.getLogger(__name__)
 
@@ -42,6 +44,17 @@ def system_prompt() -> str:
         return re.sub(r"<!--.*?-->", "", path.read_text(), flags=re.DOTALL).strip()
 
     return f"{read(HERE / 'persona.md')}\n\n{read(HERE / 'prompts' / 'grounding.md')}\n"
+
+
+def named_title(answer: str, session: Session) -> TitleCard | None:
+    """The first title from this turn's tool results that the answer names and that was not shown yet."""
+    spoken = answer.casefold()
+    named = [
+        (spoken.find(title.name.casefold()), title)
+        for title in session.turn.grounded.values()
+        if title.name.casefold() in spoken and title_key(title) not in session.suggested
+    ]
+    return min(named, key=lambda pair: pair[0])[1] if named else None
 
 
 def bedrock_model(config: BrainConfig) -> Model:
@@ -113,6 +126,7 @@ class BrainSession:
         message = ""
         unsaid = ""
         said = ""
+        spoken = ""
 
         try:
             async with asyncio.timeout(self._config.turn_timeout_s):
@@ -135,6 +149,7 @@ class BrainSession:
                             if said and not said[-1].isspace() and not text[0].isspace():
                                 text = " " + text
                             said = text
+                            spoken += text
                             yield BrainAnswerDelta(t="answer.delta", text=text)
                     message = ""
         except Exception:
@@ -147,10 +162,15 @@ class BrainSession:
             # No final message (the call limit): the last text is better than silence.
             text = replies.feed(message or unsaid)
             if text:
+                spoken += text
                 yield BrainAnswerDelta(t="answer.delta", text=text)
         rest = replies.flush()
         if rest:
+            spoken += rest
             yield BrainAnswerDelta(t="answer.delta", text=rest)
+        if session.turn.suggestion is None and (title := named_title(spoken, session)):
+            # The model often names a pick without calling show_suggestion (#149); TMDB still backs it.
+            put_on_screen(session, title, MARKER.sub("", spoken), self._pending.append)
         for pending in self._drain():
             yield pending
         session.last_chips = chips_for(session, replies.replies)
