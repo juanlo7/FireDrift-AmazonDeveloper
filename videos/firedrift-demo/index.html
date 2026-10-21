@@ -1,0 +1,283 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <link rel="stylesheet" href="styles/brand.css" />
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { margin: 0; width: 1920px; height: 1080px; overflow: hidden; background: #0d0c0b; }
+      #root { position: relative; width: 100%; height: 100%; overflow: hidden; font-family: "Figtree", system-ui, sans-serif; }
+      .cap { position: absolute; left: 0; right: 0; bottom: 52px; display: flex; justify-content: center; pointer-events: none; }
+      .cap-line { display: block; background: rgba(13,12,11,0.78); border-radius: 18px; padding: 6px 26px 12px; font-family: "Figtree", system-ui, sans-serif; font-weight: 700; font-size: 64px; color: #f6efe4; -webkit-text-stroke: 7px #0d0c0b; paint-order: stroke fill; text-shadow: 0 6px 24px rgba(0,0,0,0.7); }
+      .cap-line em { font-style: normal; color: #ffb547; }
+      .flash { position: absolute; inset: 0; background: #fff7e8; pointer-events: none; }
+      #flash-in { opacity: 0; }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="main" data-start="0" data-duration="149.451" data-width="1920" data-height="1080">
+      <div id="f01" data-composition-id="f01" data-composition-src="compositions/frames/01-hook.html" data-start="0.000" data-duration="5.734" data-track-index="1" data-width="1920" data-height="1080"></div>
+      <div id="f02" data-composition-id="f02" data-composition-src="compositions/frames/02-nothing.html" data-start="5.734" data-duration="4.872" data-track-index="1" data-width="1920" data-height="1080"></div>
+      <div id="f03" data-composition-id="f03" data-composition-src="compositions/frames/03-agitate.html" data-start="10.605" data-duration="10.361" data-track-index="1" data-width="1920" data-height="1080"></div>
+      <div id="f04" data-composition-id="f04" data-composition-src="compositions/frames/04-reveal.html" data-start="20.967" data-duration="11.512" data-track-index="1" data-width="1920" data-height="1080"></div>
+      <div id="f05" data-composition-id="f05" data-composition-src="compositions/frames/05-feed.html" data-start="32.478" data-duration="11.333" data-track-index="1" data-width="1920" data-height="1080"></div>
+      <div id="f06" data-composition-id="f06" data-composition-src="compositions/frames/06-watch-now.html" data-start="43.812" data-duration="8.875" data-track-index="1" data-width="1920" data-height="1080"></div>
+      <div id="f07" data-composition-id="f07" data-composition-src="compositions/frames/07-built-for-tv.html" data-start="52.687" data-duration="11.546" data-track-index="1" data-width="1920" data-height="1080"></div>
+      <div id="f08" data-composition-id="f08" data-composition-src="compositions/frames/08-butler-intro.html" data-start="64.233" data-duration="4.386" data-track-index="1" data-width="1920" data-height="1080"></div>
+      <div id="f09" data-composition-id="f09" data-composition-src="compositions/frames/09-surprise-me.html" data-start="68.619" data-duration="18.266" data-track-index="1" data-width="1920" data-height="1080"></div>
+      <div id="f10" data-composition-id="f10" data-composition-src="compositions/frames/10-taste-change.html" data-start="86.885" data-duration="10.270" data-track-index="1" data-width="1920" data-height="1080"></div>
+      <div id="f11" data-composition-id="f11" data-composition-src="compositions/frames/11-character.html" data-start="97.156" data-duration="7.640" data-track-index="1" data-width="1920" data-height="1080"></div>
+      <div id="f12" data-composition-id="f12" data-composition-src="compositions/frames/12-aws.html" data-start="104.795" data-duration="19.280" data-track-index="1" data-width="1920" data-height="1080"></div>
+      <div id="f13" data-composition-id="f13" data-composition-src="compositions/frames/13-trust.html" data-start="124.075" data-duration="12.353" data-track-index="1" data-width="1920" data-height="1080"></div>
+      <div id="f14" data-composition-id="f14" data-composition-src="compositions/frames/14-close.html" data-start="136.428" data-duration="13.023" data-track-index="1" data-width="1920" data-height="1080"></div>
+      <div id="cap-000" class="clip cap" data-start="0.620" data-duration="1.360" data-track-index="5"><span class="cap-line" id="capl-000">You spend <em>twenty</em></span></div>
+      <div id="cap-001" class="clip cap" data-start="1.980" data-duration="2.410" data-track-index="5"><span class="cap-line" id="capl-001"><em>minutes</em> choosing what</span></div>
+      <div id="cap-002" class="clip cap" data-start="4.390" data-duration="1.010" data-track-index="5"><span class="cap-line" id="capl-002">to watch.</span></div>
+      <div id="cap-003" class="clip cap" data-start="21.707" data-duration="0.937" data-track-index="5"><span class="cap-line" id="capl-003">This is <em>FireDrift</em></span></div>
+      <div id="cap-004" class="clip cap" data-start="22.644" data-duration="0.627" data-track-index="5"><span class="cap-line" id="capl-004">.</span></div>
+      <div id="cap-005" class="clip cap" data-start="23.597" data-duration="0.620" data-track-index="5"><span class="cap-line" id="capl-005">Two ways to</span></div>
+      <div id="cap-006" class="clip cap" data-start="24.237" data-duration="1.400" data-track-index="5"><span class="cap-line" id="capl-006">pick tonight's movie</span></div>
+      <div id="cap-007" class="clip cap" data-start="25.637" data-duration="0.870" data-track-index="5"><span class="cap-line" id="capl-007">on Fire TV:</span></div>
+      <div id="cap-008" class="clip cap" data-start="26.507" data-duration="0.810" data-track-index="5"><span class="cap-line" id="capl-008">a <em>feed</em></span></div>
+      <div id="cap-009" class="clip cap" data-start="27.317" data-duration="1.340" data-track-index="5"><span class="cap-line" id="capl-009">you drive with</span></div>
+      <div id="cap-010" class="clip cap" data-start="28.657" data-duration="0.620" data-track-index="5"><span class="cap-line" id="capl-010">the remote…</span></div>
+      <div id="cap-011" class="clip cap" data-start="29.277" data-duration="0.550" data-track-index="5"><span class="cap-line" id="capl-011">and an <em>AI</em></span></div>
+      <div id="cap-012" class="clip cap" data-start="29.827" data-duration="1.390" data-track-index="5"><span class="cap-line" id="capl-012"><em>butler</em> you talk</span></div>
+      <div id="cap-013" class="clip cap" data-start="31.217" data-duration="0.400" data-track-index="5"><span class="cap-line" id="capl-013">to.</span></div>
+      <div id="cap-014" class="clip cap" data-start="33.118" data-duration="1.700" data-track-index="5"><span class="cap-line" id="capl-014">One title,</span></div>
+      <div id="cap-015" class="clip cap" data-start="34.818" data-duration="0.930" data-track-index="5"><span class="cap-line" id="capl-015">full screen.</span></div>
+      <div id="cap-016" class="clip cap" data-start="35.748" data-duration="0.870" data-track-index="5"><span class="cap-line" id="capl-016"><em>Right</em> :</span></div>
+      <div id="cap-017" class="clip cap" data-start="36.618" data-duration="0.470" data-track-index="5"><span class="cap-line" id="capl-017">like.</span></div>
+      <div id="cap-018" class="clip cap" data-start="37.468" data-duration="0.615" data-track-index="5"><span class="cap-line" id="capl-018"><em>Left</em> :</span></div>
+      <div id="cap-019" class="clip cap" data-start="38.158" data-duration="0.740" data-track-index="5"><span class="cap-line" id="capl-019">skip.</span></div>
+      <div id="cap-020" class="clip cap" data-start="39.438" data-duration="1.350" data-track-index="5"><span class="cap-line" id="capl-020">Every press teaches</span></div>
+      <div id="cap-021" class="clip cap" data-start="40.788" data-duration="0.890" data-track-index="5"><span class="cap-line" id="capl-021">it your <em>taste</em></span></div>
+      <div id="cap-022" class="clip cap" data-start="41.678" data-duration="0.370" data-track-index="5"><span class="cap-line" id="capl-022">.</span></div>
+      <div id="cap-023" class="clip cap" data-start="42.118" data-duration="1.693" data-track-index="5"><span class="cap-line" id="capl-023">No login.</span></div>
+      <div id="cap-024" class="clip cap" data-start="44.492" data-duration="0.520" data-track-index="5"><span class="cap-line" id="capl-024">Find it?</span></div>
+      <div id="cap-025" class="clip cap" data-start="45.442" data-duration="0.620" data-track-index="5"><span class="cap-line" id="capl-025">Press <em>OK</em></span></div>
+      <div id="cap-026" class="clip cap" data-start="46.062" data-duration="0.595" data-track-index="5"><span class="cap-line" id="capl-026">.</span></div>
+      <div id="cap-027" class="clip cap" data-start="46.952" data-duration="1.290" data-track-index="5"><span class="cap-line" id="capl-027">Watch now opens</span></div>
+      <div id="cap-028" class="clip cap" data-start="48.242" data-duration="0.760" data-track-index="5"><span class="cap-line" id="capl-028">the <em>app</em></span></div>
+      <div id="cap-029" class="clip cap" data-start="49.002" data-duration="1.870" data-track-index="5"><span class="cap-line" id="capl-029">that has it,</span></div>
+      <div id="cap-030" class="clip cap" data-start="50.872" data-duration="1.460" data-track-index="5"><span class="cap-line" id="capl-030">on your service.</span></div>
+      <div id="cap-031" class="clip cap" data-start="53.327" data-duration="0.780" data-track-index="5"><span class="cap-line" id="capl-031">Built <em>for</em></span></div>
+      <div id="cap-032" class="clip cap" data-start="54.107" data-duration="1.000" data-track-index="5"><span class="cap-line" id="capl-032">the TV:</span></div>
+      <div id="cap-033" class="clip cap" data-start="55.107" data-duration="1.100" data-track-index="5"><span class="cap-line" id="capl-033"><em>one</em> cover in</span></div>
+      <div id="cap-034" class="clip cap" data-start="56.207" data-duration="0.830" data-track-index="5"><span class="cap-line" id="capl-034">memory,</span></div>
+      <div id="cap-035" class="clip cap" data-start="57.037" data-duration="0.750" data-track-index="5"><span class="cap-line" id="capl-035">the D-pad on</span></div>
+      <div id="cap-036" class="clip cap" data-start="57.787" data-duration="1.210" data-track-index="5"><span class="cap-line" id="capl-036"><em>every</em> screen,</span></div>
+      <div id="cap-037" class="clip cap" data-start="58.997" data-duration="1.250" data-track-index="5"><span class="cap-line" id="capl-037">running on <em>Vega</em></span></div>
+      <div id="cap-038" class="clip cap" data-start="60.247" data-duration="0.640" data-track-index="5"><span class="cap-line" id="capl-038"><em>OS</em> .</span></div>
+      <div id="cap-039" class="clip cap" data-start="60.887" data-duration="0.860" data-track-index="5"><span class="cap-line" id="capl-039">But the feed</span></div>
+      <div id="cap-040" class="clip cap" data-start="61.747" data-duration="0.740" data-track-index="5"><span class="cap-line" id="capl-040">is the easy</span></div>
+      <div id="cap-041" class="clip cap" data-start="62.497" data-duration="1.540" data-track-index="5"><span class="cap-line" id="capl-041">part.</span></div>
+      <div id="cap-042" class="clip cap" data-start="64.973" data-duration="1.460" data-track-index="5"><span class="cap-line" id="capl-042">Still can't decide?</span></div>
+      <div id="cap-043" class="clip cap" data-start="66.643" data-duration="0.820" data-track-index="5"><span class="cap-line" id="capl-043">Meet your <em>butler</em></span></div>
+      <div id="cap-044" class="clip cap" data-start="67.463" data-duration="0.250" data-track-index="5"><span class="cap-line" id="capl-044">.</span></div>
+      <div id="cap-045" class="clip cap" data-start="69.299" data-duration="1.000" data-track-index="5"><span class="cap-line" id="capl-045">Press  <em>Surprise</em></span></div>
+      <div id="cap-046" class="clip cap" data-start="70.299" data-duration="0.710" data-track-index="5"><span class="cap-line" id="capl-046"><em>me</em> .</span></div>
+      <div id="cap-047" class="clip cap" data-start="79.344" data-duration="1.050" data-track-index="5"><span class="cap-line" id="capl-047">He picks <em>one</em></span></div>
+      <div id="cap-048" class="clip cap" data-start="80.454" data-duration="0.740" data-track-index="5"><span class="cap-line" id="capl-048">title,</span></div>
+      <div id="cap-049" class="clip cap" data-start="81.564" data-duration="0.830" data-track-index="5"><span class="cap-line" id="capl-049">tells you <em>why</em></span></div>
+      <div id="cap-050" class="clip cap" data-start="82.394" data-duration="0.200" data-track-index="5"><span class="cap-line" id="capl-050">,</span></div>
+      <div id="cap-051" class="clip cap" data-start="82.494" data-duration="1.000" data-track-index="5"><span class="cap-line" id="capl-051">and the chips</span></div>
+      <div id="cap-052" class="clip cap" data-start="83.494" data-duration="1.290" data-track-index="5"><span class="cap-line" id="capl-052">change with every</span></div>
+      <div id="cap-053" class="clip cap" data-start="84.784" data-duration="0.800" data-track-index="5"><span class="cap-line" id="capl-053">answer.</span></div>
+      <div id="cap-054" class="clip cap" data-start="87.585" data-duration="1.620" data-track-index="5"><span class="cap-line" id="capl-054">Ask for something</span></div>
+      <div id="cap-055" class="clip cap" data-start="89.205" data-duration="0.580" data-track-index="5"><span class="cap-line" id="capl-055">lighter…</span></div>
+      <div id="cap-056" class="clip cap" data-start="90.065" data-duration="1.117" data-track-index="5"><span class="cap-line" id="capl-056">and he <em>changes</em></span></div>
+      <div id="cap-057" class="clip cap" data-start="91.315" data-duration="0.740" data-track-index="5"><span class="cap-line" id="capl-057"><em>your</em> <em>taste</em></span></div>
+      <div id="cap-058" class="clip cap" data-start="92.055" data-duration="0.257" data-track-index="5"><span class="cap-line" id="capl-058">.</span></div>
+      <div id="cap-059" class="clip cap" data-start="92.312" data-duration="0.407" data-track-index="5"><span class="cap-line" id="capl-059">Live.</span></div>
+      <div id="cap-060" class="clip cap" data-start="92.825" data-duration="1.100" data-track-index="5"><span class="cap-line" id="capl-060">With an <em>Undo</em></span></div>
+      <div id="cap-061" class="clip cap" data-start="94.055" data-duration="0.690" data-track-index="5"><span class="cap-line" id="capl-061">button.</span></div>
+      <div id="cap-062" class="clip cap" data-start="94.745" data-duration="0.550" data-track-index="5"><span class="cap-line" id="capl-062">You stay in</span></div>
+      <div id="cap-063" class="clip cap" data-start="95.295" data-duration="0.530" data-track-index="5"><span class="cap-line" id="capl-063">control.</span></div>
+      <div id="cap-064" class="clip cap" data-start="97.356" data-duration="1.120" data-track-index="5"><span class="cap-line" id="capl-064">He <em>listens</em></span></div>
+      <div id="cap-065" class="clip cap" data-start="98.476" data-duration="0.200" data-track-index="5"><span class="cap-line" id="capl-065">.</span></div>
+      <div id="cap-066" class="clip cap" data-start="98.476" data-duration="1.320" data-track-index="5"><span class="cap-line" id="capl-066">He <em>thinks</em></span></div>
+      <div id="cap-067" class="clip cap" data-start="99.796" data-duration="0.200" data-track-index="5"><span class="cap-line" id="capl-067">.</span></div>
+      <div id="cap-068" class="clip cap" data-start="99.816" data-duration="1.090" data-track-index="5"><span class="cap-line" id="capl-068">He <em>speaks</em></span></div>
+      <div id="cap-069" class="clip cap" data-start="100.906" data-duration="0.200" data-track-index="5"><span class="cap-line" id="capl-069">.</span></div>
+      <div id="cap-070" class="clip cap" data-start="100.906" data-duration="1.190" data-track-index="5"><span class="cap-line" id="capl-070">And every gesture</span></div>
+      <div id="cap-071" class="clip cap" data-start="102.386" data-duration="0.500" data-track-index="5"><span class="cap-line" id="capl-071">lands on the</span></div>
+      <div id="cap-072" class="clip cap" data-start="102.886" data-duration="0.860" data-track-index="5"><span class="cap-line" id="capl-072"><em>exact</em> <em>word</em></span></div>
+      <div id="cap-073" class="clip cap" data-start="103.746" data-duration="0.250" data-track-index="5"><span class="cap-line" id="capl-073">.</span></div>
+      <div id="cap-074" class="clip cap" data-start="105.545" data-duration="1.720" data-track-index="5"><span class="cap-line" id="capl-074">Under the hood:</span></div>
+      <div id="cap-075" class="clip cap" data-start="107.265" data-duration="0.480" data-track-index="5"><span class="cap-line" id="capl-075">a <em>Strands</em></span></div>
+      <div id="cap-076" class="clip cap" data-start="107.855" data-duration="1.160" data-track-index="5"><span class="cap-line" id="capl-076">agent on <em>Bedrock</em></span></div>
+      <div id="cap-077" class="clip cap" data-start="109.015" data-duration="0.923" data-track-index="5"><span class="cap-line" id="capl-077"><em>AgentCore</em> ,</span></div>
+      <div id="cap-078" class="clip cap" data-start="110.175" data-duration="1.615" data-track-index="5"><span class="cap-line" id="capl-078">running Claude Haiku.</span></div>
+      <div id="cap-079" class="clip cap" data-start="112.065" data-duration="1.550" data-track-index="5"><span class="cap-line" id="capl-079"><em>Transcribe</em> hears you.</span></div>
+      <div id="cap-080" class="clip cap" data-start="113.615" data-duration="1.117" data-track-index="5"><span class="cap-line" id="capl-080"><em>Polly</em> speaks,</span></div>
+      <div id="cap-081" class="clip cap" data-start="115.065" data-duration="1.100" data-track-index="5"><span class="cap-line" id="capl-081">and its speech</span></div>
+      <div id="cap-082" class="clip cap" data-start="116.165" data-duration="1.030" data-track-index="5"><span class="cap-line" id="capl-082">marks drive the</span></div>
+      <div id="cap-083" class="clip cap" data-start="117.265" data-duration="0.770" data-track-index="5"><span class="cap-line" id="capl-083">animation.</span></div>
+      <div id="cap-084" class="clip cap" data-start="118.035" data-duration="2.100" data-track-index="5"><span class="cap-line" id="capl-084"><em>AgentCore</em> <em>Gateway</em></span></div>
+      <div id="cap-085" class="clip cap" data-start="120.135" data-duration="1.535" data-track-index="5"><span class="cap-line" id="capl-085">turns our <em>Lambdas</em></span></div>
+      <div id="cap-086" class="clip cap" data-start="121.905" data-duration="1.340" data-track-index="5"><span class="cap-line" id="capl-086">into tools.</span></div>
+      <div id="cap-087" class="clip cap" data-start="124.275" data-duration="1.100" data-track-index="5"><span class="cap-line" id="capl-087">The model never</span></div>
+      <div id="cap-088" class="clip cap" data-start="125.565" data-duration="1.370" data-track-index="5"><span class="cap-line" id="capl-088"><em>invents</em> a title:</span></div>
+      <div id="cap-089" class="clip cap" data-start="127.565" data-duration="2.170" data-track-index="5"><span class="cap-line" id="capl-089"><em>TMDB</em> confirms every</span></div>
+      <div id="cap-090" class="clip cap" data-start="129.735" data-duration="0.340" data-track-index="5"><span class="cap-line" id="capl-090">pick.</span></div>
+      <div id="cap-091" class="clip cap" data-start="130.075" data-duration="1.160" data-track-index="5"><span class="cap-line" id="capl-091">And the feed</span></div>
+      <div id="cap-092" class="clip cap" data-start="131.235" data-duration="1.170" data-track-index="5"><span class="cap-line" id="capl-092">never calls an</span></div>
+      <div id="cap-093" class="clip cap" data-start="132.425" data-duration="0.700" data-track-index="5"><span class="cap-line" id="capl-093">LLM.</span></div>
+      <div id="cap-094" class="clip cap" data-start="133.895" data-duration="0.405" data-track-index="5"><span class="cap-line" id="capl-094"><em>Fast</em> ,</span></div>
+      <div id="cap-095" class="clip cap" data-start="134.355" data-duration="1.540" data-track-index="5"><span class="cap-line" id="capl-095">and <em>cheap</em></span></div>
+      <div id="cap-096" class="clip cap" data-start="135.895" data-duration="0.250" data-track-index="5"><span class="cap-line" id="capl-096">.</span></div>
+      <div id="flash" class="clip flash-wrap" data-start="20.817" data-duration="0.5" data-track-index="6" style="position:absolute;inset:0;pointer-events:none;"><div class="flash" id="flash-in"></div></div>
+      <audio id="vo-01" src="audio/vo/vo-01.wav" data-start="0.250" data-duration="5.184" data-track-index="10" data-volume="1"></audio>
+      <audio id="vo-02" src="audio/vo/vo-02.wav" data-start="5.834" data-duration="4.172" data-track-index="10" data-volume="1"></audio>
+      <audio id="vo-03" src="audio/vo/vo-03.wav" data-start="10.805" data-duration="9.661" data-track-index="10" data-volume="1"></audio>
+      <audio id="vo-04" src="audio/vo/vo-04.wav" data-start="21.317" data-duration="10.662" data-track-index="10" data-volume="1"></audio>
+      <audio id="vo-05" src="audio/vo/vo-05.wav" data-start="32.678" data-duration="10.733" data-track-index="10" data-volume="1"></audio>
+      <audio id="vo-06" src="audio/vo/vo-06.wav" data-start="44.012" data-duration="8.175" data-track-index="10" data-volume="1"></audio>
+      <audio id="vo-07" src="audio/vo/vo-07.wav" data-start="52.887" data-duration="10.946" data-track-index="10" data-volume="1"></audio>
+      <audio id="vo-08" src="audio/vo/vo-08.wav" data-start="64.533" data-duration="3.486" data-track-index="10" data-volume="1"></audio>
+      <audio id="vo-09a" src="audio/vo/vo-09a.wav" data-start="68.819" data-duration="2.466" data-track-index="10" data-volume="1"></audio>
+      <audio id="vo-09b" src="audio/vo/vo-09b.wav" data-start="79.344" data-duration="7.141" data-track-index="10" data-volume="1"></audio>
+      <audio id="vo-10" src="audio/vo/vo-10.wav" data-start="87.185" data-duration="9.470" data-track-index="10" data-volume="1"></audio>
+      <audio id="vo-11" src="audio/vo/vo-11.wav" data-start="97.356" data-duration="6.940" data-track-index="10" data-volume="1"></audio>
+      <audio id="vo-12" src="audio/vo/vo-12.wav" data-start="105.095" data-duration="18.280" data-track-index="10" data-volume="1"></audio>
+      <audio id="vo-13" src="audio/vo/vo-13.wav" data-start="124.275" data-duration="11.653" data-track-index="10" data-volume="1"></audio>
+      <audio id="vo-14" src="audio/vo/vo-14.wav" data-start="136.828" data-duration="9.422" data-track-index="10" data-volume="1"></audio>
+      <audio id="butler-voice" src="audio/butler-missing-temp.wav" data-start="73.285" data-duration="5.659" data-track-index="11" data-volume="1"></audio>
+      <audio id="sfx-00-whoosh" src="audio/sfx/whoosh.wav" data-start="5.534" data-duration="0.450" data-track-index="12" data-volume="0.5"></audio>
+      <audio id="sfx-01-whoosh" src="audio/sfx/whoosh.wav" data-start="10.405" data-duration="0.450" data-track-index="12" data-volume="0.5"></audio>
+      <audio id="sfx-02-whoosh" src="audio/sfx/whoosh.wav" data-start="20.767" data-duration="0.450" data-track-index="12" data-volume="0.5"></audio>
+      <audio id="sfx-03-whoosh" src="audio/sfx/whoosh.wav" data-start="32.278" data-duration="0.450" data-track-index="12" data-volume="0.5"></audio>
+      <audio id="sfx-04-whoosh" src="audio/sfx/whoosh.wav" data-start="43.612" data-duration="0.450" data-track-index="12" data-volume="0.5"></audio>
+      <audio id="sfx-05-whoosh" src="audio/sfx/whoosh.wav" data-start="52.487" data-duration="0.450" data-track-index="12" data-volume="0.5"></audio>
+      <audio id="sfx-06-whoosh" src="audio/sfx/whoosh.wav" data-start="64.033" data-duration="0.450" data-track-index="12" data-volume="0.5"></audio>
+      <audio id="sfx-07-whoosh" src="audio/sfx/whoosh.wav" data-start="68.419" data-duration="0.450" data-track-index="12" data-volume="0.5"></audio>
+      <audio id="sfx-08-whoosh" src="audio/sfx/whoosh.wav" data-start="86.685" data-duration="0.450" data-track-index="12" data-volume="0.5"></audio>
+      <audio id="sfx-09-whoosh" src="audio/sfx/whoosh.wav" data-start="96.956" data-duration="0.450" data-track-index="12" data-volume="0.5"></audio>
+      <audio id="sfx-10-whoosh" src="audio/sfx/whoosh.wav" data-start="104.595" data-duration="0.450" data-track-index="12" data-volume="0.5"></audio>
+      <audio id="sfx-11-whoosh" src="audio/sfx/whoosh.wav" data-start="123.875" data-duration="0.450" data-track-index="12" data-volume="0.5"></audio>
+      <audio id="sfx-12-whoosh" src="audio/sfx/whoosh.wav" data-start="136.228" data-duration="0.450" data-track-index="12" data-volume="0.5"></audio>
+      <audio id="sfx-13-hit" src="audio/sfx/hit.wav" data-start="9.004" data-duration="1.200" data-track-index="12" data-volume="0.9"></audio>
+      <audio id="sfx-14-riser" src="audio/sfx/riser.wav" data-start="18.667" data-duration="2.500" data-track-index="13" data-volume="0.35"></audio>
+      <audio id="sfx-15-hit" src="audio/sfx/hit.wav" data-start="22.167" data-duration="1.200" data-track-index="12" data-volume="0.8"></audio>
+      <audio id="sfx-16-pop" src="audio/sfx/pop.wav" data-start="11.245" data-duration="0.083" data-track-index="12" data-volume="0.6"></audio>
+      <audio id="sfx-17-pop" src="audio/sfx/pop.wav" data-start="12.905" data-duration="0.083" data-track-index="12" data-volume="0.6"></audio>
+      <audio id="sfx-18-buzz" src="audio/sfx/buzz.wav" data-start="14.735" data-duration="0.350" data-track-index="12" data-volume="0.5"></audio>
+      <audio id="sfx-19-click" src="audio/sfx/click.wav" data-start="35.598" data-duration="0.030" data-track-index="12" data-volume="0.9"></audio>
+      <audio id="sfx-20-click" src="audio/sfx/click.wav" data-start="37.468" data-duration="0.030" data-track-index="12" data-volume="0.9"></audio>
+      <audio id="sfx-21-click" src="audio/sfx/click.wav" data-start="45.722" data-duration="0.030" data-track-index="12" data-volume="0.9"></audio>
+      <audio id="sfx-22-pop" src="audio/sfx/pop.wav" data-start="55.107" data-duration="0.083" data-track-index="12" data-volume="0.5"></audio>
+      <audio id="sfx-23-pop" src="audio/sfx/pop.wav" data-start="57.787" data-duration="0.083" data-track-index="12" data-volume="0.5"></audio>
+      <audio id="sfx-24-pop" src="audio/sfx/pop.wav" data-start="59.887" data-duration="0.083" data-track-index="12" data-volume="0.5"></audio>
+      <audio id="sfx-25-click" src="audio/sfx/click.wav" data-start="69.369" data-duration="0.030" data-track-index="12" data-volume="0.9"></audio>
+      <audio id="sfx-26-ding" src="audio/sfx/ding.wav" data-start="93.645" data-duration="0.600" data-track-index="12" data-volume="0.5"></audio>
+      <audio id="sfx-27-buzz" src="audio/sfx/buzz.wav" data-start="125.565" data-duration="0.350" data-track-index="12" data-volume="0.5"></audio>
+      <audio id="sfx-28-ding" src="audio/sfx/ding.wav" data-start="127.965" data-duration="0.600" data-track-index="12" data-volume="0.5"></audio>
+      <audio id="sfx-29-hit" src="audio/sfx/hit.wav" data-start="139.642" data-duration="1.200" data-track-index="12" data-volume="0.8"></audio>
+    </div>
+    <script>
+      const tl = gsap.timeline({ paused: true });
+      tl.fromTo("#capl-000", { scale: 0.82, y: 14 }, { scale: 1, y: 0, duration: 0.12, ease: "back.out(3)" }, 0.620);
+      tl.fromTo("#capl-001", { scale: 0.82, y: 14 }, { scale: 1, y: 0, duration: 0.12, ease: "back.out(3)" }, 1.980);
+      tl.fromTo("#capl-002", { scale: 0.82, y: 14 }, { scale: 1, y: 0, duration: 0.12, ease: "back.out(3)" }, 4.390);
+      tl.fromTo("#capl-003", { scale: 0.82, y: 14 }, { scale: 1, y: 0, duration: 0.12, ease: "back.out(3)" }, 21.707);
+      tl.fromTo("#capl-004", { scale: 0.82, y: 14 }, { scale: 1, y: 0, duration: 0.12, ease: "back.out(3)" }, 22.644);
+      tl.fromTo("#capl-005", { scale: 0.82, y: 14 }, { scale: 1, y: 0, duration: 0.12, ease: "back.out(3)" }, 23.597);
+      tl.fromTo("#capl-006", { scale: 0.82, y: 14 }, { scale: 1, y: 0, duration: 0.12, ease: "back.out(3)" }, 24.237);
+      tl.fromTo("#capl-007", { scale: 0.82, y: 14 }, { scale: 1, y: 0, duration: 0.12, ease: "back.out(3)" }, 25.637);
+      tl.fromTo("#capl-008", { scale: 0.82, y: 14 }, { scale: 1, y: 0, duration: 0.12, ease: "back.out(3)" }, 26.507);
+      tl.fromTo("#capl-009", { scale: 0.82, y: 14 }, { scale: 1, y: 0, duration: 0.12, ease: "back.out(3)" }, 27.317);
+      tl.fromTo("#capl-010", { scale: 0.82, y: 14 }, { scale: 1, y: 0, duration: 0.12, ease: "back.out(3)" }, 28.657);
+      tl.fromTo("#capl-011", { scale: 0.82, y: 14 }, { scale: 1, y: 0, duration: 0.12, ease: "back.out(3)" }, 29.277);
+      tl.fromTo("#capl-012", { scale: 0.82, y: 14 }, { scale: 1, y: 0, duration: 0.12, ease: "back.out(3)" }, 29.827);
+      tl.fromTo("#capl-013", { scale: 0.82, y: 14 }, { scale: 1, y: 0, duration: 0.12, ease: "back.out(3)" }, 31.217);
+      tl.fromTo("#capl-014", { scale: 0.82, y: 14 }, { scale: 1, y: 0, duration: 0.12, ease: "back.out(3)" }, 33.118);
+      tl.fromTo("#capl-015", { scale: 0.82, y: 14 }, { scale: 1, y: 0, duration: 0.12, ease: "back.out(3)" }, 34.818);
+      tl.fromTo("#capl-016", { scale: 0.82, y: 14 }, { scale: 1, y: 0, duration: 0.12, ease: "back.out(3)" }, 35.748);
+      tl.fromTo("#capl-017", { scale: 0.82, y: 14 }, { scale: 1, y: 0, duration: 0.12, ease: "back.out(3)" }, 36.618);
+      tl.fromTo("#capl-018", { scale: 0.82, y: 14 }, { scale: 1, y: 0, duration: 0.12, ease: "back.out(3)" }, 37.468);
+      tl.fromTo("#capl-019", { scale: 0.82, y: 14 }, { scale: 1, y: 0, duration: 0.12, ease: "back.out(3)" }, 38.158);
+      tl.fromTo("#capl-020", { scale: 0.82, y: 14 }, { scale: 1, y: 0, duration: 0.12, ease: "back.out(3)" }, 39.438);
+      tl.fromTo("#capl-021", { scale: 0.82, y: 14 }, { scale: 1, y: 0, duration: 0.12, ease: "back.out(3)" }, 40.788);
+      tl.fromTo("#capl-022", { scale: 0.82, y: 14 }, { scale: 1, y: 0, duration: 0.12, ease: "back.out(3)" }, 41.678);
+      tl.fromTo("#capl-023", { scale: 0.82, y: 14 }, { scale: 1, y: 0, duration: 0.12, ease: "back.out(3)" }, 42.118);
+      tl.fromTo("#capl-024", { scale: 0.82, y: 14 }, { scale: 1, y: 0, duration: 0.12, ease: "back.out(3)" }, 44.492);
+      tl.fromTo("#capl-025", { scale: 0.82, y: 14 }, { scale: 1, y: 0, duration: 0.12, ease: "back.out(3)" }, 45.442);
+      tl.fromTo("#capl-026", { scale: 0.82, y: 14 }, { scale: 1, y: 0, duration: 0.12, ease: "back.out(3)" }, 46.062);
+      tl.fromTo("#capl-027", { scale: 0.82, y: 14 }, { scale: 1, y: 0, duration: 0.12, ease: "back.out(3)" }, 46.952);
+      tl.fromTo("#capl-028", { scale: 0.82, y: 14 }, { scale: 1, y: 0, duration: 0.12, ease: "back.out(3)" }, 48.242);
+      tl.fromTo("#capl-029", { scale: 0.82, y: 14 }, { scale: 1, y: 0, duration: 0.12, ease: "back.out(3)" }, 49.002);
+      tl.fromTo("#capl-030", { scale: 0.82, y: 14 }, { scale: 1, y: 0, duration: 0.12, ease: "back.out(3)" }, 50.872);
+      tl.fromTo("#capl-031", { scale: 0.82, y: 14 }, { scale: 1, y: 0, duration: 0.12, ease: "back.out(3)" }, 53.327);
+      tl.fromTo("#capl-032", { scale: 0.82, y: 14 }, { scale: 1, y: 0, duration: 0.12, ease: "back.out(3)" }, 54.107);
+      tl.fromTo("#capl-033", { scale: 0.82, y: 14 }, { scale: 1, y: 0, duration: 0.12, ease: "back.out(3)" }, 55.107);
+      tl.fromTo("#capl-034", { scale: 0.82, y: 14 }, { scale: 1, y: 0, duration: 0.12, ease: "back.out(3)" }, 56.207);
+      tl.fromTo("#capl-035", { scale: 0.82, y: 14 }, { scale: 1, y: 0, duration: 0.12, ease: "back.out(3)" }, 57.037);
+      tl.fromTo("#capl-036", { scale: 0.82, y: 14 }, { scale: 1, y: 0, duration: 0.12, ease: "back.out(3)" }, 57.787);
+      tl.fromTo("#capl-037", { scale: 0.82, y: 14 }, { scale: 1, y: 0, duration: 0.12, ease: "back.out(3)" }, 58.997);
+      tl.fromTo("#capl-038", { scale: 0.82, y: 14 }, { scale: 1, y: 0, duration: 0.12, ease: "back.out(3)" }, 60.247);
+      tl.fromTo("#capl-039", { scale: 0.82, y: 14 }, { scale: 1, y: 0, duration: 0.12, ease: "back.out(3)" }, 60.887);
+      tl.fromTo("#capl-040", { scale: 0.82, y: 14 }, { scale: 1, y: 0, duration: 0.12, ease: "back.out(3)" }, 61.747);
+      tl.fromTo("#capl-041", { scale: 0.82, y: 14 }, { scale: 1, y: 0, duration: 0.12, ease: "back.out(3)" }, 62.497);
+      tl.fromTo("#capl-042", { scale: 0.82, y: 14 }, { scale: 1, y: 0, duration: 0.12, ease: "back.out(3)" }, 64.973);
+      tl.fromTo("#capl-043", { scale: 0.82, y: 14 }, { scale: 1, y: 0, duration: 0.12, ease: "back.out(3)" }, 66.643);
+      tl.fromTo("#capl-044", { scale: 0.82, y: 14 }, { scale: 1, y: 0, duration: 0.12, ease: "back.out(3)" }, 67.463);
+      tl.fromTo("#capl-045", { scale: 0.82, y: 14 }, { scale: 1, y: 0, duration: 0.12, ease: "back.out(3)" }, 69.299);
+      tl.fromTo("#capl-046", { scale: 0.82, y: 14 }, { scale: 1, y: 0, duration: 0.12, ease: "back.out(3)" }, 70.299);
+      tl.fromTo("#capl-047", { scale: 0.82, y: 14 }, { scale: 1, y: 0, duration: 0.12, ease: "back.out(3)" }, 79.344);
+      tl.fromTo("#capl-048", { scale: 0.82, y: 14 }, { scale: 1, y: 0, duration: 0.12, ease: "back.out(3)" }, 80.454);
+      tl.fromTo("#capl-049", { scale: 0.82, y: 14 }, { scale: 1, y: 0, duration: 0.12, ease: "back.out(3)" }, 81.564);
+      tl.fromTo("#capl-050", { scale: 0.82, y: 14 }, { scale: 1, y: 0, duration: 0.12, ease: "back.out(3)" }, 82.394);
+      tl.fromTo("#capl-051", { scale: 0.82, y: 14 }, { scale: 1, y: 0, duration: 0.12, ease: "back.out(3)" }, 82.494);
+      tl.fromTo("#capl-052", { scale: 0.82, y: 14 }, { scale: 1, y: 0, duration: 0.12, ease: "back.out(3)" }, 83.494);
+      tl.fromTo("#capl-053", { scale: 0.82, y: 14 }, { scale: 1, y: 0, duration: 0.12, ease: "back.out(3)" }, 84.784);
+      tl.fromTo("#capl-054", { scale: 0.82, y: 14 }, { scale: 1, y: 0, duration: 0.12, ease: "back.out(3)" }, 87.585);
+      tl.fromTo("#capl-055", { scale: 0.82, y: 14 }, { scale: 1, y: 0, duration: 0.12, ease: "back.out(3)" }, 89.205);
+      tl.fromTo("#capl-056", { scale: 0.82, y: 14 }, { scale: 1, y: 0, duration: 0.12, ease: "back.out(3)" }, 90.065);
+      tl.fromTo("#capl-057", { scale: 0.82, y: 14 }, { scale: 1, y: 0, duration: 0.12, ease: "back.out(3)" }, 91.315);
+      tl.fromTo("#capl-058", { scale: 0.82, y: 14 }, { scale: 1, y: 0, duration: 0.12, ease: "back.out(3)" }, 92.055);
+      tl.fromTo("#capl-059", { scale: 0.82, y: 14 }, { scale: 1, y: 0, duration: 0.12, ease: "back.out(3)" }, 92.312);
+      tl.fromTo("#capl-060", { scale: 0.82, y: 14 }, { scale: 1, y: 0, duration: 0.12, ease: "back.out(3)" }, 92.825);
+      tl.fromTo("#capl-061", { scale: 0.82, y: 14 }, { scale: 1, y: 0, duration: 0.12, ease: "back.out(3)" }, 94.055);
+      tl.fromTo("#capl-062", { scale: 0.82, y: 14 }, { scale: 1, y: 0, duration: 0.12, ease: "back.out(3)" }, 94.745);
+      tl.fromTo("#capl-063", { scale: 0.82, y: 14 }, { scale: 1, y: 0, duration: 0.12, ease: "back.out(3)" }, 95.295);
+      tl.fromTo("#capl-064", { scale: 0.82, y: 14 }, { scale: 1, y: 0, duration: 0.12, ease: "back.out(3)" }, 97.356);
+      tl.fromTo("#capl-065", { scale: 0.82, y: 14 }, { scale: 1, y: 0, duration: 0.12, ease: "back.out(3)" }, 98.476);
+      tl.fromTo("#capl-066", { scale: 0.82, y: 14 }, { scale: 1, y: 0, duration: 0.12, ease: "back.out(3)" }, 98.476);
+      tl.fromTo("#capl-067", { scale: 0.82, y: 14 }, { scale: 1, y: 0, duration: 0.12, ease: "back.out(3)" }, 99.796);
+      tl.fromTo("#capl-068", { scale: 0.82, y: 14 }, { scale: 1, y: 0, duration: 0.12, ease: "back.out(3)" }, 99.816);
+      tl.fromTo("#capl-069", { scale: 0.82, y: 14 }, { scale: 1, y: 0, duration: 0.12, ease: "back.out(3)" }, 100.906);
+      tl.fromTo("#capl-070", { scale: 0.82, y: 14 }, { scale: 1, y: 0, duration: 0.12, ease: "back.out(3)" }, 100.906);
+      tl.fromTo("#capl-071", { scale: 0.82, y: 14 }, { scale: 1, y: 0, duration: 0.12, ease: "back.out(3)" }, 102.386);
+      tl.fromTo("#capl-072", { scale: 0.82, y: 14 }, { scale: 1, y: 0, duration: 0.12, ease: "back.out(3)" }, 102.886);
+      tl.fromTo("#capl-073", { scale: 0.82, y: 14 }, { scale: 1, y: 0, duration: 0.12, ease: "back.out(3)" }, 103.746);
+      tl.fromTo("#capl-074", { scale: 0.82, y: 14 }, { scale: 1, y: 0, duration: 0.12, ease: "back.out(3)" }, 105.545);
+      tl.fromTo("#capl-075", { scale: 0.82, y: 14 }, { scale: 1, y: 0, duration: 0.12, ease: "back.out(3)" }, 107.265);
+      tl.fromTo("#capl-076", { scale: 0.82, y: 14 }, { scale: 1, y: 0, duration: 0.12, ease: "back.out(3)" }, 107.855);
+      tl.fromTo("#capl-077", { scale: 0.82, y: 14 }, { scale: 1, y: 0, duration: 0.12, ease: "back.out(3)" }, 109.015);
+      tl.fromTo("#capl-078", { scale: 0.82, y: 14 }, { scale: 1, y: 0, duration: 0.12, ease: "back.out(3)" }, 110.175);
+      tl.fromTo("#capl-079", { scale: 0.82, y: 14 }, { scale: 1, y: 0, duration: 0.12, ease: "back.out(3)" }, 112.065);
+      tl.fromTo("#capl-080", { scale: 0.82, y: 14 }, { scale: 1, y: 0, duration: 0.12, ease: "back.out(3)" }, 113.615);
+      tl.fromTo("#capl-081", { scale: 0.82, y: 14 }, { scale: 1, y: 0, duration: 0.12, ease: "back.out(3)" }, 115.065);
+      tl.fromTo("#capl-082", { scale: 0.82, y: 14 }, { scale: 1, y: 0, duration: 0.12, ease: "back.out(3)" }, 116.165);
+      tl.fromTo("#capl-083", { scale: 0.82, y: 14 }, { scale: 1, y: 0, duration: 0.12, ease: "back.out(3)" }, 117.265);
+      tl.fromTo("#capl-084", { scale: 0.82, y: 14 }, { scale: 1, y: 0, duration: 0.12, ease: "back.out(3)" }, 118.035);
+      tl.fromTo("#capl-085", { scale: 0.82, y: 14 }, { scale: 1, y: 0, duration: 0.12, ease: "back.out(3)" }, 120.135);
+      tl.fromTo("#capl-086", { scale: 0.82, y: 14 }, { scale: 1, y: 0, duration: 0.12, ease: "back.out(3)" }, 121.905);
+      tl.fromTo("#capl-087", { scale: 0.82, y: 14 }, { scale: 1, y: 0, duration: 0.12, ease: "back.out(3)" }, 124.275);
+      tl.fromTo("#capl-088", { scale: 0.82, y: 14 }, { scale: 1, y: 0, duration: 0.12, ease: "back.out(3)" }, 125.565);
+      tl.fromTo("#capl-089", { scale: 0.82, y: 14 }, { scale: 1, y: 0, duration: 0.12, ease: "back.out(3)" }, 127.565);
+      tl.fromTo("#capl-090", { scale: 0.82, y: 14 }, { scale: 1, y: 0, duration: 0.12, ease: "back.out(3)" }, 129.735);
+      tl.fromTo("#capl-091", { scale: 0.82, y: 14 }, { scale: 1, y: 0, duration: 0.12, ease: "back.out(3)" }, 130.075);
+      tl.fromTo("#capl-092", { scale: 0.82, y: 14 }, { scale: 1, y: 0, duration: 0.12, ease: "back.out(3)" }, 131.235);
+      tl.fromTo("#capl-093", { scale: 0.82, y: 14 }, { scale: 1, y: 0, duration: 0.12, ease: "back.out(3)" }, 132.425);
+      tl.fromTo("#capl-094", { scale: 0.82, y: 14 }, { scale: 1, y: 0, duration: 0.12, ease: "back.out(3)" }, 133.895);
+      tl.fromTo("#capl-095", { scale: 0.82, y: 14 }, { scale: 1, y: 0, duration: 0.12, ease: "back.out(3)" }, 134.355);
+      tl.fromTo("#capl-096", { scale: 0.82, y: 14 }, { scale: 1, y: 0, duration: 0.12, ease: "back.out(3)" }, 135.895);
+      tl.fromTo("#flash-in", { opacity: 0 }, { opacity: 0.9, duration: 0.15, ease: "power2.in" }, 20.817).to("#flash-in", { opacity: 0, duration: 0.3, ease: "power2.out" }, 20.967);
+      window.__timelines["main"] = tl;
+    </script>
+  </body>
+</html>

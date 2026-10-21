@@ -1,0 +1,58 @@
+<!doctype html>
+<html>
+  <head><meta charset="UTF-8" /></head>
+  <body>
+    <template>
+      <link rel="stylesheet" href="styles/brand.css" />
+      <style>
+        #root { position: absolute; inset: 0; }
+        #root .vid { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; object-fit: cover; display: block; }
+        #root .cam { position: absolute; inset: 0; }
+        #root .pst { position: absolute; left: 786px; top: 0; width: 184px; height: 277px; object-fit: cover; border-radius: 6px; opacity: 0; display: block; }
+        #root .pst-fit { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; transform: scale(0.40625); transform-origin: 0 0; }
+        .f13-glow { width: 1200px; height: 1200px; right: -300px; top: -400px; }
+        .f13-cards { position: absolute; left: 160px; right: 160px; top: 90px; display: flex; gap: 80px; }
+        .f13-card { flex: 1; height: 600px; border-radius: 24px; padding: 40px; background: var(--surface); position: relative; overflow: hidden; }
+        .f13-fake { border: 4px dashed rgba(255,107,94,0.7); }
+        .f13-real { border: 4px solid var(--amber); }
+        .f13-poster { height: 360px; border-radius: 14px; background: var(--raised); display: flex; align-items: center; justify-content: center; font-size: 140px; overflow: hidden; }
+        .f13-poster img { width: 100%; height: 100%; object-fit: contain; display: block; }
+        .f13-name { margin-top: 30px; font-size: 64px; }
+        .f13-meta { margin-top: 8px; font-size: 30px; color: var(--muted); }
+        .f13-badge { position: absolute; right: 30px; top: 30px; width: 110px; height: 110px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 70px; font-weight: 700; }
+        .f13-no { background: var(--red); color: #1a0705; }
+        .f13-yes { background: var(--amber); color: var(--on-amber); }
+        .f13-line { position: absolute; left: 160px; right: 160px; top: 770px; font-size: 92px; text-align: center; }
+        .f13-tags { position: absolute; left: 0; right: 0; top: 900px; display: flex; justify-content: center; gap: 24px; }
+      </style>
+      <div id="root" data-composition-id="f13" data-width="1920" data-height="1080">
+        <div class="fd-scene" id="f13-scene">
+
+          <div class="fd-glow f13-glow"></div>
+          <div class="f13-cards">
+            <div class="f13-card f13-fake" id="f13-fake"><div class="f13-poster fd-marquee">?</div><div class="fd-marquee f13-name">Space Heist 3 (2027)</div><div class="f13-meta">Model guess · TMDB: no match · never shown</div><div class="f13-badge f13-no" id="f13-no">&#10005;</div></div>
+            <div class="f13-card f13-real" id="f13-real"><div class="f13-poster"><img class="f13-pimg" src="assets/stills/poster-paradise.png" /></div><div class="fd-marquee f13-name">Death in Paradise (2011)</div><div class="f13-meta">TMDB match · poster, providers, link</div><div class="f13-badge f13-yes" id="f13-yes">&#10003;</div></div>
+          </div>
+          <div class="fd-marquee f13-line" id="f13-line">Feed: <span class="fd-amber">0</span> LLM calls</div>
+          <div class="f13-tags"><div class="fd-pill on" id="f13-t1">Fast</div><div class="fd-pill on" id="f13-t2">Cheap</div></div>
+        </div>
+      </div>
+      <script>
+        const tl = gsap.timeline({ paused: true });
+        const D = 12.353;
+        // Every scene enters with a small settle (one soft camera move per cut).
+        tl.fromTo("#f13-scene", { scale: 1.02 }, { scale: 1, duration: 0.6, ease: "power2.out" }, 0);
+
+        tl.fromTo("#f13-fake", { y: 80, opacity: 0 }, { y: 0, opacity: 1, duration: 0.4, ease: "power3.out" }, 0.15);
+        tl.fromTo("#f13-no", { scale: 0 }, { scale: 1, duration: 0.3, ease: "back.out(3)" }, 1.490);
+        tl.to("#f13-fake", { opacity: 0.35, scale: 0.94, duration: 0.3 }, 1.790);
+        tl.fromTo("#f13-real", { y: 80, opacity: 0 }, { y: 0, opacity: 1, duration: 0.4, ease: "power3.out" }, 3.190);
+        tl.fromTo("#f13-yes", { scale: 0 }, { scale: 1, duration: 0.3, ease: "back.out(3)" }, 3.890);
+        tl.fromTo("#f13-line", { opacity: 0, scale: 1.3 }, { opacity: 1, scale: 1, duration: 0.3, ease: "power4.out" }, 8.150);
+        tl.fromTo("#f13-t1", { scale: 0 }, { scale: 1, duration: 0.25, ease: "back.out(3)" }, 9.820);
+        tl.fromTo("#f13-t2", { scale: 0 }, { scale: 1, duration: 0.25, ease: "back.out(3)" }, 10.600);
+        window.__timelines["f13"] = tl;
+      </script>
+    </template>
+  </body>
+</html>

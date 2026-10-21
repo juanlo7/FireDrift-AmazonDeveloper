@@ -1,0 +1,59 @@
+<!doctype html>
+<html>
+  <head><meta charset="UTF-8" /></head>
+  <body>
+    <template>
+      <link rel="stylesheet" href="styles/brand.css" />
+      <style>
+        #root { position: absolute; inset: 0; }
+        #root .vid { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; object-fit: cover; display: block; }
+        #root .cam { position: absolute; inset: 0; }
+        #root .pst { position: absolute; left: 786px; top: 0; width: 184px; height: 277px; object-fit: cover; border-radius: 6px; opacity: 0; display: block; }
+        #root .pst-fit { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; transform: scale(0.40625); transform-origin: 0 0; }
+        .f04-glow { width: 1600px; height: 900px; left: 160px; top: -380px; }
+        .f04-sign { position: absolute; left: 560px; top: 70px; width: 800px; height: 190px; border: 5px solid var(--glow); border-radius: 22px; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 70px rgba(255,181,71,0.5), inset 0 0 40px rgba(255,181,71,0.25); }
+        .f04-word { font-size: 170px; text-shadow: 0 0 30px rgba(255,217,160,0.8); }
+        .f04-panel { position: absolute; top: 320px; width: 780px; height: 439px; }
+        .f04-left { left: 120px; } .f04-right { right: 120px; }
+        .f04-panel .vid { width: 780px; height: 439px; }
+        .f04-cap { position: absolute; top: 800px; width: 780px; display: flex; gap: 18px; align-items: baseline; }
+        .f04-cap .fd-marquee { font-size: 72px; }
+        .f04-capl { left: 120px; } .f04-capr { right: 120px; }
+        .f04-or { position: absolute; left: 930px; top: 530px; width: 60px; text-align: center; font-size: 56px; }
+      </style>
+      <div id="root" data-composition-id="f04" data-width="1920" data-height="1080">
+        <div class="fd-scene" id="f04-scene">
+
+          <div class="fd-glow f04-glow"></div>
+          <div class="fd-grain"></div>
+          <div class="f04-sign" id="f04-sign"><div class="fd-marquee f04-word">FireDrift</div></div>
+          <div class="fd-frame f04-panel f04-left" id="f04-l"><video id="f04-v1" class="clip vid" src="assets/footage/feed-browse.mp4" muted playsinline data-start="5.860" data-duration="5.652" data-media-start="1.000" data-track-index="0"></video></div>
+          <div class="fd-frame f04-panel f04-right" id="f04-r"><video id="f04-v2" class="clip vid" src="assets/footage/butler-surprise.mp4" muted playsinline data-start="8.660" data-duration="2.852" data-media-start="13.600" data-track-index="0"></video><div class="pst-fit"><img class="pst" id="f04-pst" src="assets/stills/poster-missing.jpg" /></div></div>
+          <div class="fd-marquee fd-amber f04-or" id="f04-or">or</div>
+          <div class="f04-cap f04-capl" id="f04-cl"><span class="fd-marquee">The feed</span><span class="fd-label">with the remote</span></div>
+          <div class="f04-cap f04-capr" id="f04-cr"><span class="fd-marquee">The butler</span><span class="fd-label">with your voice</span></div>
+        </div>
+      </div>
+      <script>
+        const tl = gsap.timeline({ paused: true });
+        const D = 11.512;
+        // Every scene enters with a small settle (one soft camera move per cut).
+        tl.fromTo("#f04-scene", { scale: 1.02 }, { scale: 1, duration: 0.6, ease: "power2.out" }, 0);
+
+        tl.fromTo("#f04-sign", { scale: 1.3, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.45, ease: "power3.out" }, 0.05);
+        tl.fromTo("#f04-sign", { scale: 1.04 }, { scale: 1, duration: 0.3, ease: "power2.out", immediateRender: false }, 1.200);
+        tl.fromTo("#f04-sign", { boxShadow: "0 0 0px rgba(255,181,71,0)" }, { boxShadow: "0 0 90px rgba(255,181,71,0.65)", duration: 0.6, ease: "power2.out" }, 1.500);
+        tl.fromTo("#f04-l", { x: -900, opacity: 0 }, { x: 0, opacity: 1, duration: 0.45, ease: "expo.out" }, 5.810);
+        tl.fromTo("#f04-cl", { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.3 }, 6.060);
+        tl.fromTo("#f04-or", { scale: 0 }, { scale: 1, duration: 0.3, ease: "back.out(3)" }, 8.260);
+        tl.fromTo("#f04-r", { x: 900, opacity: 0 }, { x: 0, opacity: 1, duration: 0.45, ease: "expo.out" }, 8.610);
+        tl.fromTo("#f04-cr", { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.3 }, 8.860);
+        tl.set("#f04-pst", { opacity: 0 }, 8.660);
+        tl.set("#f04-pst", { opacity: 1, top: "364px" }, 9.110);
+        tl.set("#f04-pst", { opacity: 1, top: "264px" }, 9.510);
+        tl.set("#f04-pst", { opacity: 0 }, 11.512);
+        window.__timelines["f04"] = tl;
+      </script>
+    </template>
+  </body>
+</html>

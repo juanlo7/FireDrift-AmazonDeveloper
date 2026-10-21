@@ -1,0 +1,58 @@
+<!doctype html>
+<html>
+  <head><meta charset="UTF-8" /></head>
+  <body>
+    <template>
+      <link rel="stylesheet" href="styles/brand.css" />
+      <style>
+        #root { position: absolute; inset: 0; }
+        #root .vid { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; object-fit: cover; display: block; }
+        #root .cam { position: absolute; inset: 0; }
+        #root .pst { position: absolute; left: 786px; top: 0; width: 184px; height: 277px; object-fit: cover; border-radius: 6px; opacity: 0; display: block; }
+        #root .pst-fit { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; transform: scale(0.40625); transform-origin: 0 0; }
+        .f05-remote { position: absolute; right: 100px; top: 600px; width: 300px; height: 300px; border-radius: 50%; background: #1b1916; border: 4px solid #3a352e; box-shadow: 0 20px 60px rgba(0,0,0,0.6); }
+        .f05-ok { position: absolute; left: 95px; top: 95px; width: 110px; height: 110px; border-radius: 50%; background: #2e2a25; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 30px; }
+        .f05-key { position: absolute; width: 0; height: 0; border-style: solid; }
+        .f05-r { right: 26px; top: 122px; border-width: 28px 0 28px 40px; border-color: transparent transparent transparent #6b645a; }
+        .f05-l { left: 26px; top: 122px; border-width: 28px 40px 28px 0; border-color: transparent #6b645a transparent transparent; }
+        .f05-rl { border-color: transparent transparent transparent var(--amber); filter: drop-shadow(0 0 16px var(--amber)); }
+        .f05-ll { border-color: transparent var(--amber) transparent transparent; filter: drop-shadow(0 0 16px var(--amber)); }
+        .f05-tag { position: absolute; right: 150px; top: 500px; }
+        .f05-taste { position: absolute; right: 100px; top: 930px; width: 420px; padding: 22px 28px; border-radius: 20px; background: rgba(13,12,11,0.85); border: 3px solid rgba(255,181,71,0.5); }
+        .f05-bar { margin-top: 12px; height: 18px; border-radius: 9px; background: var(--raised); overflow: hidden; }
+        .f05-fill { width: 100%; height: 100%; background: var(--amber); display: block; transform-origin: left center; }
+      </style>
+      <div id="root" data-composition-id="f05" data-width="1920" data-height="1080">
+        <div class="fd-scene" id="f05-scene">
+
+          <div class="cam" id="f05-a-cam"><video id="f05-a" class="clip vid" src="assets/footage/feed-browse.mp4" muted playsinline data-start="0.000" data-duration="4.490" data-media-start="0.000" data-track-index="0"></video></div><div class="cam" id="f05-b-cam"><video id="f05-b" class="clip vid" src="assets/footage/feed-browse.mp4" muted playsinline data-start="4.490" data-duration="4.050" data-media-start="8.970" data-track-index="0"></video></div><div class="cam" id="f05-c-cam"><video id="f05-c" class="clip vid" src="assets/footage/feed-browse.mp4" muted playsinline data-start="8.540" data-duration="2.793" data-media-start="18.930" data-track-index="0"></video></div>
+          <div class="f05-remote" id="f05-remote"><div class="f05-ok">OK</div><div class="f05-key f05-r"></div><div class="f05-key f05-l"></div><div class="f05-key f05-r f05-rl" id="f05-p0"></div><div class="f05-key f05-l f05-ll" id="f05-p1"></div><div class="f05-key f05-l f05-ll" id="f05-p2"></div></div>
+          <div class="fd-pill on f05-tag" id="f05-like">&#9829; Like</div>
+          <div class="fd-pill f05-tag" id="f05-skip">Skip</div>
+          <div class="f05-taste" id="f05-taste"><div class="fd-label">Your taste · learning</div><div class="f05-bar"><span class="f05-fill" id="f05-fill"></span></div></div>
+        </div>
+      </div>
+      <script>
+        const tl = gsap.timeline({ paused: true });
+        const D = 11.333;
+        // Every scene enters with a small settle (one soft camera move per cut).
+        tl.fromTo("#f05-scene", { scale: 1.02 }, { scale: 1, duration: 0.6, ease: "power2.out" }, 0);
+
+        tl.fromTo("#f05-remote", { x: 420 }, { x: 0, duration: 0.45, ease: "expo.out" }, 0.3);
+        tl.fromTo("#f05-a-cam", { scale: 1 }, { scale: 1.05, duration: 4.490, ease: "none", transformOrigin: "30% 45%" }, 0);
+        tl.fromTo("#f05-b-cam", { scale: 1.05 }, { scale: 1, duration: 4.050, ease: "none", transformOrigin: "50% 40%" }, 4.490);
+        tl.fromTo("#f05-c-cam", { scale: 1 }, { scale: 1.05, duration: 2.793, ease: "none", transformOrigin: "40% 45%" }, 8.540);
+        tl.fromTo("#f05-p0", { opacity: 0 }, { opacity: 1, duration: 0.05 }, 3.120).to("#f05-p0", { opacity: 0, duration: 0.3 }, 3.620);
+        tl.fromTo("#f05-p1", { opacity: 0 }, { opacity: 1, duration: 0.05 }, 4.990).to("#f05-p1", { opacity: 0, duration: 0.3 }, 5.490);
+        tl.fromTo("#f05-p2", { opacity: 0 }, { opacity: 1, duration: 0.05 }, 9.040).to("#f05-p2", { opacity: 0, duration: 0.3 }, 9.540);
+        tl.fromTo("#f05-like", { scale: 0, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.3, ease: "back.out(3)" }, 3.270).to("#f05-like", { opacity: 0, duration: 0.2 }, 4.670);
+        tl.fromTo("#f05-skip", { scale: 0, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.3, ease: "back.out(3)" }, 4.990).to("#f05-skip", { opacity: 0, duration: 0.2 }, 6.190);
+        tl.fromTo("#f05-taste", { y: 200 }, { y: 0, duration: 0.4, ease: "power3.out" }, 2.870);
+        tl.fromTo("#f05-fill", { scaleX: 0.15 }, { scaleX: 0.4, duration: 0.4, ease: "power2.out" }, 3.370);
+        tl.fromTo("#f05-fill", { scaleX: 0.4 }, { scaleX: 0.55, duration: 0.4, ease: "power2.out", immediateRender: false }, 5.090);
+        tl.fromTo("#f05-fill", { scaleX: 0.55 }, { scaleX: 0.85, duration: 0.6, ease: "power2.out", immediateRender: false }, 8.840);
+        window.__timelines["f05"] = tl;
+      </script>
+    </template>
+  </body>
+</html>

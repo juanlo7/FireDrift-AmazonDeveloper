@@ -1,0 +1,55 @@
+{
+ "1": [
+  "You spend twenty minutes choosing what to watch."
+ ],
+ "2": [
+  "Then you watch\u2026 (beat) nothing."
+ ],
+ "3": [
+  "Five apps. Ten thousand titles. Zero decisions.",
+  "Not a content problem. (beat) A choosing problem."
+ ],
+ "4": [
+  "This is FireDrift. Two ways to pick tonight's movie on Fire TV:",
+  "a feed you drive with the remote\u2026 and an AI butler you talk to."
+ ],
+ "5": [
+  "One title, full screen. Right: like. Left: skip.",
+  "Every press teaches it your taste. No login."
+ ],
+ "6": [
+  "Found it? Press OK. Watch now opens the app that has it, on your services."
+ ],
+ "7": [
+  "Built for the TV: one cover in memory, the D-pad on every screen, running on Vega OS.",
+  "(beat) But the feed is the easy part."
+ ],
+ "8": [
+  "Still can't decide? Meet your butler."
+ ],
+ "9": [
+  "A: Press \"Surprise me.\"",
+  "B: He picks one title, tells you why, and the chips change with every answer."
+ ],
+ "10": [
+  "Ask for \"something lighter\"\u2026 and he changes your taste. Live.",
+  "With an Undo button. You stay in control."
+ ],
+ "11": [
+  "He listens. He thinks. He speaks.",
+  "And every gesture lands on the exact word."
+ ],
+ "12": [
+  "Under the hood: a Strands agent on Bedrock AgentCore, running Claude Haiku.",
+  "Transcribe hears you. Polly speaks, and its speech marks drive the animation.",
+  "AgentCore Gateway turns our Lambdas into tools."
+ ],
+ "13": [
+  "The model never invents a title: TMDB confirms every pick.",
+  "And the feed never calls an LLM. Fast, and cheap."
+ ],
+ "14": [
+  "Stop scrolling. Start watching.",
+  "FireDrift. Built for the Amazon Developer Hackathon. Open source, on Fire TV."
+ ]
+}

@@ -1,0 +1,200 @@
+[
+  {
+    "text": "Under",
+    "start": 0.45,
+    "end": 0.83,
+    "id": "w0"
+  },
+  {
+    "text": "the",
+    "start": 0.83,
+    "end": 1.1,
+    "id": "w1"
+  },
+  {
+    "text": "hood,",
+    "start": 2,
+    "end": 2.17,
+    "id": "w2"
+  },
+  {
+    "text": "a",
+    "start": 2.17,
+    "end": 2.24,
+    "id": "w3"
+  },
+  {
+    "text": "strong",
+    "start": 2.35,
+    "end": 2.76,
+    "id": "w4"
+  },
+  {
+    "text": "agent",
+    "start": 2.76,
+    "end": 3.04,
+    "id": "w5"
+  },
+  {
+    "text": "on",
+    "start": 3.3,
+    "end": 3.4,
+    "id": "w6"
+  },
+  {
+    "text": "Bedrock",
+    "start": 3.4,
+    "end": 3.92,
+    "id": "w7"
+  },
+  {
+    "text": "Agent",
+    "start": 4.1,
+    "end": 4.58,
+    "id": "w8"
+  },
+  {
+    "text": "Core",
+    "start": 4.58,
+    "end": 4.82,
+    "id": "w9"
+  },
+  {
+    "text": "running",
+    "start": 5.08,
+    "end": 5.46,
+    "id": "w10"
+  },
+  {
+    "text": "Claude",
+    "start": 5.8,
+    "end": 6.12,
+    "id": "w11"
+  },
+  {
+    "text": "Haiko,",
+    "start": 6.12,
+    "end": 6.6,
+    "id": "w12"
+  },
+  {
+    "text": "transcribe,",
+    "start": 6.97,
+    "end": 7.62,
+    "id": "w13"
+  },
+  {
+    "text": "hears",
+    "start": 7.93,
+    "end": 8.18,
+    "id": "w14"
+  },
+  {
+    "text": "you,",
+    "start": 8.18,
+    "end": 8.52,
+    "id": "w15"
+  },
+  {
+    "text": "polyspeaks",
+    "start": 8.99,
+    "end": 9.81,
+    "id": "w16"
+  },
+  {
+    "text": "and",
+    "start": 9.97,
+    "end": 10.23,
+    "id": "w17"
+  },
+  {
+    "text": "in",
+    "start": 10.23,
+    "end": 10.45,
+    "id": "w18"
+  },
+  {
+    "text": "the",
+    "start": 10.45,
+    "end": 10.61,
+    "id": "w19"
+  },
+  {
+    "text": "speech",
+    "start": 10.61,
+    "end": 11.07,
+    "id": "w20"
+  },
+  {
+    "text": "marks",
+    "start": 11.07,
+    "end": 11.28,
+    "id": "w21"
+  },
+  {
+    "text": "drive",
+    "start": 11.5,
+    "end": 11.82,
+    "id": "w22"
+  },
+  {
+    "text": "the",
+    "start": 11.82,
+    "end": 11.95,
+    "id": "w23"
+  },
+  {
+    "text": "animation.",
+    "start": 12.17,
+    "end": 12.94,
+    "id": "w24"
+  },
+  {
+    "text": "Agent",
+    "start": 13.45,
+    "end": 13.64,
+    "id": "w25"
+  },
+  {
+    "text": "Core",
+    "start": 13.64,
+    "end": 14.1,
+    "id": "w26"
+  },
+  {
+    "text": "Gateway",
+    "start": 14.14,
+    "end": 15.04,
+    "id": "w27"
+  },
+  {
+    "text": "turns",
+    "start": 15.04,
+    "end": 15.68,
+    "id": "w28"
+  },
+  {
+    "text": "our",
+    "start": 15.68,
+    "end": 16.04,
+    "id": "w29"
+  },
+  {
+    "text": "landas",
+    "start": 16.1,
+    "end": 16.81,
+    "id": "w30"
+  },
+  {
+    "text": "into",
+    "start": 16.81,
+    "end": 17.33,
+    "id": "w31"
+  },
+  {
+    "text": "tools.",
+    "start": 17.33,
+    "end": 18,
+    "id": "w32"
+  }
+]

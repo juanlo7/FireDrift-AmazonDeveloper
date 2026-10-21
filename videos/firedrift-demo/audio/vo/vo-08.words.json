@@ -1,0 +1,38 @@
+[
+  {
+    "text": "Still",
+    "start": 0.44,
+    "end": 0.57,
+    "id": "w0"
+  },
+  {
+    "text": "can",
+    "start": 0.69,
+    "end": 0.9,
+    "id": "w1"
+  },
+  {
+    "text": "decide?",
+    "start": 0.93,
+    "end": 1.75,
+    "id": "w2"
+  },
+  {
+    "text": "Meet",
+    "start": 2.11,
+    "end": 2.22,
+    "id": "w3"
+  },
+  {
+    "text": "your",
+    "start": 2.22,
+    "end": 2.44,
+    "id": "w4"
+  },
+  {
+    "text": "butler!",
+    "start": 2.44,
+    "end": 2.93,
+    "id": "w5"
+  }
+]

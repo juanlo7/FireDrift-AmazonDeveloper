@@ -1,0 +1,32 @@
+/* FireDrift brand for the demo video: the app's own tokens (app/src/theme/index.ts), scaled for video. */
+@font-face { font-family: "Big Shoulders"; font-weight: 900; src: url("../assets/fonts/BigShouldersDisplay-Black.ttf"); }
+@font-face { font-family: "Big Shoulders"; font-weight: 700; src: url("../assets/fonts/BigShouldersDisplay-Bold.ttf"); }
+@font-face { font-family: "Figtree"; font-weight: 500; src: url("../assets/fonts/Figtree-Medium.ttf"); }
+@font-face { font-family: "Figtree"; font-weight: 600; src: url("../assets/fonts/Figtree-SemiBold.ttf"); }
+@font-face { font-family: "Figtree"; font-weight: 700; src: url("../assets/fonts/Figtree-Bold.ttf"); }
+
+:root {
+  --bg: #0d0c0b;
+  --surface: #191714;
+  --raised: #26231f;
+  --amber: #ffb547;
+  --on-amber: #1a1006;
+  --text: #f6efe4;
+  --muted: #b3a898;
+  --glow: #ffd9a0;
+  --red: #ff6b5e;
+  --marquee: "Big Shoulders", Impact, sans-serif;
+  --body: "Figtree", system-ui, sans-serif;
+}
+
+.fd-scene { position: absolute; inset: 0; overflow: hidden; background: var(--bg); color: var(--text); font-family: var(--body); }
+.fd-glow { position: absolute; border-radius: 50%; background: radial-gradient(circle, rgba(255, 181, 71, 0.28) 0%, rgba(255, 181, 71, 0) 70%); pointer-events: none; }
+.fd-grain { position: absolute; inset: 0; opacity: 0.14; mix-blend-mode: overlay; background-image: repeating-radial-gradient(circle at 17% 32%, rgba(255,255,255,0.5) 0 1px, transparent 1px 3px); }
+.fd-marquee { font-family: var(--marquee); font-weight: 900; text-transform: uppercase; line-height: 0.88; letter-spacing: 0.01em; }
+.fd-label { font-family: var(--marquee); font-weight: 700; text-transform: uppercase; letter-spacing: 0.12em; font-size: 26px; color: var(--muted); }
+.fd-amber { color: var(--amber); }
+.fd-red { color: var(--red); }
+.fd-shot { position: absolute; display: block; object-fit: cover; }
+.fd-frame { border: 4px solid rgba(255, 217, 160, 0.55); border-radius: 18px; box-shadow: 0 0 80px rgba(255, 181, 71, 0.25), 0 30px 80px rgba(0, 0, 0, 0.6); overflow: hidden; }
+.fd-pill { display: inline-flex; align-items: center; gap: 14px; padding: 16px 30px; border-radius: 999px; background: var(--raised); font-weight: 700; font-size: 34px; }
+.fd-pill.on { background: var(--amber); color: var(--on-amber); box-shadow: 0 0 40px rgba(255, 181, 71, 0.55); }

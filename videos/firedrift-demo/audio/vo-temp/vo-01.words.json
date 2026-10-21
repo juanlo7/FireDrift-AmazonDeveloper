@@ -1,0 +1,50 @@
+[
+  {
+    "text": "You",
+    "start": 0,
+    "end": 0.17,
+    "id": "w0"
+  },
+  {
+    "text": "spent",
+    "start": 0.17,
+    "end": 0.46,
+    "id": "w1"
+  },
+  {
+    "text": "20",
+    "start": 0.46,
+    "end": 0.8,
+    "id": "w2"
+  },
+  {
+    "text": "minutes",
+    "start": 0.86,
+    "end": 1.22,
+    "id": "w3"
+  },
+  {
+    "text": "choosing",
+    "start": 1.22,
+    "end": 1.69,
+    "id": "w4"
+  },
+  {
+    "text": "what",
+    "start": 1.69,
+    "end": 1.92,
+    "id": "w5"
+  },
+  {
+    "text": "to",
+    "start": 1.92,
+    "end": 1.93,
+    "id": "w6"
+  },
+  {
+    "text": "watch.",
+    "start": 2.05,
+    "end": 2.49,
+    "id": "w7"
+  }
+]
