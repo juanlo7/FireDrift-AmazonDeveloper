@@ -1,0 +1,104 @@
+[
+  {
+    "text": "stop",
+    "start": 0.01,
+    "end": 0.27,
+    "id": "w0"
+  },
+  {
+    "text": "scrolling",
+    "start": 0.41,
+    "end": 0.97,
+    "id": "w1"
+  },
+  {
+    "text": "start",
+    "start": 1.39,
+    "end": 1.65,
+    "id": "w2"
+  },
+  {
+    "text": "watching",
+    "start": 1.71,
+    "end": 2.23,
+    "id": "w3"
+  },
+  {
+    "text": "fire",
+    "start": 2.75,
+    "end": 3.17,
+    "id": "w4"
+  },
+  {
+    "text": "drift",
+    "start": 3.17,
+    "end": 3.46,
+    "id": "w5"
+  },
+  {
+    "text": "built",
+    "start": 3.95,
+    "end": 4.08,
+    "id": "w6"
+  },
+  {
+    "text": "for",
+    "start": 4.21,
+    "end": 4.32,
+    "id": "w7"
+  },
+  {
+    "text": "the",
+    "start": 4.32,
+    "end": 4.4,
+    "id": "w8"
+  },
+  {
+    "text": "amazon",
+    "start": 4.4,
+    "end": 5.04,
+    "id": "w9"
+  },
+  {
+    "text": "developer",
+    "start": 5.04,
+    "end": 5.66,
+    "id": "w10"
+  },
+  {
+    "text": "akathan",
+    "start": 5.73,
+    "end": 6.38,
+    "id": "w11"
+  },
+  {
+    "text": "open",
+    "start": 6.79,
+    "end": 7.09,
+    "id": "w12"
+  },
+  {
+    "text": "source",
+    "start": 7.1,
+    "end": 7.52,
+    "id": "w13"
+  },
+  {
+    "text": "on",
+    "start": 7.78,
+    "end": 7.92,
+    "id": "w14"
+  },
+  {
+    "text": "fire",
+    "start": 7.92,
+    "end": 8.66,
+    "id": "w15"
+  },
+  {
+    "text": "tv",
+    "start": 8.66,
+    "end": 8.86,
+    "id": "w16"
+  }
+]

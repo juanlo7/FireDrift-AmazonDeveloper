@@ -1,0 +1,70 @@
+<!doctype html>
+<html>
+  <head><meta charset="UTF-8" /></head>
+  <body>
+    <template>
+      <link rel="stylesheet" href="styles/brand.css" />
+      <style>
+        #root { position: absolute; inset: 0; }
+        #root .vid { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; object-fit: cover; display: block; }
+        #root .cam { position: absolute; inset: 0; }
+        #root .pst { position: absolute; left: 786px; top: 0; width: 184px; height: 277px; object-fit: cover; border-radius: 6px; opacity: 0; display: block; }
+        #root .pst-fit { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; transform: scale(0.40625); transform-origin: 0 0; }
+        .f12-title { position: absolute; left: 120px; top: 80px; font-size: 96px; }
+        .f12-count { position: absolute; right: 120px; top: 96px; text-align: right; }
+        .f12-count .fd-marquee { font-size: 88px; color: var(--amber); }
+        .f12-svg { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; }
+        .f12-node { position: absolute; padding: 22px 28px; border-radius: 18px; background: var(--surface); border: 3px solid rgba(255,181,71,0.55); }
+        .f12-node b { display: block; font-size: 36px; font-weight: 700; }
+        .f12-node i { display: block; font-style: normal; font-size: 26px; color: var(--muted); margin-top: 6px; }
+        .f12-hero { border-color: var(--amber); box-shadow: 0 0 60px rgba(255,181,71,0.35); }
+        .f12-pulse { position: absolute; left: 0; top: 0; width: 22px; height: 22px; border-radius: 50%; background: var(--glow); box-shadow: 0 0 24px var(--amber); }
+      </style>
+      <div id="root" data-composition-id="f12" data-width="1920" data-height="1080">
+        <div class="fd-scene" id="f12-scene">
+
+
+          <div class="fd-grain"></div>
+          <div class="fd-marquee f12-title" id="f12-title">Under the hood</div>
+          <div class="f12-count" id="f12-count"><div class="fd-marquee"><span id="f12-n">0</span> AWS services</div><div class="fd-label">1 CDK deploy</div></div>
+          <svg class="f12-svg" viewBox="0 0 1920 1080"><g stroke="#ffb547" stroke-width="4" fill="none" opacity="0.9"><path id="f12-p1" d="M430 525 H640" pathLength="1" stroke-dasharray="1" /><path id="f12-p2" d="M850 470 V365" pathLength="1" stroke-dasharray="1" /><path id="f12-p3" d="M1040 470 L1150 365" pathLength="1" stroke-dasharray="1" /><path id="f12-p4" d="M1090 525 H1270" pathLength="1" stroke-dasharray="1" /><path id="f12-p5" d="M1440 590 L1315 690" pathLength="1" stroke-dasharray="1" /><path id="f12-p6" d="M1600 590 L1650 690" pathLength="1" stroke-dasharray="1" /><path id="f12-p7" d="M275 590 V690" pathLength="1" stroke-dasharray="1" /><path id="f12-p8" d="M430 745 H640" pathLength="1" stroke-dasharray="1" /><path id="f12-p9" d="M900 745 H1150" pathLength="1" stroke-dasharray="1" /></g></svg>
+          <div class="f12-node" id="f12-app" style="left:120px; top:470px; width:310px;"><b>Fire TV app</b><i>Vega OS · React Native</i></div><div class="f12-node f12-hero" id="f12-rt" style="left:640px; top:470px; width:450px;"><b>AgentCore Runtime</b><i>Strands agent · Bedrock · Claude Haiku 4.5</i></div><div class="f12-node" id="f12-tr" style="left:700px; top:260px; width:300px;"><b>Transcribe</b><i>hears you</i></div><div class="f12-node" id="f12-po" style="left:1060px; top:260px; width:300px;"><b>Polly</b><i>speaks · speech marks</i></div><div class="f12-node" id="f12-gw" style="left:1270px; top:470px; width:520px;"><b>AgentCore Gateway</b><i>our Lambdas become tools</i></div><div class="f12-node" id="f12-ld" style="left:640px; top:690px; width:260px;"><b>Lambda</b><i>taste ranking · tools</i></div><div class="f12-node" id="f12-db" style="left:1150px; top:690px; width:330px;"><b>DynamoDB</b><i>your taste</i></div><div class="f12-node" id="f12-tm" style="left:1500px; top:690px; width:300px;"><b>TMDB</b><i>confirms every title</i></div><div class="f12-node" id="f12-api" style="left:120px; top:690px; width:310px;"><b>API Gateway</b><i>the feed</i></div>
+          <div class="f12-pulse" id="f12-pulse"></div>
+        </div>
+      </div>
+      <script>
+        const tl = gsap.timeline({ paused: true });
+        const D = 19.28;
+        // Every scene enters with a small settle (one soft camera move per cut).
+        tl.fromTo("#f12-scene", { scale: 1.02 }, { scale: 1, duration: 0.6, ease: "power2.out" }, 0);
+        tl.fromTo("#f12-title", { opacity: 0, x: -60 }, { opacity: 1, x: 0, duration: 0.4, ease: "power3.out" }, 0.1);
+        tl.fromTo("#f12-app", { opacity: 0, scale: 0.7 }, { opacity: 1, scale: 1, duration: 0.35, ease: "back.out(2)" }, 0.200);
+        tl.fromTo("#f12-rt", { opacity: 0, scale: 0.7 }, { opacity: 1, scale: 1, duration: 0.35, ease: "back.out(2)" }, 2.540);
+        tl.fromTo("#f12-tr", { opacity: 0, scale: 0.7 }, { opacity: 1, scale: 1, duration: 0.35, ease: "back.out(2)" }, 7.270);
+        tl.fromTo("#f12-po", { opacity: 0, scale: 0.7 }, { opacity: 1, scale: 1, duration: 0.35, ease: "back.out(2)" }, 8.820);
+        tl.fromTo("#f12-gw", { opacity: 0, scale: 0.7 }, { opacity: 1, scale: 1, duration: 0.35, ease: "back.out(2)" }, 14.440);
+        tl.fromTo("#f12-ld", { opacity: 0, scale: 0.7 }, { opacity: 1, scale: 1, duration: 0.35, ease: "back.out(2)" }, 16.340);
+        tl.fromTo("#f12-db", { opacity: 0, scale: 0.7 }, { opacity: 1, scale: 1, duration: 0.35, ease: "back.out(2)" }, 17.630);
+        tl.fromTo("#f12-tm", { opacity: 0, scale: 0.7 }, { opacity: 1, scale: 1, duration: 0.35, ease: "back.out(2)" }, 17.780);
+        tl.fromTo("#f12-api", { opacity: 0, scale: 0.7 }, { opacity: 1, scale: 1, duration: 0.35, ease: "back.out(2)" }, 16.490);
+        tl.fromTo("#f12-p1", { strokeDashoffset: 1 }, { strokeDashoffset: 0, duration: 0.4, ease: "power2.out" }, 2.440);
+        tl.fromTo("#f12-p2", { strokeDashoffset: 1 }, { strokeDashoffset: 0, duration: 0.4, ease: "power2.out" }, 7.170);
+        tl.fromTo("#f12-p3", { strokeDashoffset: 1 }, { strokeDashoffset: 0, duration: 0.4, ease: "power2.out" }, 8.720);
+        tl.fromTo("#f12-p4", { strokeDashoffset: 1 }, { strokeDashoffset: 0, duration: 0.4, ease: "power2.out" }, 14.340);
+        tl.fromTo("#f12-p5", { strokeDashoffset: 1 }, { strokeDashoffset: 0, duration: 0.4, ease: "power2.out" }, 17.630);
+        tl.fromTo("#f12-p6", { strokeDashoffset: 1 }, { strokeDashoffset: 0, duration: 0.4, ease: "power2.out" }, 17.630);
+        tl.fromTo("#f12-p7", { strokeDashoffset: 1 }, { strokeDashoffset: 0, duration: 0.4, ease: "power2.out" }, 16.340);
+        tl.fromTo("#f12-p8", { strokeDashoffset: 1 }, { strokeDashoffset: 0, duration: 0.4, ease: "power2.out" }, 16.440);
+        tl.fromTo("#f12-p9", { strokeDashoffset: 1 }, { strokeDashoffset: 0, duration: 0.4, ease: "power2.out" }, 17.630);
+        tl.fromTo("#f12-pulse", { x: 420, y: 514, opacity: 0 }, { x: 620, y: 514, opacity: 1, duration: 0.5, ease: "none" }, 17.080)
+          .to("#f12-pulse", { x: 1260, duration: 0.6, ease: "none" })
+          .to("#f12-pulse", { x: 1430, y: 690, duration: 0.4, ease: "none" })
+          .to("#f12-pulse", { opacity: 0, duration: 0.2 });
+        const n = { v: 0 }; const nEl = document.getElementById("f12-n");
+        tl.fromTo("#f12-count", { opacity: 0, y: -30 }, { opacity: 1, y: 0, duration: 0.3 }, 16.680);
+        tl.fromTo(n, { v: 0 }, { v: 10, duration: 0.8, ease: "power2.out", onUpdate: () => { nEl.textContent = Math.round(n.v); } }, 16.680);
+        window.__timelines["f12"] = tl;
+      </script>
+    </template>
+  </body>
+</html>

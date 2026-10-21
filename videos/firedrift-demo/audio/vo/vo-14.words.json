@@ -1,0 +1,104 @@
+[
+  {
+    "text": "stop",
+    "start": 0.41,
+    "end": 0.6,
+    "id": "w0"
+  },
+  {
+    "text": "scrolling",
+    "start": 0.6,
+    "end": 1.34,
+    "id": "w1"
+  },
+  {
+    "text": "start",
+    "start": 1.34,
+    "end": 1.86,
+    "id": "w2"
+  },
+  {
+    "text": "watching",
+    "start": 1.86,
+    "end": 2.45,
+    "id": "w3"
+  },
+  {
+    "text": "fire",
+    "start": 3,
+    "end": 3.1,
+    "id": "w4"
+  },
+  {
+    "text": "drift",
+    "start": 3.1,
+    "end": 3.39,
+    "id": "w5"
+  },
+  {
+    "text": "build",
+    "start": 4.12,
+    "end": 4.27,
+    "id": "w6"
+  },
+  {
+    "text": "for",
+    "start": 4.27,
+    "end": 4.49,
+    "id": "w7"
+  },
+  {
+    "text": "the",
+    "start": 4.82,
+    "end": 5.04,
+    "id": "w8"
+  },
+  {
+    "text": "Amazon",
+    "start": 5.04,
+    "end": 5.42,
+    "id": "w9"
+  },
+  {
+    "text": "developer",
+    "start": 5.42,
+    "end": 5.88,
+    "id": "w10"
+  },
+  {
+    "text": "hackathon",
+    "start": 6.33,
+    "end": 7.24,
+    "id": "w11"
+  },
+  {
+    "text": "open",
+    "start": 7.6,
+    "end": 8.22,
+    "id": "w12"
+  },
+  {
+    "text": "source",
+    "start": 8.22,
+    "end": 9.29,
+    "id": "w13"
+  },
+  {
+    "text": "on",
+    "start": 9.29,
+    "end": 9.46,
+    "id": "w14"
+  },
+  {
+    "text": "fire",
+    "start": 10,
+    "end": 10.38,
+    "id": "w15"
+  },
+  {
+    "text": "TV",
+    "start": 10.7,
+    "end": 10.76,
+    "id": "w16"
+  }
+]

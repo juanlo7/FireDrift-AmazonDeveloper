@@ -1,0 +1,194 @@
+[
+  {
+    "text": "under",
+    "start": 0,
+    "end": 0.53,
+    "id": "w0"
+  },
+  {
+    "text": "the",
+    "start": 0.53,
+    "end": 0.68,
+    "id": "w1"
+  },
+  {
+    "text": "hood.",
+    "start": 1.25,
+    "end": 1.47,
+    "id": "w2"
+  },
+  {
+    "text": "A",
+    "start": 1.54,
+    "end": 1.59,
+    "id": "w3"
+  },
+  {
+    "text": "trans-agent",
+    "start": 1.59,
+    "end": 2.45,
+    "id": "w4"
+  },
+  {
+    "text": "on",
+    "start": 2.45,
+    "end": 2.61,
+    "id": "w5"
+  },
+  {
+    "text": "Bedrock",
+    "start": 2.61,
+    "end": 3.12,
+    "id": "w6"
+  },
+  {
+    "text": "Agent",
+    "start": 3.19,
+    "end": 3.56,
+    "id": "w7"
+  },
+  {
+    "text": "Core",
+    "start": 3.56,
+    "end": 3.79,
+    "id": "w8"
+  },
+  {
+    "text": "running",
+    "start": 3.96,
+    "end": 4.24,
+    "id": "w9"
+  },
+  {
+    "text": "Cloud",
+    "start": 4.24,
+    "end": 4.58,
+    "id": "w10"
+  },
+  {
+    "text": "IQ.",
+    "start": 4.58,
+    "end": 5.19,
+    "id": "w11"
+  },
+  {
+    "text": "Transcribe",
+    "start": 5.6,
+    "end": 6.28,
+    "id": "w12"
+  },
+  {
+    "text": "here's",
+    "start": 6.44,
+    "end": 6.68,
+    "id": "w13"
+  },
+  {
+    "text": "you.",
+    "start": 6.72,
+    "end": 7.26,
+    "id": "w14"
+  },
+  {
+    "text": "Poly",
+    "start": 7.26,
+    "end": 7.49,
+    "id": "w15"
+  },
+  {
+    "text": "Speaks",
+    "start": 7.89,
+    "end": 8.13,
+    "id": "w16"
+  },
+  {
+    "text": "and",
+    "start": 8.26,
+    "end": 8.43,
+    "id": "w17"
+  },
+  {
+    "text": "its",
+    "start": 8.43,
+    "end": 8.7,
+    "id": "w18"
+  },
+  {
+    "text": "speech",
+    "start": 8.7,
+    "end": 9.19,
+    "id": "w19"
+  },
+  {
+    "text": "marks",
+    "start": 9.26,
+    "end": 9.71,
+    "id": "w20"
+  },
+  {
+    "text": "drive",
+    "start": 9.71,
+    "end": 10.07,
+    "id": "w21"
+  },
+  {
+    "text": "the",
+    "start": 10.2,
+    "end": 10.44,
+    "id": "w22"
+  },
+  {
+    "text": "animation.",
+    "start": 10.44,
+    "end": 11.55,
+    "id": "w23"
+  },
+  {
+    "text": "Agent",
+    "start": 11.63,
+    "end": 11.86,
+    "id": "w24"
+  },
+  {
+    "text": "Core",
+    "start": 11.86,
+    "end": 11.89,
+    "id": "w25"
+  },
+  {
+    "text": "Gateway",
+    "start": 12.32,
+    "end": 12.44,
+    "id": "w26"
+  },
+  {
+    "text": "turns",
+    "start": 12.44,
+    "end": 12.8,
+    "id": "w27"
+  },
+  {
+    "text": "our",
+    "start": 12.8,
+    "end": 12.94,
+    "id": "w28"
+  },
+  {
+    "text": "lambdas",
+    "start": 12.94,
+    "end": 13.52,
+    "id": "w29"
+  },
+  {
+    "text": "into",
+    "start": 13.52,
+    "end": 13.71,
+    "id": "w30"
+  },
+  {
+    "text": "tools.",
+    "start": 14.19,
+    "end": 14.32,
+    "id": "w31"
+  }
+]

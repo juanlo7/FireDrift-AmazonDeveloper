@@ -1,0 +1,86 @@
+[
+  {
+    "text": "He",
+    "start": 0,
+    "end": 0.23,
+    "id": "w0"
+  },
+  {
+    "text": "listens,",
+    "start": 0.47,
+    "end": 1.12,
+    "id": "w1"
+  },
+  {
+    "text": "he",
+    "start": 1.12,
+    "end": 1.57,
+    "id": "w2"
+  },
+  {
+    "text": "thinks,",
+    "start": 1.57,
+    "end": 2.44,
+    "id": "w3"
+  },
+  {
+    "text": "he",
+    "start": 2.46,
+    "end": 2.6,
+    "id": "w4"
+  },
+  {
+    "text": "speaks,",
+    "start": 2.71,
+    "end": 3.55,
+    "id": "w5"
+  },
+  {
+    "text": "and",
+    "start": 3.55,
+    "end": 3.78,
+    "id": "w6"
+  },
+  {
+    "text": "every",
+    "start": 3.78,
+    "end": 4.16,
+    "id": "w7"
+  },
+  {
+    "text": "gesture",
+    "start": 4.16,
+    "end": 4.59,
+    "id": "w8"
+  },
+  {
+    "text": "lands",
+    "start": 5.03,
+    "end": 5.07,
+    "id": "w9"
+  },
+  {
+    "text": "on",
+    "start": 5.07,
+    "end": 5.22,
+    "id": "w10"
+  },
+  {
+    "text": "the",
+    "start": 5.22,
+    "end": 5.42,
+    "id": "w11"
+  },
+  {
+    "text": "exact",
+    "start": 5.53,
+    "end": 5.83,
+    "id": "w12"
+  },
+  {
+    "text": "word.",
+    "start": 5.83,
+    "end": 6.39,
+    "id": "w13"
+  }
+]

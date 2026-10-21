@@ -1,0 +1,402 @@
+[
+ {
+  "time_ms": 0,
+  "type": "sentence",
+  "value": "Here is RED, a clever action comedy with a team of retired spies getting back in the game."
+ },
+ {
+  "time_ms": 137,
+  "type": "word",
+  "value": "Here"
+ },
+ {
+  "time_ms": 137,
+  "type": "viseme",
+  "value": "k"
+ },
+ {
+  "time_ms": 237,
+  "type": "viseme",
+  "value": "i"
+ },
+ {
+  "time_ms": 312,
+  "type": "viseme",
+  "value": "r"
+ },
+ {
+  "time_ms": 450,
+  "type": "word",
+  "value": "is"
+ },
+ {
+  "time_ms": 450,
+  "type": "viseme",
+  "value": "i"
+ },
+ {
+  "time_ms": 500,
+  "type": "viseme",
+  "value": "s"
+ },
+ {
+  "time_ms": 562,
+  "type": "word",
+  "value": "RED"
+ },
+ {
+  "time_ms": 562,
+  "type": "viseme",
+  "value": "r"
+ },
+ {
+  "time_ms": 712,
+  "type": "viseme",
+  "value": "E"
+ },
+ {
+  "time_ms": 837,
+  "type": "viseme",
+  "value": "t"
+ },
+ {
+  "time_ms": 1000,
+  "type": "viseme",
+  "value": "sil"
+ },
+ {
+  "time_ms": 1250,
+  "type": "word",
+  "value": "a"
+ },
+ {
+  "time_ms": 1250,
+  "type": "viseme",
+  "value": "@"
+ },
+ {
+  "time_ms": 1312,
+  "type": "word",
+  "value": "clever"
+ },
+ {
+  "time_ms": 1312,
+  "type": "viseme",
+  "value": "k"
+ },
+ {
+  "time_ms": 1437,
+  "type": "viseme",
+  "value": "t"
+ },
+ {
+  "time_ms": 1487,
+  "type": "viseme",
+  "value": "E"
+ },
+ {
+  "time_ms": 1562,
+  "type": "viseme",
+  "value": "f"
+ },
+ {
+  "time_ms": 1587,
+  "type": "viseme",
+  "value": "@"
+ },
+ {
+  "time_ms": 1625,
+  "type": "viseme",
+  "value": "r"
+ },
+ {
+  "time_ms": 1762,
+  "type": "word",
+  "value": "action"
+ },
+ {
+  "time_ms": 1762,
+  "type": "viseme",
+  "value": "a"
+ },
+ {
+  "time_ms": 1875,
+  "type": "viseme",
+  "value": "k"
+ },
+ {
+  "time_ms": 1962,
+  "type": "viseme",
+  "value": "S"
+ },
+ {
+  "time_ms": 2087,
+  "type": "viseme",
+  "value": "t"
+ },
+ {
+  "time_ms": 2225,
+  "type": "word",
+  "value": "comedy"
+ },
+ {
+  "time_ms": 2225,
+  "type": "viseme",
+  "value": "k"
+ },
+ {
+  "time_ms": 2275,
+  "type": "viseme",
+  "value": "O"
+ },
+ {
+  "time_ms": 2387,
+  "type": "viseme",
+  "value": "p"
+ },
+ {
+  "time_ms": 2437,
+  "type": "viseme",
+  "value": "@"
+ },
+ {
+  "time_ms": 2500,
+  "type": "viseme",
+  "value": "t"
+ },
+ {
+  "time_ms": 2625,
+  "type": "viseme",
+  "value": "i"
+ },
+ {
+  "time_ms": 2687,
+  "type": "word",
+  "value": "with"
+ },
+ {
+  "time_ms": 2687,
+  "type": "viseme",
+  "value": "u"
+ },
+ {
+  "time_ms": 2750,
+  "type": "viseme",
+  "value": "i"
+ },
+ {
+  "time_ms": 2787,
+  "type": "viseme",
+  "value": "T"
+ },
+ {
+  "time_ms": 2825,
+  "type": "word",
+  "value": "a"
+ },
+ {
+  "time_ms": 2825,
+  "type": "viseme",
+  "value": "@"
+ },
+ {
+  "time_ms": 3000,
+  "type": "word",
+  "value": "team"
+ },
+ {
+  "time_ms": 3000,
+  "type": "viseme",
+  "value": "t"
+ },
+ {
+  "time_ms": 3125,
+  "type": "viseme",
+  "value": "i"
+ },
+ {
+  "time_ms": 3187,
+  "type": "viseme",
+  "value": "p"
+ },
+ {
+  "time_ms": 3262,
+  "type": "word",
+  "value": "of"
+ },
+ {
+  "time_ms": 3262,
+  "type": "viseme",
+  "value": "@"
+ },
+ {
+  "time_ms": 3312,
+  "type": "viseme",
+  "value": "f"
+ },
+ {
+  "time_ms": 3387,
+  "type": "word",
+  "value": "retired"
+ },
+ {
+  "time_ms": 3387,
+  "type": "viseme",
+  "value": "r"
+ },
+ {
+  "time_ms": 3437,
+  "type": "viseme",
+  "value": "i"
+ },
+ {
+  "time_ms": 3562,
+  "type": "viseme",
+  "value": "t"
+ },
+ {
+  "time_ms": 3662,
+  "type": "viseme",
+  "value": "a"
+ },
+ {
+  "time_ms": 3725,
+  "type": "viseme",
+  "value": "@"
+ },
+ {
+  "time_ms": 3875,
+  "type": "viseme",
+  "value": "t"
+ },
+ {
+  "time_ms": 3950,
+  "type": "word",
+  "value": "spies"
+ },
+ {
+  "time_ms": 3950,
+  "type": "viseme",
+  "value": "s"
+ },
+ {
+  "time_ms": 4000,
+  "type": "viseme",
+  "value": "p"
+ },
+ {
+  "time_ms": 4250,
+  "type": "viseme",
+  "value": "a"
+ },
+ {
+  "time_ms": 4362,
+  "type": "viseme",
+  "value": "s"
+ },
+ {
+  "time_ms": 4500,
+  "type": "word",
+  "value": "getting"
+ },
+ {
+  "time_ms": 4500,
+  "type": "viseme",
+  "value": "k"
+ },
+ {
+  "time_ms": 4550,
+  "type": "viseme",
+  "value": "E"
+ },
+ {
+  "time_ms": 4587,
+  "type": "viseme",
+  "value": "t"
+ },
+ {
+  "time_ms": 4687,
+  "type": "viseme",
+  "value": "i"
+ },
+ {
+  "time_ms": 4712,
+  "type": "viseme",
+  "value": "k"
+ },
+ {
+  "time_ms": 4812,
+  "type": "word",
+  "value": "back"
+ },
+ {
+  "time_ms": 4812,
+  "type": "viseme",
+  "value": "p"
+ },
+ {
+  "time_ms": 4937,
+  "type": "viseme",
+  "value": "a"
+ },
+ {
+  "time_ms": 4950,
+  "type": "viseme",
+  "value": "k"
+ },
+ {
+  "time_ms": 5125,
+  "type": "word",
+  "value": "in"
+ },
+ {
+  "time_ms": 5125,
+  "type": "viseme",
+  "value": "i"
+ },
+ {
+  "time_ms": 5150,
+  "type": "viseme",
+  "value": "t"
+ },
+ {
+  "time_ms": 5237,
+  "type": "word",
+  "value": "the"
+ },
+ {
+  "time_ms": 5237,
+  "type": "viseme",
+  "value": "T"
+ },
+ {
+  "time_ms": 5250,
+  "type": "viseme",
+  "value": "@"
+ },
+ {
+  "time_ms": 5375,
+  "type": "word",
+  "value": "game"
+ },
+ {
+  "time_ms": 5375,
+  "type": "viseme",
+  "value": "k"
+ },
+ {
+  "time_ms": 5462,
+  "type": "viseme",
+  "value": "e"
+ },
+ {
+  "time_ms": 5612,
+  "type": "viseme",
+  "value": "p"
+ },
+ {
+  "time_ms": 6062,
+  "type": "viseme",
+  "value": "sil"
+ }
+]

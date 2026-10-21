@@ -1,0 +1,164 @@
+[
+  {
+    "text": "This",
+    "start": 0.01,
+    "end": 0.41,
+    "id": "w0"
+  },
+  {
+    "text": "is",
+    "start": 0.41,
+    "end": 0.61,
+    "id": "w1"
+  },
+  {
+    "text": "Fire",
+    "start": 0.61,
+    "end": 0.91,
+    "id": "w2"
+  },
+  {
+    "text": "Drift,",
+    "start": 1.07,
+    "end": 1.58,
+    "id": "w3"
+  },
+  {
+    "text": "two",
+    "start": 1.61,
+    "end": 1.8,
+    "id": "w4"
+  },
+  {
+    "text": "ways",
+    "start": 1.8,
+    "end": 1.98,
+    "id": "w5"
+  },
+  {
+    "text": "to",
+    "start": 2.11,
+    "end": 2.19,
+    "id": "w6"
+  },
+  {
+    "text": "pick",
+    "start": 2.3,
+    "end": 2.56,
+    "id": "w7"
+  },
+  {
+    "text": "tonight's",
+    "start": 2.56,
+    "end": 3.04,
+    "id": "w8"
+  },
+  {
+    "text": "movie",
+    "start": 3.04,
+    "end": 3.32,
+    "id": "w9"
+  },
+  {
+    "text": "on",
+    "start": 3.32,
+    "end": 3.44,
+    "id": "w10"
+  },
+  {
+    "text": "fire",
+    "start": 3.55,
+    "end": 3.79,
+    "id": "w11"
+  },
+  {
+    "text": "TV,",
+    "start": 3.86,
+    "end": 4.76,
+    "id": "w12"
+  },
+  {
+    "text": "a",
+    "start": 4.77,
+    "end": 4.82,
+    "id": "w13"
+  },
+  {
+    "text": "feed",
+    "start": 4.82,
+    "end": 5.07,
+    "id": "w14"
+  },
+  {
+    "text": "new",
+    "start": 5.07,
+    "end": 5.28,
+    "id": "w15"
+  },
+  {
+    "text": "drive",
+    "start": 5.28,
+    "end": 5.64,
+    "id": "w16"
+  },
+  {
+    "text": "with",
+    "start": 5.64,
+    "end": 5.8,
+    "id": "w17"
+  },
+  {
+    "text": "a",
+    "start": 5.9,
+    "end": 5.96,
+    "id": "w18"
+  },
+  {
+    "text": "remote,",
+    "start": 5.96,
+    "end": 6.8,
+    "id": "w19"
+  },
+  {
+    "text": "and",
+    "start": 6.8,
+    "end": 7.04,
+    "id": "w20"
+  },
+  {
+    "text": "an",
+    "start": 7.04,
+    "end": 7.2,
+    "id": "w21"
+  },
+  {
+    "text": "AI",
+    "start": 7.2,
+    "end": 7.29,
+    "id": "w22"
+  },
+  {
+    "text": "butler",
+    "start": 7.38,
+    "end": 7.84,
+    "id": "w23"
+  },
+  {
+    "text": "you",
+    "start": 7.84,
+    "end": 8.08,
+    "id": "w24"
+  },
+  {
+    "text": "talk",
+    "start": 8.08,
+    "end": 8.4,
+    "id": "w25"
+  },
+  {
+    "text": "to.",
+    "start": 8.4,
+    "end": 8.64,
+    "id": "w26"
+  }
+]

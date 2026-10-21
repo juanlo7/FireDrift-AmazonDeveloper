@@ -1,0 +1,36 @@
+<!doctype html>
+<html>
+  <head><meta charset="UTF-8" /></head>
+  <body>
+    <template>
+      <link rel="stylesheet" href="styles/brand.css" />
+      <style>
+        #root { position: absolute; inset: 0; }
+        #root .vid { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; object-fit: cover; display: block; }
+        #root .cam { position: absolute; inset: 0; }
+        #root .pst { position: absolute; left: 786px; top: 0; width: 184px; height: 277px; object-fit: cover; border-radius: 6px; opacity: 0; display: block; }
+        #root .pst-fit { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; transform: scale(0.40625); transform-origin: 0 0; }
+        .f06-ring { position: absolute; left: 1050px; top: 352px; width: 820px; height: 136px; border: 6px solid var(--glow); border-radius: 60px; box-shadow: 0 0 50px rgba(255,217,160,0.8); }
+        .f06-chips { position: absolute; left: 100px; top: 70px; display: flex; gap: 20px; }
+      </style>
+      <div id="root" data-composition-id="f06" data-width="1920" data-height="1080">
+        <div class="fd-scene" id="f06-scene">
+
+          <div class="cam" id="f06-cam"><video id="f06-v" class="clip vid" src="assets/footage/watch-now.mp4" muted playsinline data-start="0.000" data-duration="4.970" data-media-start="0.630" data-track-index="0"></video><video id="f06-w" class="clip vid" src="assets/footage/watch-now.mp4" muted playsinline data-start="4.970" data-duration="3.905" data-media-start="8.450" data-track-index="0"></video><div class="f06-ring" id="f06-ring"></div></div>
+          <div class="f06-chips" id="f06-chips"><div class="fd-pill on">Your services</div><div class="fd-pill">Your country</div></div>
+        </div>
+      </div>
+      <script>
+        const tl = gsap.timeline({ paused: true });
+        const D = 8.875;
+        // Every scene enters with a small settle (one soft camera move per cut).
+        tl.fromTo("#f06-scene", { scale: 1.02 }, { scale: 1, duration: 0.6, ease: "power2.out" }, 0);
+
+        tl.fromTo("#f06-cam", { scale: 1 }, { scale: 1.08, duration: 1.2, ease: "power1.inOut", transformOrigin: "75% 38%" }, 4.320);
+        tl.fromTo("#f06-ring", { opacity: 0, scale: 1.15 }, { opacity: 1, scale: 1, duration: 0.4, ease: "power3.out" }, 5.420);
+        tl.fromTo("#f06-chips", { y: -160 }, { y: 0, duration: 0.4, ease: "back.out(2)" }, 8.050);
+        window.__timelines["f06"] = tl;
+      </script>
+    </template>
+  </body>
+</html>

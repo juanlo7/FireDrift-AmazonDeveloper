@@ -1,0 +1,54 @@
+<!doctype html>
+<html>
+  <head><meta charset="UTF-8" /></head>
+  <body>
+    <template>
+      <link rel="stylesheet" href="styles/brand.css" />
+      <style>
+        #root { position: absolute; inset: 0; }
+        #root .vid { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; object-fit: cover; display: block; }
+        #root .cam { position: absolute; inset: 0; }
+        #root .pst { position: absolute; left: 786px; top: 0; width: 184px; height: 277px; object-fit: cover; border-radius: 6px; opacity: 0; display: block; }
+        #root .pst-fit { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; transform: scale(0.40625); transform-origin: 0 0; }
+        .f07-tilt { position: absolute; inset: -60px; transform: rotate(-4deg); }
+        .f07-tiles { position: absolute; inset: 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; filter: brightness(0.3) saturate(0.8); }
+        .f07-tiles img { width: 100%; height: 380px; object-fit: cover; display: block; border-radius: 14px; }
+        .f07-title { position: absolute; left: 120px; top: 110px; font-size: 120px; }
+        .f07-cards { position: absolute; left: 120px; right: 120px; top: 400px; display: flex; gap: 40px; }
+        .f07-card { flex: 1; height: 420px; padding: 48px; border-radius: 24px; background: rgba(25,23,20,0.92); border: 3px solid rgba(255,181,71,0.45); display: flex; flex-direction: column; justify-content: space-between; }
+        .f07-num { font-size: 200px; color: var(--amber); }
+        .f07-cap { font-size: 46px; font-weight: 700; }
+        .f07-freeze { position: absolute; inset: 0; background: rgba(13,12,11,0.7); }
+      </style>
+      <div id="root" data-composition-id="f07" data-width="1920" data-height="1080">
+        <div class="fd-scene" id="f07-scene">
+
+          <div class="f07-tilt"><div class="f07-tiles" id="f07-tiles"><img src="assets/stills/menu.png" /><img src="assets/stills/settings.png" /><img src="assets/stills/about.png" /><img src="assets/stills/watch-now.png" /><img src="assets/stills/butler-start.png" /><img src="assets/stills/feed-1.png" /><img src="assets/stills/settings.png" /><img src="assets/stills/menu-settings.png" /><img src="assets/stills/about.png" /></div></div>
+          <div class="fd-marquee f07-title" id="f07-title">Built <span class="fd-amber">for</span> the TV</div>
+          <div class="f07-cards">
+            <div class="f07-card" id="f07-c1"><div class="fd-marquee f07-num">1</div><div class="f07-cap">cover in memory at a time</div></div>
+            <div class="f07-card" id="f07-c2"><div class="fd-marquee f07-num" id="f07-pct">0%</div><div class="f07-cap">D-pad, every screen</div></div>
+            <div class="f07-card" id="f07-c3"><div class="fd-marquee f07-num">Vega</div><div class="f07-cap">OS, native React Native</div></div>
+          </div>
+          <div class="f07-freeze" id="f07-freeze"></div>
+        </div>
+      </div>
+      <script>
+        const tl = gsap.timeline({ paused: true });
+        const D = 11.546;
+        // Every scene enters with a small settle (one soft camera move per cut).
+        tl.fromTo("#f07-scene", { scale: 1.02 }, { scale: 1, duration: 0.6, ease: "power2.out" }, 0);
+
+        tl.fromTo("#f07-tiles", { y: 0 }, { y: -260, duration: D, ease: "none" }, 0);
+        tl.fromTo("#f07-title", { x: -80, opacity: 0 }, { x: 0, opacity: 1, duration: 0.4, ease: "power3.out" }, 0.15);
+        tl.fromTo("#f07-c1", { y: 160, opacity: 0 }, { y: 0, opacity: 1, duration: 0.4, ease: "back.out(1.8)" }, 2.320);
+        tl.fromTo("#f07-c2", { y: 160, opacity: 0 }, { y: 0, opacity: 1, duration: 0.4, ease: "back.out(1.8)" }, 5.000);
+        const p = { v: 0 }; const pEl = document.getElementById("f07-pct");
+        tl.fromTo(p, { v: 0 }, { v: 100, duration: 0.6, ease: "power2.out", onUpdate: () => { pEl.textContent = Math.round(p.v) + "%"; } }, 5.100);
+        tl.fromTo("#f07-c3", { y: 160, opacity: 0 }, { y: 0, opacity: 1, duration: 0.4, ease: "back.out(1.8)" }, 7.100);
+        tl.fromTo("#f07-freeze", { opacity: 0 }, { opacity: 1, duration: 0.25 }, 8.100);
+        window.__timelines["f07"] = tl;
+      </script>
+    </template>
+  </body>
+</html>

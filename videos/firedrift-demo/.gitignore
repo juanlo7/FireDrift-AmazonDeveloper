@@ -1,0 +1,15 @@
+# Caches and previews made by HyperFrames Studio and the CLI
+.hyperframes/
+.media/
+.thumbnails/
+.waveform-cache/
+.DS_Store
+
+# Renders: keep only the current cut
+renders/*
+!renders/firedrift-demo_2026-10-21_09-51-24.mp4
+
+# Raw voice take and its full-length intermediates (the cut tracks audio/vo/vo-NN.wav are kept)
+audio/voice.aifc
+audio/vo/full.wav
+audio/vo/full-norm.wav
