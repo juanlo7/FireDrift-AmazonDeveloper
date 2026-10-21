@@ -32,8 +32,9 @@ Our AWS stack stays up until Nov 20, 2026. No account or key is needed.
    `apiMode: 'real'` and `butlerMode: 'real'`, then build and run as below.
 
 What to try: on the first run pick your services or Skip. Browse the feed (Up/Down), Like (Right), Skip (Left), Watch now
-(OK). Press Back for the menu and open the butler: "Surprise me", then
-"Something lighter" changes your taste, with Undo. The VVD has no microphone,
+(OK). Press Back for the menu and open the butler: "Surprise me" puts a
+TMDB card on screen; ask for more or less of something (a reply such as
+"Something lighter") and he changes your taste, with Undo. The VVD has no microphone,
 so use the chips there.
 
 ## How it works

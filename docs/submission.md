@@ -197,6 +197,8 @@ Why it matters: there are few complete, public examples of React Native for Vega
 
 ### Friction log (optional, up to 10% bonus)
 
+The form field takes one URL: the link to this section.
+
 ```text
 All 18 entries are GitHub issues with steps, expected and actual results and a suggestion: https://github.com/juanlo7/FireDrift-AmazonDeveloper/issues?q=label%3Afriction-log . One line per entry, with the workaround: docs/feedback.md.
 
@@ -226,7 +228,7 @@ Format: task | steps | expected vs actual | severity | workaround | suggestion
 
 ```text
 Video: https://youtu.be/6VNLfnK9X84
-Repository: https://github.com/juanlo7/FireDrift-AmazonDeveloper (README, "Run the app on the Vega Virtual Device").
+Repository: https://github.com/juanlo7/FireDrift-AmazonDeveloper (README, "Try it on our live stack (judges)").
 
 Fastest way: install the prebuilt package from the attached firedrift-vpkg.zip on the Vega Virtual Device (Vega SDK 0.24):
 - Apple Silicon Mac: vega run-app app_aarch64.vpkg com.firedrift.app.main -d VirtualDevice
@@ -236,10 +238,10 @@ These builds talk to our live AWS stack, which stays up until Nov 20, 2026. No a
 Keys on the VVD: arrows = D-pad, Enter = OK, Esc = Back.
 0. First run: pick your services, or Skip (FireDrift then uses all of them).
 1. Feed: Up/Down browse, Right = Like, Left = Skip, OK = Watch now (your services for the title). Back opens the menu (Butler, Settings, About).
-2. Butler: open it from the menu. Press "Surprise me", then a chip such as "Something lighter": the butler answers out loud, changes your taste, and shows Undo and Reset.
+2. Butler: open it from the menu. Press "Surprise me": he answers out loud and puts a TMDB card on screen. Then try the replies he offers; ask for more or less of something (a reply such as "Something lighter") and he changes your taste, with Undo and Reset.
 3. Settings: services and country.
 
-Notes: the VVD has no microphone, so use the chips (push to talk needs a Vega device). The VVD has no streaming apps, so Watch now shows the services but cannot open them. WebView is not used. From source, the app starts in mock mode (fixtures, no backend); set apiMode and butlerMode to 'real' in app/src/config.ts to use the live stack.
+Notes: the VVD has no microphone, so use the chips (push to talk needs a Vega device). The VVD has no streaming apps, so Watch now shows the services but cannot open them. From source, the app starts in mock mode (fixtures, no backend); set apiMode and butlerMode to 'real' in app/src/config.ts to use the live stack.
 ```
 
 ### Product feedback (the five questions)
