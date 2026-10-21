@@ -31,7 +31,7 @@ Our AWS stack stays up until Nov 20, 2026. No account or key is needed.
 3. From source: `app/src/config.ts` already holds the live URLs. Set
    `apiMode: 'real'` and `butlerMode: 'real'`, then build and run as below.
 
-What to try: browse the feed (Up/Down), Like (Right), Skip (Left), Watch now
+What to try: on the first run pick your services or Skip. Browse the feed (Up/Down), Like (Right), Skip (Left), Watch now
 (OK). Press Back for the menu and open the butler: "Surprise me", then
 "Something lighter" changes your taste, with Undo. The VVD has no microphone,
 so use the chips there.

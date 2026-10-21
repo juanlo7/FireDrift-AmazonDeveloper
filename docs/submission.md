@@ -126,8 +126,9 @@ the video.
 
 ## 3. Additional info (for judges)
 
-**Upload a file:** `firedrift-vpkg.zip` with the `x86_64` and `aarch64` app
-packages built against the live stack, plus `INSTALL.txt`.
+**Upload a file:** `firedrift-vpkg.zip` with the release app packages for
+`aarch64`, `x86_64` and `armv7` (device, not tested), built against the live
+stack, plus `INSTALL.txt`.
 
 | Field | Value |
 |---|---|
@@ -232,6 +233,7 @@ Fastest way: install the prebuilt package from the attached firedrift-vpkg.zip o
 These builds talk to our live AWS stack, which stays up until Nov 20, 2026. No account or key is needed.
 
 Keys on the VVD: arrows = D-pad, Enter = OK, Esc = Back.
+0. First run: pick your services, or Skip (FireDrift then uses all of them).
 1. Feed: Up/Down browse, Right = Like, Left = Skip, OK = Watch now (your services for the title). Back opens the menu (Butler, Settings, About).
 2. Butler: open it from the menu. Press "Surprise me", then a chip such as "Something lighter": the butler answers out loud, changes your taste, and shows Undo and Reset.
 3. Settings: services and country.
