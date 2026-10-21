@@ -26,13 +26,16 @@ export interface AppConfig {
   awsRegion: string;
 }
 
+// The URLs and client ID are the public outputs of the shared `FireDrift-dev` stack, which
+// stays up for judging until Nov 20, 2026. Set both modes to 'real' to use it.
 export const config: AppConfig = {
   apiMode: 'mock',
-  apiBaseUrl: '',
+  apiBaseUrl: 'https://au0oai7ui3.execute-api.us-east-1.amazonaws.com',
   apiTimeoutMs: 8000,
   serviceAppOverrides: {},
   butlerMode: 'fake',
-  butlerSocketUrl: '',
-  cognitoClientId: '',
+  butlerSocketUrl:
+    'wss://bedrock-agentcore.us-east-1.amazonaws.com/runtimes/arn:aws:bedrock-agentcore:us-east-1:380301678488:runtime/firedrift_butler_FireDrift_dev-PtFBk3EIRJ/ws',
+  cognitoClientId: '1estri2tochp2rnh5m17sjifus',
   awsRegion: 'us-east-1',
 };
