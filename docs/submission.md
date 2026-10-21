@@ -318,5 +318,5 @@ Claude Code (Claude models) to write and review code, tests and docs; everything
 - [x] Total AWS spend (Cost Explorer): $1.87, Oct 1 to Oct 21.
 - [x] Demo video on YouTube, link here and in the README.
 - [x] Prebuilt `.vpkg` against the live stack.
-- [ ] P1 and P3 check their product feedback.
+- [x] P1 and P3 check their product feedback.
 - [x] Repository public, `LICENSE` in "About".
