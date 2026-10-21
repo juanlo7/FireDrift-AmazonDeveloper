@@ -8,7 +8,7 @@ runs on the simulator or device (`CLAUDE.md`, "Done means checked").
 - Devpost project: `FireDrift` (team: juanlo7, JJavierBS, wall3n).
 - Track: Fire TV. Mini challenges: AWS Builder and Open Source.
 - Repository: <https://github.com/juanlo7/FireDrift-AmazonDeveloper> (public, MIT).
-- Demo video: **TODO** YouTube link.
+- Demo video: <https://youtu.be/6VNLfnK9X84>.
 
 ## 1. Project overview
 
@@ -122,7 +122,7 @@ the video.
 
 ### Video demo link
 
-**TODO** YouTube link.
+<https://youtu.be/6VNLfnK9X84>
 
 ## 3. Additional info (for judges)
 
@@ -225,7 +225,8 @@ Format: task | steps | expected vs actual | severity | workaround | suggestion
 ### Project testing instructions (optional)
 
 ```text
-Video: TODO. Repository: https://github.com/juanlo7/FireDrift-AmazonDeveloper (README, "Run the app on the Vega Virtual Device").
+Video: https://youtu.be/6VNLfnK9X84
+Repository: https://github.com/juanlo7/FireDrift-AmazonDeveloper (README, "Run the app on the Vega Virtual Device").
 
 Fastest way: install the prebuilt package from the attached firedrift-vpkg.zip on the Vega Virtual Device (Vega SDK 0.24):
 - Apple Silicon Mac: vega run-app app_aarch64.vpkg com.firedrift.app.main -d VirtualDevice
@@ -313,7 +314,7 @@ Claude Code (Claude models) to write and review code, tests and docs; everything
 - [x] Feature freeze and features checked on the simulator (Oct 19).
 - [x] Cost per butler turn (#51).
 - [x] Total AWS spend (Cost Explorer): $1.87, Oct 1 to Oct 21.
-- [ ] Demo video on YouTube, link here and in the README.
-- [ ] Prebuilt `.vpkg` against the live stack.
+- [x] Demo video on YouTube, link here and in the README.
+- [x] Prebuilt `.vpkg` against the live stack.
 - [ ] P1 and P3 check their product feedback.
 - [x] Repository public, `LICENSE` in "About".

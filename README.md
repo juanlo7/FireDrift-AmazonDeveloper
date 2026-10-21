@@ -13,7 +13,7 @@ what to watch. Two ways in, both with the remote:
 It complements streaming services; it does not replace them. Built for the
 Amazon Developer Hackathon 2026, Fire TV track. Docs: `docs/`.
 
-**Demo video (2:29):** VIDEO_URL
+**Demo video (2:29):** <https://youtu.be/6VNLfnK9X84>
 
 ## Try it on our live stack (judges)
 
